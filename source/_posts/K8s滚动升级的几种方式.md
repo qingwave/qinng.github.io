@@ -1,6 +1,6 @@
 ---
 title: K8s升级的几种方式
-date: 2019-02-12 17:46:27
+date: 2018-09-07 17:46:27
 tags:
     - k8s
 categories:

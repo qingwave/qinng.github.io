@@ -1,6 +1,6 @@
 ---
 title: k8s节点资源不足时指定nodeName的replicaset会创建大量pod(显示OutOfcpu/OutOfmem)
-date: 2019-02-12 11:06:10
+date: 2019-01-18 11:06:10
 tags:
     - k8s
 categories:

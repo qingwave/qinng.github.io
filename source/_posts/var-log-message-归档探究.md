@@ -1,6 +1,6 @@
 ---
 title: /var/log/message 归档探究
-date: 2019-02-12 13:51:52
+date: 2018-09-27 13:51:52
 tags:
     - linux
 categories:

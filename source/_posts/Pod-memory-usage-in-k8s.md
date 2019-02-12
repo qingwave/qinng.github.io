@@ -1,6 +1,6 @@
 ---
 title: Pod memory usage in k8s
-date: 2019-02-12 12:42:15
+date: 2018-11-15 12:42:15
 tags:
     - k8s
 categories:

@@ -1,6 +1,6 @@
 ---
 title: Pod一直显示Terminating
-date: 2019-02-12 10:41:03
+date: 2018-10-26 10:41:03
 tags:
     - k8s
 categories:

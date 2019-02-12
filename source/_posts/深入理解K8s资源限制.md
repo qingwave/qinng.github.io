@@ -1,6 +1,6 @@
 ---
 title: 深入理解K8s资源限制
-date: 2019-02-12 16:34:33
+date: 2019-01-09 16:34:33
 tags:
     - k8s
 categories:
