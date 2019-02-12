@@ -111,3 +111,24 @@ jsonContent:
     excerpt: false
     categories: false
     tags: true
+
+# Algolia Search API Key
+algolia:
+  appId: 
+  apiKey: 
+  adminApiKey: 
+  indexName: blog
+  chunkSize: 5000
+  fields:
+    - content:strip:truncate,0,500
+    - excerpt:strip
+    - gallery
+    - permalink
+    - photos
+    - slug
+    - tags
+
+search:
+  path: search.xml
+  field: post
+  content: true

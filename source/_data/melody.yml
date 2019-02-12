@@ -52,6 +52,7 @@ social:
   #icon_name: url
   github: https://github.com/qingwave
   rss: /atom.xml
+  envelope-square fas: mailto:isguory@gmail.com
 
 # Algolia search
 # ---------------
@@ -64,12 +65,14 @@ algolia_search:
     hits_empty: "We didn't find any results for the search: ${query}" # if there are no result
     hits_stats: "${hits} results found in ${time} ms"
 
-
 # Local search
 # Please see doc for more details: https://molunerfinn.com/hexo-theme-melody-doc/#/third-party-support?id=local-search
 # ---------------
 local_search:
   enable: true
+  trigger: 
+  top_n_per_article: 3
+  unescape: false
   labels:
     input_placeholder: Search for Posts
     hits_empty: "We didn't find any results for the search: ${query}" # if there are no result
