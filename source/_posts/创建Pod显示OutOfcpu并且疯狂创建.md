@@ -23,7 +23,7 @@ https://github.com/kubernetes/kubernetes/issues/38806
 分配到节点上显示资源不足，状态变为outofcpu/outofmem，k8s判断replicaset没有检测到期望pod的状态，会重新再起一个pod，而原pod不会主动删除，致使创建大量pod
 ## 附件
 测试yaml
-```
+```yaml
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:

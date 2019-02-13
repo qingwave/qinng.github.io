@@ -17,7 +17,7 @@ categories:
 
 资源限制是通过每个容器containerSpec的resources字段进行设置的，它是v1版本的ResourceRequirements类型的API对象。每个指定了"limits"和"requests"的对象都可以控制对应的资源。目前只有CPU和内存两种资源。第三种资源类型，持久化存储仍然是beta版本，我会在以后的博客里进行分析。大多数情况下，deployment、statefulset、daemonset的定义里都包含了podSpec和多个containerSpec。这里有个完整的v1资源对象的yaml格式配置： 
 
-```
+```yaml
 resources:  
     requests:    
         cpu: 50m
@@ -33,7 +33,7 @@ resources:
 
 通常情况下分析内存要比分析CPU简单一些，所以我从这里开始着手。我的一个目标是给大家展示内存在系统中是如何实现的，也就是Kubernetes对容器运行时（docker/containerd）所做的工作，容器运行时对Linux内核所做的工作。从分析内存资源限制开始也为后面分析CPU打好了基础。首先，让我们回顾一下前面的例子： 
 
-```
+```yaml
 resources:  
     requests:    
         memory: 50Mi
@@ -139,7 +139,7 @@ $ sudo cat /sys/fs/cgroup/memory/kubepods/burstable/pod88f89108-daf7-11e8-b1e1-4
 ### CPU限制
 CPU 资源限制比内存资源限制更复杂，原因将在下文详述。幸运的是 CPU 资源限制和内存资源限制一样都是由 cgroup 控制的，上文中提到的思路和工具在这里同样适用，我们只需要关注他们的不同点就行了。首先，让我们将 CPU 资源限制添加到之前示例中的 yaml：
 
-```
+```yaml
 resources:
   requests:
     memory: 50Mi
@@ -278,7 +278,7 @@ $ echo 50000 > cpu.cfs_period_us /* period = 50ms */
 ## 默认限制
 通过上文的讨论大家已经知道了忽略资源限制会对 Pod 产生负面影响，因此你可能会想，如果能够配置某个 namespace 默认的 request 和 limit 值就好了，这样每次创建新 Pod 都会默认加上这些限制。Kubernetes 允许我们通过 LimitRange 资源对每个命名空间设置资源限制。要创建默认的资源限制，需要在对应的命名空间中创建一个 LimitRange 资源。下面是一个例子：
 
-```
+```yaml
 apiVersion: v1
 kind: LimitRange
 metadata:
@@ -306,7 +306,7 @@ spec:
 - max 和 min 字段比较特殊，如果设置了这两个字段，那么只要这个命名空间中的 Pod 设置的 limits 和 requests 超过了这个上限和下限，就不会允许这个 Pod 被创建。我暂时还没有发现这两个字段的用途，如果你知道，欢迎在留言告诉我。
 - LimitRange 中设定的默认值最后由 Kubernetes 中的准入控制器 LimitRanger 插件来实现。准入控制器由一系列插件组成，它会在 API 接收对象之后创建 Pod 之前对 Pod 的 Spec - 字段进行修改。对于 LimitRanger 插件来说，它会检查每个 Pod 是否设置了 limits 和 requests，如果没有设置，就给它配置 LimitRange 中设定的默认值。通过检查 Pod 中的 annotations 注释，你可以看到 LimitRanger 插件已经在你的 Pod 中设置了默认值。例如：
 
-```
+```yaml
 apiVersion: v1
 kind: Pod
 metadata:
