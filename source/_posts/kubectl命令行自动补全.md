@@ -4,7 +4,7 @@ date: 2018-08-12 13:09:12
 tags:
     - k8s
 categories:
-    - k8s
+    - cloud
 ---
 ```
 source <(kubectl completion bash)

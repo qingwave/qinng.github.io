@@ -5,7 +5,7 @@ tags:
     - k8s
     - prometheus
 categories:
-    - k8s
+    - cloud
 ---
 ## 背景
 单个Prometheus Server可以轻松的处理数以百万的时间序列。但当机器规模过大时，需要对其进行分区，Prometheus也提供了集群联邦的功能，方便对其扩展。

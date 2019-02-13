@@ -4,7 +4,7 @@ date: 2018-10-26 10:41:03
 tags:
     - k8s
 categories:
-    - k8s
+    - cloud
 ---
 ## 问题
 集群中有一个pod一直显示Terminating

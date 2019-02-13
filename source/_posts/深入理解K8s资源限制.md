@@ -3,8 +3,10 @@ title: 深入理解K8s资源限制
 date: 2019-01-09 16:34:33
 tags:
     - k8s
+    - docker 
+    - cgroup
 categories:
-    - k8s
+    - cloud
 ---
 
 ## 写在前面

@@ -4,7 +4,7 @@ date: 2019-01-18 11:06:10
 tags:
     - k8s
 categories:
-    - k8s
+    - cloud
 ---
 ## 环境
 k8s: 1.10.2

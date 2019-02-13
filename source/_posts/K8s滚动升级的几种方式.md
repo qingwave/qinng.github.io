@@ -4,7 +4,7 @@ date: 2018-09-07 17:46:27
 tags:
     - k8s
 categories:
-    - k8s
+    - cloud
 ---
 对于已经运行的deploy，有以下几种升级方式
 ### kubectl升级方式

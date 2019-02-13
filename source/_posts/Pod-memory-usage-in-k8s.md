@@ -2,9 +2,11 @@
 title: Pod memory usage in k8s
 date: 2018-11-15 12:42:15
 tags:
-    - k8s
+	- k8s
+	- docker
+	- cadvisor
 categories:
-    - k8s
+    - cloud
 ---
 ## Cadvisor内存使用率指标
 ### Cadvisor中有关pod内存使用率的指标

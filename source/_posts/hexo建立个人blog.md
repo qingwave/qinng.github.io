@@ -4,7 +4,7 @@ date: 2019-02-01 21:04:04
 tags:
     - blog
 categories:
-    - 其他
+    - 杂记
 ---
 学到的分享出来才更有意义，春节前事不多使用hexo建立了个人blog，记录下。
 ## gitlab pages
