@@ -213,7 +213,7 @@ disqus:
   # client_secret: 
 
 gitalk:
-  enable: true
+  enable: false
   client_id: a705189dfc18ec59a7d0
   client_secret: 17415910b55e24cdb8c1c8d72bc992a0457f193b
   repo: qingwave.github.io
@@ -224,17 +224,17 @@ gitalk:
 #   js: https://cdn.jsdelivr.net/gh/upupming/gitalk@36368e5dffd049e956cdbbd751ff96c28d8255cf/dist/gitalk.min.js
 
 # valine comment system. https://valine.js.org
-# valine:
-#   enable: false # if you want use valine,please set this value is ture
-#   appId:  # leancloud application app id
-#   appKey:  # leancloud application app key
-#   notify: false # valine mail notify (true/false) https://github.com/xCss/Valine/wiki
-#   verify: false # valine verify code (true/false)
-#   pageSize: 10 # comment list page size
-#   avatar: mm # gravatar style https://valine.js.org/#/avatar
-#   lang: zh-cn # i18n: zh-cn/en
-#   placeholder: Just go go # valine comment input placeholder(like: Please leave your footprints )
-#   guest_info: nick,mail,link #valine comment header inf
+valine:
+  enable: true # if you want use valine,please set this value is ture
+  appId:  QCL8S09vqhYFpH0Bj8ESmjqG-gzGzoHsz # leancloud application app id
+  appKey: KOWmXua9brRjj9grxbk56AAa # leancloud application app key
+  notify: false # valine mail notify (true/false) https://github.com/xCss/Valine/wiki
+  verify: false # valine verify code (true/false)
+  pageSize: 10 # comment list page size
+  avatar: mm # gravatar style https://valine.js.org/#/avatar
+  lang: zh-cn # i18n: zh-cn/en
+  placeholder: Just go go # valine comment input placeholder(like: Please leave your footprints )
+  guest_info: nick,mail,link #valine comment header inf
 
 # Footer Settings
 # ---------------
