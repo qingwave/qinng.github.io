@@ -100,7 +100,7 @@ fireworks: false
 # ---------------
 baidu_analytics: 
 
-google_analytics:
+google_analytics: UA-134548083-1
 # stylesheets loaded in the <head>
 # ---------------
 stylesheets:
