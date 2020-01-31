@@ -1,6 +1,6 @@
 ---
 title: apline 容器中执行shell脚本报错 executable file not found
-date: 2019-04-18 16:14:58
+date: 2018-09-16 16:14:58
 tags:
     - k8s
     - docker

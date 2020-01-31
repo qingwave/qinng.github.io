@@ -13,7 +13,7 @@ categories:
 
 ## 探究
 
-查看宿主机`top`,`1`显示每个cpu使用信息。查看最高的cpu占用是lxcfs造成的。
+查看宿主机(内核 4.9.2)`top`,`1`显示每个cpu使用信息。查看最高的cpu占用是lxcfs造成的。
 
 `strace`查看lxcfs调用
 ```bash
@@ -92,14 +92,15 @@ user	0m0.000s
 sys	0m2.484s
 ```
 
-主要原因是产生了某些僵尸cgroup(比如反复启动，进程不存在了，但cgroup还没来得及回收，cgroup会反复计算这些cgroup的内存会占用)，导致cpu使用增加[相关issue](https://github.com/google/cadvisor/issues/1774#issuecomment-406314361)
+主要原因是产生了某些僵尸cgroup(比如反复启动，进程不存在了，但cgroup还没来得及回收，cgroup会反复计算这些cgroup的内存会占用)，导致cpu使用增加[相关issue](https://github.com/google/cadvisor/issues/1774#issuecomment-406314361) 以及[thread](https://lkml.org/lkml/2018/7/3/101)
 
 ## 解决
 
-根本原因目前还不能确定，需要进一步分析，临时解决办法，通过手动释放内存
+根本原因还需要进一步分析，临时解决办法，通过手动释放内存
 
 ```
 echo 2 > /proc/sys/vm/drop_caches
 ```
-释放会，果然系统cpu逐渐恢复正常了，从falcon查看cpu确实下降了
+
+释放后，果然系统cpu逐渐恢复正常了，从falcon查看cpu确实下降了
 ![lxcf-cpu](/img/blogImg/lxcfs-cpu.png)

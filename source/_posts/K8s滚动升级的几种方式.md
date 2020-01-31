@@ -1,5 +1,5 @@
 ---
-title: K8s升级的几种方式
+title: Deployment升级的几种方式
 date: 2018-09-07 17:46:27
 tags:
     - k8s

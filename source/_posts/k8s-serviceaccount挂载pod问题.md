@@ -1,6 +1,6 @@
 ---
 title: k8s serviceaccount挂载pod问题
-date: 2019-02-26 12:31:27
+date: 2018-09-26 12:31:27
 tags:
     - k8s
 categories:
