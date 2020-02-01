@@ -12,7 +12,8 @@ clean:
 deploy: clean
 	hexo deploy -g
 
+msg="add new file"
 push: deploy
 	git add .
-	git commit -m "add new file"
+	git commit -m $(msg)
 	git push

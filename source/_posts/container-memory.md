@@ -193,7 +193,7 @@ CONTAINER ID        NAME                                                        
 57ba1991ab4b        k8s...default_21a55da5-f9f8-11e9-b051-fa163e7e981a_0   0.00%               2.148MiB / 1GiB     0.21%               12MB / 68.8MB       0B / 0B             2
 ```
 
-# 结论
+## 结论
 实际环境中，docker与k8s两种内存表示方式不同，一般`docker stat`总体值会小于`kubectl top`
 - docker中内存表示为：
 `memory.usage = memory.usage_in_bytes - cache`
