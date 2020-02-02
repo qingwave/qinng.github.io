@@ -83,6 +83,7 @@ password include system-auth
 session include system-auth #认证失败出现在这步
 session optional pam_xauth.so
 ```
+
 3. system-auth 真实内容存放在 system-auth-ac，内容为
 ```sh
 # User changes will be destroyed the next time authconfig is run.
@@ -106,6 +107,7 @@ session required pam_limits.so # limit 认证
 session [success=1 default=ignore] pam_succeed_if.so service in crond quiet use_uid
 session required pam_unix.so 
 ```
+
 4. system-auth调用pam_limit.so认证，并且类型为required，及若认证失败则继续执行最后返回失败信息
 
 5. pam_limit会调用getrlimit获取当前ulimit信息，通过读取/etc/security/limits.conf，调用setrlimit设置ulimit，并且setrlimit有一定限制

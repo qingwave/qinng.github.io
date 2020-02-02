@@ -2,9 +2,9 @@
 title: hexo建立个人blog
 date: 2018-07-02 21:04:04
 tags:
-    - blog
+    - hexo
 categories:
-    - 杂记
+    - tool
 ---
 学到的分享出来才更有意义，春节前事不多使用hexo建立了个人blog，记录下。
 ## gitlab pages

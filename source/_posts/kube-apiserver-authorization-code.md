@@ -5,9 +5,11 @@ tags:
 - k8s
 categories:
 - cloud
+top: true
+cover: true
 ---
 ## 简介
-kube-apiServer中与权限相关的主要有三种机制，即认证、鉴权和准入控制。本文主要分析apiserver的认证流程。
+kube-apiserver中与权限相关的主要有三种机制，即认证、鉴权和准入控制。本文主要分析apiserver的认证流程。
 
 ## 认证流程分析
 

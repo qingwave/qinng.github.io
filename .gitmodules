@@ -1,3 +1,6 @@
 [submodule "themes/melody"]
 	path = themes/melody
 	url = git@github.com:qingwave/hexo-theme-melody.git
+[submodule "themes/matery"]
+	path = themes/matery
+	url = git@github.com:qingwave/hexo-theme-matery.git

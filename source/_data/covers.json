@@ -1,0 +1,20 @@
+[
+    {
+        "title": "kube-apiserver认证源码分析",
+        "path": "/kube-apiserver-authorization-code",
+        "coverImg": "",
+        "summary": "通过分析apiserver源码探究认证流程以及注意事项"
+    },
+    {
+        "title": "k8s基于资源锁的选主分析",
+        "path": "/k8s-leaderelection-code",
+        "coverImg": "",
+        "summary": "k8s采用了资源版本号的乐观锁方式来实现选主，通过源码分析选主流程"
+    },
+    {
+        "title": "Prometheus分区实践",
+        "path": "/prometheus-federation",
+        "coverImg": "",
+        "summary": "大规模集群下Prometheus落地指北"
+    }
+]
