@@ -157,7 +157,7 @@ douban:
   timeout: 10000
 
 githubEmojis:
-  enable: true
+  enable: false
   className: github-emoji
   inject: true
   styles:
