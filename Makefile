@@ -4,7 +4,7 @@ server:
 
 init:
 	git submodule update --init --recursive
-	sudo npm install
+	npm install
 
 clean:
 	hexo clean
