@@ -76,23 +76,24 @@ $ docker run -d --ulimit nofile=100:200  cr.d.xiaomi.net/containercloud/alpine:w
 -r: real-time priority             0
 ```
 3. 使用ab测试，并发90个http请求，创建90个socket，正常运行
-```
-/ #  ab -n 1000000 -c 90 http://61.135.169.125:80/ &
+```bash
+/ # ab -n 1000000 -c 90 http://61.135.169.125:80/ &
 / # lsof | wc -l 
 108
 / # lsof | grep -c ab
 94
 ```
-4. 并发100个http请求，受到ulimit限制
-```
-/ #  ab -n 1000000 -c 100 http://61.135.169.125:80/
-This is ApacheBench, Version 2.3 <$Revision: 1843412 $>
-Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
-Licensed to The Apache Software Foundation, http://www.apache.org/
 
-Benchmarking 61.135.169.125 (be patient)
-socket: No file descriptors available (24)
-```
+4. 并发100个http请求，受到ulimit限制
+    ```bash
+    / #  ab -n 1000000 -c 100 http://61.135.169.125:80/
+    This is ApacheBench, Version 2.3 <$Revision: 1843412 $>
+    Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+    Licensed to The Apache Software Foundation, http://www.apache.org/
+
+    Benchmarking 61.135.169.125 (be patient)
+    socket: No file descriptors available (24)
+    ```
 
 #### 线程限制
 ```
@@ -279,55 +280,53 @@ limits.conf是ulimit的具体配置，目录项/etc/security/limit.d/中的配�
 sysctl.conf为机器级别的资源限制，root用户可修改，目录项/etc/security/sysctl.d/中的配置会覆盖sysctl.conf，在/etc/sysctl.conf中添加对应配置（fd: fs.file-max = {}; pid: kernel.pid_max = {}）
 
 1. 测试容器中修改sysctl.conf文件
-```
-$ docker run -d --ulimit nofile=100:200 cr.d.xiaomi.net/containercloud/alpine:webtool top
-cb1250c8fd217258da51c6818fa2ce2e2f6e35bf1d52648f1f432e6ce579cf0d
-$ docker exec -it cb1250c sh
+    ```
+    $ docker run -d --ulimit nofile=100:200 cr.d.xiaomi.net/containercloud/alpine:webtool top
+    cb1250c8fd217258da51c6818fa2ce2e2f6e35bf1d52648f1f432e6ce579cf0d
+    $ docker exec -it cb1250c sh
 
-/ # ulimit -a
--f: file size (blocks)             unlimited
--t: cpu time (seconds)             unlimited
--d: data seg size (kb)             unlimited
--s: stack size (kb)                8192
--c: core file size (blocks)        unlimited
--m: resident set size (kb)         unlimited
--l: locked memory (kb)             64
--p: processes                      unlimited
--n: file descriptors               100
--v: address space (kb)             unlimited
--w: locks                          unlimited
--e: scheduling priority            0
--r: real-time priority             0
-/ # 
-/ # echo 10 > /proc/sys/kernel/pid_max
-sh: can't create /proc/sys/kernel/pid_max: Read-only file system
-/ # echo 10 > /proc/sys/kernel/pid_max
-sh: can't create /proc/sys/kernel/pid_max: Read-only file system
-/ # echo "fs.file-max=5" >> /etc/sysctl.conf
-/ # sysctl -p
-sysctl: error setting key 'fs.file-max': Read-only file system
-```
-
+    / # ulimit -a
+    -f: file size (blocks)             unlimited
+    -t: cpu time (seconds)             unlimited
+    -d: data seg size (kb)             unlimited
+    -s: stack size (kb)                8192
+    -c: core file size (blocks)        unlimited
+    -m: resident set size (kb)         unlimited
+    -l: locked memory (kb)             64
+    -p: processes                      unlimited
+    -n: file descriptors               100
+    -v: address space (kb)             unlimited
+    -w: locks                          unlimited
+    -e: scheduling priority            0
+    -r: real-time priority             0
+    / # 
+    / # echo 10 > /proc/sys/kernel/pid_max
+    sh: can't create /proc/sys/kernel/pid_max: Read-only file system
+    / # echo 10 > /proc/sys/kernel/pid_max
+    sh: can't create /proc/sys/kernel/pid_max: Read-only file system
+    / # echo "fs.file-max=5" >> /etc/sysctl.conf
+    / # sysctl -p
+    sysctl: error setting key 'fs.file-max': Read-only file system
+    ```
 2. 以priviledged模式测试，谨慎测试
-```
-$ cat /proc/sys/kernel/pid_max
-32768
-$ docker run -d -- --ulimit nofile=100:200 cr.d.xiaomi.net/containercloud/alpine:webtool top
-$ docker exec -it pedantic_vaughan sh
-/ # cat /proc/sys/kernel/pid_max
-32768
-/ # echo 50000 > /proc/sys/kernel/pid_max
-/ # cat /proc/sys/kernel/pid_max
-50000
-/ # exit
-$ cat /proc/sys/kernel/pid_max
-50000 # 宿主机的文件也变成50000
-```
+    ```
+    $ cat /proc/sys/kernel/pid_max
+    32768
+    $ docker run -d -- --ulimit nofile=100:200 cr.d.xiaomi.net/containercloud/alpine:webtool top
+    $ docker exec -it pedantic_vaughan sh
+    / # cat /proc/sys/kernel/pid_max
+    32768
+    / # echo 50000 > /proc/sys/kernel/pid_max
+    / # cat /proc/sys/kernel/pid_max
+    50000
+    / # exit
+    $ cat /proc/sys/kernel/pid_max
+    50000 # 宿主机的文件也变成50000
+    ```
 
 3. 总结
 由于docker隔离的不彻底，在docker中修改sysctl会覆盖主机中的配置，不能用来实现容器级别资源限制
 limits.conf可以在容器中设置，效果同ulimit
-
 
 ## 结论
 ![pod-fd-limit](/img/blogImg/pod-fd-limit.png)

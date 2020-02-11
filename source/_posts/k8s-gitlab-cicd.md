@@ -1,5 +1,5 @@
 ---
-title: k8s-gitlab-cicd
+title: k8s+gitlab实现cicd
 author: qinng
 toc: true
 tags:
