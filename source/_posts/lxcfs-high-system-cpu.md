@@ -1,5 +1,6 @@
 ---
-title: lxcfs high system cpu
+title: cgroup引起的应用延迟
+subtitle: lxcfs/cadvisor cpu使用率高
 date: 2019-11-13 17:42:06
 tags:
     - k8s
@@ -98,8 +99,13 @@ sys	0m2.484s
 
 根本原因还需要进一步分析，临时解决办法，通过手动释放内存
 
-```
+```bash
 echo 2 > /proc/sys/vm/drop_caches
+```
+
+如果没效果可尝试
+```bash
+echo 3 > /proc/sys/vm/drop_caches
 ```
 
 释放后，果然系统cpu逐渐恢复正常了，从falcon查看cpu确实下降了
