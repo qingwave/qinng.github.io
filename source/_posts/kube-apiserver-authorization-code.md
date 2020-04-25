@@ -1,15 +1,23 @@
 ---
-title: kube-apiserver认证源码分析
-date: 2020-01-31 16:54:14
+title: kube-apiserver鉴权源码分析
+date: 2020-04-23 16:54:14
 tags:
 - k8s
+- rbac
 categories:
 - cloud
 top: true
 cover: true
 ---
 ## 简介
-kube-apiserver中与权限相关的主要有三种机制，即认证、鉴权和准入控制。本文主要分析apiserver的认证流程。
+kube-apiserver中与权限相关的主要有三种机制，即认证、鉴权和准入控制。上节讲到[认证流程](./kube-apiserver-authentication-code.md)。
+
+认证与授权很容易混淆：
+- 认证(Authentication), 负责检查你是谁，识别user
+- 授权(Authorization), 你能做什么，是否允许User对资源的操作
+- 审计(Audit), 负责记录操作信息，方便后续审查
+
+本文主要分析apiserver的rbac授权流程。
 
 ## 认证流程分析
 
@@ -33,255 +41,232 @@ func DefaultBuildHandlerChain(apiHandler http.Handler, c *Config) http.Handler {
 }
 ```
 
-`DefaultBuildHandlerChain`中包含了多种filter（如认证，链接数检验，RBAC权限检验等），认证步骤在`WithAuthorization`中，如下：
+`DefaultBuildHandlerChain`中包含了多种filter（如认证，链接数检验，RBAC权限检验等），授权步骤在`WithAuthorization`中，如下：
 
 ```go
-// WithAuthentication creates an http handler that tries to authenticate the given request as a user, and then
-// stores any such user found onto the provided context for the request. If authentication fails or returns an error
-// the failed handler is used. On success, "Authorization" header is removed from the request and handler
-// is invoked to serve the request.
-func WithAuthentication(handler http.Handler, auth authenticator.Request, failed http.Handler, apiAuds authenticator.Audiences) http.Handler {
-	if auth == nil {
-		klog.Warningf("Authentication is disabled")
+// WithAuthorizationCheck passes all authorized requests on to handler, and returns a forbidden error otherwise.
+func WithAuthorization(handler http.Handler, a authorizer.Authorizer, s runtime.NegotiatedSerializer) http.Handler {
+	// 检查是否需要权限校验
+	if a == nil {
+		klog.Warningf("Authorization is disabled")
 		return handler
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		authenticationStart := time.Now()
+		ctx := req.Context()
+		// 用作审计
+		ae := request.AuditEventFrom(ctx)
 
-		if len(apiAuds) > 0 {
-			req = req.WithContext(authenticator.WithAudiences(req.Context(), apiAuds))
-        }
-        // 认证请求
-		resp, ok, err := auth.AuthenticateRequest(req)
-		if err != nil || !ok {
-			if err != nil {
-				klog.Errorf("Unable to authenticate the request due to an error: %v", err)
-				authenticatedAttemptsCounter.WithLabelValues(errorLabel).Inc()
-				authenticationLatency.WithLabelValues(errorLabel).Observe(time.Since(authenticationStart).Seconds())
-			} else if !ok {
-				authenticatedAttemptsCounter.WithLabelValues(failureLabel).Inc()
-				authenticationLatency.WithLabelValues(failureLabel).Observe(time.Since(authenticationStart).Seconds())
-			}
-
-			failed.ServeHTTP(w, req)
+		// 获取Attribute, 通过reqeust获取到请求的user, resource, verb, 是否为namespace级别的等
+		attributes, err := GetAuthorizerAttributes(ctx)
+		if err != nil {
+			responsewriters.InternalError(w, req, err)
+			return
+		}
+		// 执行认证流程
+		authorized, reason, err := a.Authorize(ctx, attributes)
+		// an authorizer like RBAC could encounter evaluation errors and still allow the request, so authorizer decision is checked before error here.
+		if authorized == authorizer.DecisionAllow {
+			audit.LogAnnotation(ae, decisionAnnotationKey, decisionAllow)
+			audit.LogAnnotation(ae, reasonAnnotationKey, reason)
+			// 校验成功，记录信息，转到下一个handler
+			handler.ServeHTTP(w, req)
+			return
+		}
+		if err != nil {
+			audit.LogAnnotation(ae, reasonAnnotationKey, reasonError)
+			responsewriters.InternalError(w, req, err)
 			return
 		}
 
-		if len(apiAuds) > 0 && len(resp.Audiences) > 0 && len(authenticator.Audiences(apiAuds).Intersect(resp.Audiences)) == 0 {
-			klog.Errorf("Unable to match the audience: %v , accepted: %v", resp.Audiences, apiAuds)
-			failed.ServeHTTP(w, req)
-			return
-		}
-
-        // authorization header is not required anymore in case of a successful authentication.
-        // 认证完则删除header认证信息，exec/log请求将不会携带Authorization，只使用token认证将无法通过
-		req.Header.Del("Authorization")
-
-		req = req.WithContext(genericapirequest.WithUser(req.Context(), resp.User))
-
-		authenticatedUserCounter.WithLabelValues(compressUsername(resp.User.GetName())).Inc()
-		authenticatedAttemptsCounter.WithLabelValues(successLabel).Inc()
-		authenticationLatency.WithLabelValues(successLabel).Observe(time.Since(authenticationStart).Seconds())
-
-		handler.ServeHTTP(w, req)
+		// 校验失败返回403，注意认证失败返回的是401
+		klog.V(4).Infof("Forbidden: %#v, Reason: %q", req.RequestURI, reason)
+		audit.LogAnnotation(ae, decisionAnnotationKey, decisionForbid)
+		audit.LogAnnotation(ae, reasonAnnotationKey, reason)
+		responsewriters.Forbidden(ctx, attributes, w, req, reason, s)
 	})
 }
 ```
+授权流程比较清晰，从request获取请求信息，进行鉴权，成功进入后续handler，失败返回403。
 
-`WithAuthentication`调用`AuthenticateRequest`进行认证：
+`Authorize`接口有多种实现，通过在apiserver配置`--authorization-mode`选择鉴权模式，包括：
+- ABAC
+- RBAC
+- Node, 用于kubelet鉴权exec/logs等
+- AlwaysAllow
+- AlwaysDeny
+- Webhook， 用于扩展权限，用户可实现Webhook与其他权限系统集成
+
+如果选择`AlwaysAllow`,即不做鉴权, 开启后强制不允许匿名用户
 ```go
-// AuthenticateRequest authenticates the request using a chain of authenticator.Request objects.
-func (authHandler *unionAuthRequestHandler) AuthenticateRequest(req *http.Request) (*authenticator.Response, bool, error) {
-    var errlist []error
-    // 按照Handlers顺序进行认证
-    for _, currAuthRequestHandler := range authHandler.Handlers {
-        resp, ok, err := currAuthRequestHandler.AuthenticateRequest(req)
-        if err != nil {
-            if authHandler.FailOnError {
-                return resp, ok, err
-            }
-            errlist = append(errlist, err)
-            continue
-        }
- 
-        // 只要有一个认证成功，则返回  
-        if ok {
-            return resp, ok, err
-        }
-    }
- 
-    return nil, false, utilerrors.NewAggregate(errlist)
+// ApplyAuthorization will conditionally modify the authentication options based on the authorization options
+func (o *BuiltInAuthenticationOptions) ApplyAuthorization(authorization *BuiltInAuthorizationOptions) {
+	if o == nil || authorization == nil || o.Anonymous == nil {
+		return
+	}
+
+	// authorization ModeAlwaysAllow cannot be combined with AnonymousAuth.
+	// in such a case the AnonymousAuth is stomped to false and you get a message
+	if o.Anonymous.Allow && sets.NewString(authorization.Modes...).Has(authzmodes.ModeAlwaysAllow) {
+		klog.Warningf("AnonymousAuth is not allowed with the AlwaysAllow authorizer. Resetting AnonymousAuth to false. You should use a different authorizer")
+		o.Anonymous.Allow = false
+	}
 }
 ```
 
-根据认证逻辑，会按照`authHandler.Handlers`顺序进行检验，只要有一个认证成功则返回。`Handlers`的定义在
+## rbac鉴权
+rbac是常用的鉴权方式，实现`Authorize`接口, 代码在[rbac.go](https://github.com/kubernetes/kubernetes/blob/92eb072989eba22236d034b56cc2bf159dfb4915/plugin/pkg/auth/authorizer/rbac/rbac.go#L75)
 ```go
-// New returns a request authenticator that validates credentials using a chain of authenticator.Request objects.
-// The entire chain is tried until one succeeds. If all fail, an aggregate error is returned.
-func New(authRequestHandlers ...authenticator.Request) authenticator.Request {
-	if len(authRequestHandlers) == 1 {
-		return authRequestHandlers[0]
+func (r *RBACAuthorizer) Authorize(ctx context.Context, requestAttributes authorizer.Attributes) (authorizer.Decision, string, error) {
+	ruleCheckingVisitor := &authorizingVisitor{requestAttributes: requestAttributes}
+	// 调用VisitRulesFor来检查是否用权限
+	r.authorizationRuleResolver.VisitRulesFor(requestAttributes.GetUser(), requestAttributes.GetNamespace(), ruleCheckingVisitor.visit)
+	if ruleCheckingVisitor.allowed {
+		// 成功直接返回
+		return authorizer.DecisionAllow, ruleCheckingVisitor.reason, nil
 	}
-	return &unionAuthRequestHandler{Handlers: authRequestHandlers, FailOnError: false}
+
+	// 失败，打印日志返回失败原因
+	// Build a detailed log of the denial.
+	// Make the whole block conditional so we don't do a lot of string-building we won't use.
+	if klog.V(5) {
+		var operation string
+		if requestAttributes.IsResourceRequest() {
+			b := &bytes.Buffer{}
+			b.WriteString(`"`)
+			b.WriteString(requestAttributes.GetVerb())
+			b.WriteString(`" resource "`)
+			b.WriteString(requestAttributes.GetResource())
+			if len(requestAttributes.GetAPIGroup()) > 0 {
+				b.WriteString(`.`)
+				b.WriteString(requestAttributes.GetAPIGroup())
+			}
+			if len(requestAttributes.GetSubresource()) > 0 {
+				b.WriteString(`/`)
+				b.WriteString(requestAttributes.GetSubresource())
+			}
+			b.WriteString(`"`)
+			if len(requestAttributes.GetName()) > 0 {
+				b.WriteString(` named "`)
+				b.WriteString(requestAttributes.GetName())
+				b.WriteString(`"`)
+			}
+			operation = b.String()
+		} else {
+			operation = fmt.Sprintf("%q nonResourceURL %q", requestAttributes.GetVerb(), requestAttributes.GetPath())
+		}
+
+		var scope string
+		if ns := requestAttributes.GetNamespace(); len(ns) > 0 {
+			scope = fmt.Sprintf("in namespace %q", ns)
+		} else {
+			scope = "cluster-wide"
+		}
+
+		klog.Infof("RBAC DENY: user %q groups %q cannot %s %s", requestAttributes.GetUser().GetName(), requestAttributes.GetUser().GetGroups(), operation, scope)
+	}
+
+	reason := ""
+	if len(ruleCheckingVisitor.errors) > 0 {
+		reason = fmt.Sprintf("RBAC: %v", utilerrors.NewAggregate(ruleCheckingVisitor.errors))
+	}
+	return authorizer.DecisionNoOpinion, reason, nil
 }
 ```
 
-最初的定义在`k8s.io/kubernetes/pkg/kubeapiserver/authenticator/config.go`中：
+`Authorize`调用了`VisitRulesFor`来处理具体鉴权操作, 代码在[rule.go](https://github.com/kubernetes/kubernetes/blob/81e9f21f832f88422f1ccf5b8aa90de7cf822132/pkg/registry/rbac/validation/rule.go#L178)
 ```go
-// New returns an authenticator.Request or an error that supports the standard
-// Kubernetes authentication mechanisms.
-func (config Config) New() (authenticator.Request, *spec.SecurityDefinitions, error) {
-	var authenticators []authenticator.Request
-	var tokenAuthenticators []authenticator.Token
-	securityDefinitions := spec.SecurityDefinitions{}
-
-	// front-proxy, BasicAuth methods, local first, then remote
-	// Add the front proxy authenticator if requested
-	if config.RequestHeaderConfig != nil {
-		requestHeaderAuthenticator := headerrequest.NewDynamicVerifyOptionsSecure(
-			config.RequestHeaderConfig.CAContentProvider.VerifyOptions,
-			config.RequestHeaderConfig.AllowedClientNames,
-			config.RequestHeaderConfig.UsernameHeaders,
-			config.RequestHeaderConfig.GroupHeaders,
-			config.RequestHeaderConfig.ExtraHeaderPrefixes,
-		)
-		authenticators = append(authenticators, authenticator.WrapAudienceAgnosticRequest(config.APIAudiences, requestHeaderAuthenticator))
-	}
-
-	// basic auth
-	if len(config.BasicAuthFile) > 0 {
-		basicAuth, err := newAuthenticatorFromBasicAuthFile(config.BasicAuthFile)
-		if err != nil {
-			return nil, nil, err
+func (r *DefaultRuleResolver) VisitRulesFor(user user.Info, namespace string, visitor func(source fmt.Stringer, rule *rbacv1.PolicyRule, err error) bool) {
+	// 获取所有clusterrolebinding
+	if clusterRoleBindings, err := r.clusterRoleBindingLister.ListClusterRoleBindings(); err != nil {
+		if !visitor(nil, nil, err) {
+			return
 		}
-		authenticators = append(authenticators, authenticator.WrapAudienceAgnosticRequest(config.APIAudiences, basicAuth))
-
-		securityDefinitions["HTTPBasic"] = &spec.SecurityScheme{
-			SecuritySchemeProps: spec.SecuritySchemeProps{
-				Type:        "basic",
-				Description: "HTTP Basic authentication",
-			},
+	} else {
+		sourceDescriber := &clusterRoleBindingDescriber{}
+		// 遍历clusterrolebing
+		for _, clusterRoleBinding := range clusterRoleBindings {
+			// 检查是否有对应的user
+			subjectIndex, applies := appliesTo(user, clusterRoleBinding.Subjects, "")
+			if !applies {
+				continue
+			}
+			// 如果user存在于subject, 获取对应的rules即clusterrole
+			rules, err := r.GetRoleReferenceRules(clusterRoleBinding.RoleRef, "")
+			if err != nil {
+				if !visitor(nil, nil, err) {
+					return
+				}
+				continue
+			}
+			sourceDescriber.binding = clusterRoleBinding
+			sourceDescriber.subject = &clusterRoleBinding.Subjects[subjectIndex]
+			for i := range rules {
+				// 调用visitor判断是否需要进入下一步鉴权
+				if !visitor(sourceDescriber, &rules[i], nil) {
+					return
+				}
+			}
 		}
 	}
 
-	// X509 methods
-	if config.ClientCAContentProvider != nil {
-		certAuth := x509.NewDynamic(config.ClientCAContentProvider.VerifyOptions, x509.CommonNameUserConversion)
-		authenticators = append(authenticators, certAuth)
-	}
-
-	// Bearer token methods, local first, then remote
-	if len(config.TokenAuthFile) > 0 {
-		tokenAuth, err := newAuthenticatorFromTokenFile(config.TokenAuthFile)
-		if err != nil {
-			return nil, nil, err
-		}
-		tokenAuthenticators = append(tokenAuthenticators, authenticator.WrapAudienceAgnosticToken(config.APIAudiences, tokenAuth))
-	}
-	if len(config.ServiceAccountKeyFiles) > 0 {
-		serviceAccountAuth, err := newLegacyServiceAccountAuthenticator(config.ServiceAccountKeyFiles, config.ServiceAccountLookup, config.APIAudiences, config.ServiceAccountTokenGetter)
-		if err != nil {
-			return nil, nil, err
-		}
-		tokenAuthenticators = append(tokenAuthenticators, serviceAccountAuth)
-	}
-	if utilfeature.DefaultFeatureGate.Enabled(features.TokenRequest) && config.ServiceAccountIssuer != "" {
-		serviceAccountAuth, err := newServiceAccountAuthenticator(config.ServiceAccountIssuer, config.ServiceAccountKeyFiles, config.APIAudiences, config.ServiceAccountTokenGetter)
-		if err != nil {
-			return nil, nil, err
-		}
-		tokenAuthenticators = append(tokenAuthenticators, serviceAccountAuth)
-	}
-	if config.BootstrapToken {
-		if config.BootstrapTokenAuthenticator != nil {
-			// TODO: This can sometimes be nil because of
-			tokenAuthenticators = append(tokenAuthenticators, authenticator.WrapAudienceAgnosticToken(config.APIAudiences, config.BootstrapTokenAuthenticator))
+	// clusterrole遍历完还没有鉴权成功，接着遍历所在namespace的role，流程同上
+	if len(namespace) > 0 {
+		if roleBindings, err := r.roleBindingLister.ListRoleBindings(namespace); err != nil {
+			if !visitor(nil, nil, err) {
+				return
+			}
+		} else {
+			sourceDescriber := &roleBindingDescriber{}
+			for _, roleBinding := range roleBindings {
+				subjectIndex, applies := appliesTo(user, roleBinding.Subjects, namespace)
+				if !applies {
+					continue
+				}
+				rules, err := r.GetRoleReferenceRules(roleBinding.RoleRef, namespace)
+				if err != nil {
+					if !visitor(nil, nil, err) {
+						return
+					}
+					continue
+				}
+				sourceDescriber.binding = roleBinding
+				sourceDescriber.subject = &roleBinding.Subjects[subjectIndex]
+				for i := range rules {
+					if !visitor(sourceDescriber, &rules[i], nil) {
+						return
+					}
+				}
+			}
 		}
 	}
-	// NOTE(ericchiang): Keep the OpenID Connect after Service Accounts.
-	//
-	// Because both plugins verify JWTs whichever comes first in the union experiences
-	// cache misses for all requests using the other. While the service account plugin
-	// simply returns an error, the OpenID Connect plugin may query the provider to
-	// update the keys, causing performance hits.
-	if len(config.OIDCIssuerURL) > 0 && len(config.OIDCClientID) > 0 {
-		oidcAuth, err := newAuthenticatorFromOIDCIssuerURL(oidc.Options{
-			IssuerURL:            config.OIDCIssuerURL,
-			ClientID:             config.OIDCClientID,
-			APIAudiences:         config.APIAudiences,
-			CAFile:               config.OIDCCAFile,
-			UsernameClaim:        config.OIDCUsernameClaim,
-			UsernamePrefix:       config.OIDCUsernamePrefix,
-			GroupsClaim:          config.OIDCGroupsClaim,
-			GroupsPrefix:         config.OIDCGroupsPrefix,
-			SupportedSigningAlgs: config.OIDCSigningAlgs,
-			RequiredClaims:       config.OIDCRequiredClaims,
-		})
-		if err != nil {
-			return nil, nil, err
-		}
-		tokenAuthenticators = append(tokenAuthenticators, oidcAuth)
-	}
-	if len(config.WebhookTokenAuthnConfigFile) > 0 {
-		webhookTokenAuth, err := newWebhookTokenAuthenticator(config.WebhookTokenAuthnConfigFile, config.WebhookTokenAuthnVersion, config.WebhookTokenAuthnCacheTTL, config.APIAudiences)
-		if err != nil {
-			return nil, nil, err
-		}
-		tokenAuthenticators = append(tokenAuthenticators, webhookTokenAuth)
-	}
-
-	if len(tokenAuthenticators) > 0 {
-		// Union the token authenticators
-		tokenAuth := tokenunion.New(tokenAuthenticators...)
-		// Optionally cache authentication results
-		if config.TokenSuccessCacheTTL > 0 || config.TokenFailureCacheTTL > 0 {
-			tokenAuth = tokencache.New(tokenAuth, true, config.TokenSuccessCacheTTL, config.TokenFailureCacheTTL)
-		}
-		authenticators = append(authenticators, bearertoken.New(tokenAuth), websocket.NewProtocolAuthenticator(tokenAuth))
-		securityDefinitions["BearerToken"] = &spec.SecurityScheme{
-			SecuritySchemeProps: spec.SecuritySchemeProps{
-				Type:        "apiKey",
-				Name:        "authorization",
-				In:          "header",
-				Description: "Bearer Token authentication",
-			},
-		}
-	}
-
-	if len(authenticators) == 0 {
-		if config.Anonymous {
-			return anonymous.NewAuthenticator(), &securityDefinitions, nil
-		}
-		return nil, &securityDefinitions, nil
-	}
-
-	authenticator := union.New(authenticators...)
-
-	authenticator = group.NewAuthenticatedGroupAdder(authenticator)
-
-	if config.Anonymous {
-		// If the authenticator chain returns an error, return an error (don't consider a bad bearer token
-		// or invalid username/password combination anonymous).
-		authenticator = union.NewFailOnError(authenticator, anonymous.NewAuthenticator())
-	}
-
-	return authenticator, &securityDefinitions, nil
 }
 ```
 
-认证顺序即代码执行顺序:
-1. Request header, RequestHeader认证，需配置`--requestheader-username-headers`
-2. Basic auth, 账号密码认证，通过文件`--basic-auth-file=SOMEFILE`配置对应用户
-3. X509, 证书认证
-4. Static token, 通过文件`--token-auth-file=SOMEFILE`匹配用户
-5. ServiceAccout token, 一般用于认证Pod
-6. Bootstrap token, 用于集群初始化阶段，通过配置`--experimental-bootstrap-token-auth`启用
-7. OpenID Connect token, OAuth2认证
-8. Webhook token, 通过webhook认证token，需配置`--authentication-token-webhook-config-file`
-9. Cache auth, 通过cache认证
-10. Anonymous， 以上认证未通过则返回匿名用户
+`visit`函数, 用来判断是否认证成功，成功返回`false`, 不需要进行下一步鉴权
+```go
+func (v *authorizingVisitor) visit(source fmt.Stringer, rule *rbacv1.PolicyRule, err error) bool {
+	if rule != nil && RuleAllows(v.requestAttributes, rule) {
+		// allowed用来表示是否认证成功
+		v.allowed = true
+		v.reason = fmt.Sprintf("RBAC: allowed by %s", source.String())
+		return false
+	}
+	if err != nil {
+		v.errors = append(v.errors, err)
+	}
+	return true
+}
+```
+
+rbac的鉴权流程如下:
+1. 通过`Request`获取`Attribute`包括用户，资源和对应的操作
+2. `Authorize`调用`VisitRulesFor`进行具体的鉴权
+3. 获取所有的ClusterRoleBindings，并对其进行遍历操作
+4. 根据请求User信息，判断该是否被绑定在该ClusterRoleBinding中
+5. 若在将通过函数`GetRoleReferenceRules()`获取绑定的Role所控制的访问的资源
+6. 将Role所控制的访问的资源，与从API请求中提取出的资源进行比对，若比对成功，即为API请求的调用者有权访问相关资源
+7. 遍历ClusterRoleBinding中，都没有获得鉴权成功的操作，将会判断提取出的信息中是否包括了namespace的信息，若包括了，将会获取该namespace下的所有RoleBindings，类似ClusterRoleBindings
+8. 若在遍历了所有CluterRoleBindings，及该namespace下的所有RoleBingdings之后，仍没有对资源比对成功，则可判断该API请求的调用者没有权限访问相关资源, 鉴权失败
 
 ## 总结
-Apiserver的认证方式有多种，通过源码分析每次请求都会安装固定的认证顺序执行，高qps下认证配置势必会影响Apiserver的响应延迟，需要根据集群的实际情况配置合理的认证方式。
-
-目前在我们的线上系统，主要通过RequestHeader(认证普通用户)，基本认证(个别系统组件)，X509（认证kubelet），ServieceAccout（认证Pod）进行认证，仅供参考。
+本文结合RBAC分析了Kubernetes的鉴权流程，整体这部分比较代码清晰。RBAC是Kubernetes比较推荐的鉴权方式，了解完整个流程后，居然所有请求都会先遍历一遍ClusterRoleBindings，这样实现起来比较简单，但随着规模和用户的扩大，这部分是否会有性能问题，需不需要实现能够快速鉴权的方式。
