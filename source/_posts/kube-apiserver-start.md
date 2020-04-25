@@ -581,7 +581,7 @@ KubeAPIServer 主要是提供对 API Resource 的操作请求，为 kubernetes �
 2. `New`函数创建默认的`apigroup`(pod,deployment等内部资源), 调用`InstallAPIs`注册
 3.  启动相关controller, 加入到`poststarthook`
 
-## AggregatorServer初始化
+### AggregatorServer初始化
 `Aggregator`通过`APIServices`对象关联到某个`Service`来进行请求的转发，其关联的`Service`类型进一步决定了请求转发形式。`Aggregator`包括一个`GenericAPIServer`和维护自身状态的`Controller`。其中 `GenericAPIServer`主要处理`apiregistration.k8s.io`组下的`APIService`资源请求。
 
 `Aggregator`除了处理资源请求外还包含几个controller：
