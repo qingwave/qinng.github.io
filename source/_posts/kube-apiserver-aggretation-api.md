@@ -10,7 +10,7 @@ categories:
   - cloud
 ---
 
-Kubernetes提供了丰富的扩展功能，如果需要实现自定义的资源，通过有两种方式`CRD`与`Aggregation API`。相对于`CRD`扩展API功能更丰富，可以实现单独的存储。今天来聊一聊，k8s是如果实现扩展api，它们直接又是如何协作的。
+Kubernetes提供了丰富的扩展功能，实现自定义资源有两种方式`CRD`与`Aggregation API`。相对于`CRD`，扩展API功能更丰富，可以实现单独的存储。今天来聊一聊，k8s是如是实现扩展api的，它与apiserver之间又是如何协作的
 
 ## AggregationApiserver介绍
 `Aggregator`类似于一个七层负载均衡，将来自用户的请求拦截转发给其他服务器，并且负责整个 APIServer 的 Discovery 功能。
