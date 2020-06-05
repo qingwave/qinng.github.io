@@ -1,5 +1,5 @@
 ---
-title: 可能是世上最全的Kubernetes证书解析
+title: 可能是史上最全的Kubernetes证书解析
 author: qinng
 toc: true
 tags:
