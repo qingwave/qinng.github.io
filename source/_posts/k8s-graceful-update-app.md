@@ -1,5 +1,5 @@
 ---
-title: k8s如何优雅升级
+title: k8s如何优雅升级应用
 author: qinng
 toc: true
 tags:
