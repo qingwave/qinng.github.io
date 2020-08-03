@@ -17,10 +17,10 @@ prometheus中`rate`只能用于`counter`类型，对于需要聚合的数据需�
 `rate/increase/delta`等操作对于原始值进行了外推（类似线性插件），得到的不是准确值
 
 如`rate(http_requests_total[2m])`指两分钟内每秒平均请求量，通过`2m`内首尾两个数据外推得到差值，比120s得到；
-同理`increase(http_requests_total[2m])`指的是不是首尾两个值的增长量，而是外推后计算出`2m`内的增长量。
+同理`increase(http_requests_total[2m])`指的不是首尾两个值的增长量，而是外推后计算出`2m`内的增长量。
 
 ## absent
-通常报警中，我们需要对某个对象是不是有数据进行监控（即，`nodata`监控），`absent`用来验证指标是不是有数据
+通常报警中，我们需要对某个对象是不是有数据进行监控（即`nodata`监控），`absent`用来验证指标是不是有数据很有用
 
 ## predict_linear
 线性回归预测，适合线性数据的预测，如预测etcd的未来4小时文件描述符使用量
