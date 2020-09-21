@@ -110,3 +110,10 @@ echo 3 > /proc/sys/vm/drop_caches
 
 释放后，果然系统cpu逐渐恢复正常了，从falcon查看cpu确实下降了
 ![lxcf-cpu](/img/blogImg/lxcfs-cpu.png)
+
+## 跟进
+经排查，我们使用的内核较旧为（4.9.2）;僵尸cgroup过多, 导致遍历cgroup读取per_cpu变量时可能引起锁的争用。
+
+僵尸cgroup：没有进程运行，并已经被删除的cgroup，但是所占用的内存并没有被完全回收(inode，dentry等缓存资源)，在读取memory.stat仍会计算这部分cgroup的缓存空间。
+
+目前该问题在新版的内核（如5.4）中得到修复，新内核引用新的数据结构解决该问题：每次分配内存时，会即时更新cgroup的内存使用情况存储到专用的统计变量，因此读取某个cgroup的mem stat不会涉及到per_cpu变量，可以立即返回。
