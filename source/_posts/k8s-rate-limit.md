@@ -1,5 +1,5 @@
 ---
-title: kubernetes限流设置
+title: kubernetes apiserver限流方案
 author: qinng
 toc: true
 tags:
