@@ -1,5 +1,5 @@
 ---
-title: k8s与docker组件堆栈信息
+title: k8s与docker组件堆栈及Debug
 author: qinng
 toc: true
 tags:
@@ -11,6 +11,12 @@ categories:
   - cloud
 ---
 
+k8s组件日志级别热更新
+```bash
+# 调整日志级别到3
+curl -X PUT http://127.0.0.1:8081/debug/flags/v -d "3"
+```
+
 controller manager
 ```bash
 wget http://localhost:10252/debug/pprof/profile
@@ -19,12 +25,18 @@ curl http://127.0.0.1:10252/debug/pprof/goroutine?debug=1 >> debug1
 curl http://127.0.0.1:10252/debug/pprof/goroutine?debug=2 >> debug2
 ```
 
+scheduler
+```bash
+kill -12 ${SCHED_PID}
+获取scheduler cache信息，输出到日志
+```
+
 kubelet 堆栈信息
 ```bash
-wget http://localhost:10248/debug/pprof/profile
-wget http://localhost:10248/debug/pprof/heap
-curl http://127.0.0.1:10248/debug/pprof/goroutine?debug=1 >> debug1
-curl http://127.0.0.1:10248/debug/pprof/goroutine?debug=2 >> debug2
+wget http://localhost:10250/debug/pprof/profile
+wget http://localhost:10250/debug/pprof/heap
+curl http://127.0.0.1:10250/debug/pprof/goroutine?debug=1 >> debug1
+curl http://127.0.0.1:10250/debug/pprof/goroutine?debug=2 >> debug2
 ```
 
 docker 堆栈信息
