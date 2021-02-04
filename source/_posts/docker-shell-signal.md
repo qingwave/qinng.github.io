@@ -7,6 +7,7 @@ tags:
   - docker
 date: 2021-02-03 15:13:10
 categories:
+  - cloud
 ---
 
 ## 背景
