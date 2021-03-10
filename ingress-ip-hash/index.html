@@ -1,0 +1,1090 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+    <meta charset="utf-8">
+    <meta name="keywords" content="多端口服务的Ingress IP-hash问题, Qinng">
+    <meta name="description" content="Coding, Reading and Daydreaming">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+
+    <title>多端口服务的Ingress IP-hash问题 | Qinng</title>
+    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png">
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/awesome/css/all.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/animate/animate.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/css/lightgallery.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/matery.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/my.css">
+
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/jquery/jquery.min.js"></script>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+
+<body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Qinng</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>标签</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>分类</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>归档</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/contact" class="waves-effect waves-light">
+      
+      <i class="fas fa-comments" style="zoom: 0.6;"></i>
+      
+      <span>留言</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Qinng</div>
+        <div class="logo-desc">
+            
+            Coding, Reading and Daydreaming
+            
+        </div>
+    </div>
+
+    
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			标签
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			分类
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			归档
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/contact" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-comments"></i>
+			
+			留言
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			关于
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/15.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">多端口服务的Ingress IP-hash问题</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.css">
+<style>
+    #articleContent h1::before,
+    #articleContent h2::before,
+    #articleContent h3::before,
+    #articleContent h4::before,
+    #articleContent h5::before,
+    #articleContent h6::before {
+        display: block;
+        content: " ";
+        height: 100px;
+        margin-top: -100px;
+        visibility: hidden;
+    }
+
+    #articleContent :focus {
+        outline: none;
+    }
+
+    .toc-fixed {
+        position: fixed;
+        top: 64px;
+    }
+
+    .toc-widget {
+        width: 345px;
+        padding-left: 20px;
+    }
+
+    .toc-widget .toc-title {
+        margin: 35px 0 15px 0;
+        padding-left: 17px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+    }
+
+    .toc-widget ol {
+        padding: 0;
+        list-style: none;
+    }
+
+    #toc-content {
+        height: calc(100vh - 250px);
+        overflow: auto;
+    }
+
+    #toc-content ol {
+        padding-left: 10px;
+    }
+
+    #toc-content ol li {
+        padding-left: 10px;
+    }
+
+    #toc-content .toc-link:hover {
+        color: #42b983;
+        font-weight: 700;
+        text-decoration: underline;
+    }
+
+    #toc-content .toc-link::before {
+        background-color: transparent;
+        max-height: 25px;
+
+        position: absolute;
+        right: 23.5vw;
+        display: block;
+    }
+
+    #toc-content .is-active-link {
+        color: #42b983;
+    }
+
+    #floating-toc-btn {
+        position: fixed;
+        right: 15px;
+        bottom: 76px;
+        padding-top: 15px;
+        margin-bottom: 0;
+        z-index: 998;
+    }
+
+    #floating-toc-btn .btn-floating {
+        background: #fff !important;
+        opacity: 0.8;
+    }
+
+    #floating-toc-btn .btn-floating i {
+        color: #1f4d71;
+        font-size: 1rem;
+    }
+
+    #floating-toc-btn .after {
+        color: #000;
+        font-size: 1rem;
+    }
+</style>
+<div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/k8s/">
+                                <span class="chip bg-color">k8s</span>
+                            </a>
+                        
+                            <a href="/tags/ingress/">
+                                <span class="chip bg-color">ingress</span>
+                            </a>
+                        
+                            <a href="/tags/nginx/">
+                                <span class="chip bg-color">nginx</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/cloud/" class="post-category">
+                                cloud
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2020-04-15
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    856
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    4 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>业务反馈使用Ingress的ip-hash, 同一个服务开启了http和websocket分别是两个端口, 但是配置ip-hash后, 同一个client的请求http和websocket不在同一个后端.</p>
+<h2 id="探究"><a href="#探究" class="headerlink" title="探究"></a>探究</h2><p>根据业务Ingress配置,配置如下实例:</p>
+<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> extensions/v1beta1
+<span class="token key atrule">kind</span><span class="token punctuation">:</span> Ingress
+<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
+  <span class="token key atrule">annotations</span><span class="token punctuation">:</span>
+    <span class="token key atrule">nginx.ingress.kubernetes.io/cors-allow-origin</span><span class="token punctuation">:</span> <span class="token string">'*'</span>
+    <span class="token key atrule">nginx.ingress.kubernetes.io/enable-cors</span><span class="token punctuation">:</span> <span class="token string">"true"</span>
+    <span class="token key atrule">nginx.ingress.kubernetes.io/proxy-body-size</span><span class="token punctuation">:</span> 200m
+    <span class="token key atrule">nginx.ingress.kubernetes.io/proxy-read-timeout</span><span class="token punctuation">:</span> <span class="token string">"300"</span>
+    <span class="token key atrule">nginx.ingress.kubernetes.io/upstream-hash-by</span><span class="token punctuation">:</span> $binary_remote_addr
+  <span class="token key atrule">name</span><span class="token punctuation">:</span> hellogo
+<span class="token key atrule">spec</span><span class="token punctuation">:</span>
+  <span class="token key atrule">rules</span><span class="token punctuation">:</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">host</span><span class="token punctuation">:</span> hellogo.d.xiaomi.net
+    <span class="token key atrule">http</span><span class="token punctuation">:</span>
+      <span class="token key atrule">paths</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> <span class="token key atrule">backend</span><span class="token punctuation">:</span>
+          <span class="token key atrule">serviceName</span><span class="token punctuation">:</span> hellogo <span class="token comment" spellcheck="true">#http1, 8080</span>
+          <span class="token key atrule">servicePort</span><span class="token punctuation">:</span> <span class="token number">8080</span>
+        <span class="token key atrule">path</span><span class="token punctuation">:</span> /8080
+      <span class="token punctuation">-</span> <span class="token key atrule">backend</span><span class="token punctuation">:</span>
+          <span class="token key atrule">serviceName</span><span class="token punctuation">:</span> hellogo <span class="token comment" spellcheck="true">#http2, 9090</span>
+          <span class="token key atrule">servicePort</span><span class="token punctuation">:</span> <span class="token number">9090</span>
+        <span class="token key atrule">path</span><span class="token punctuation">:</span> /9090
+      <span class="token punctuation">-</span> <span class="token key atrule">backend</span><span class="token punctuation">:</span>
+          <span class="token key atrule">serviceName</span><span class="token punctuation">:</span> hellogo <span class="token comment" spellcheck="true">#websocket, 8081</span>
+          <span class="token key atrule">servicePort</span><span class="token punctuation">:</span> <span class="token number">8081</span>
+        <span class="token key atrule">path</span><span class="token punctuation">:</span> /ws
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>创建多个副本</p>
+<pre class="line-numbers language-bash"><code class="language-bash">$ kubectl get po -l app<span class="token operator">=</span>hellogo
+NAME                       READY   STATUS    RESTARTS   AGE
+hellogo-699f997454-b5vs4   1/1     Running   0          66m
+hellogo-699f997454-hm924   1/1     Running   0          66m
+hellogo-699f997454-mfbqv   1/1     Running   0          66m
+hellogo-699f997454-qdrwn   1/1     Running   0          66m
+hellogo-699f997454-srh9b   1/1     Running   0          66m
+hellogo-699f997454-wlwfh   1/1     Running   0          66m
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>测试http 8080端口, 请求到pod hellogo-699f997454-qdrwn</p>
+<pre class="line-numbers language-bash"><code class="language-bash">$ curl http://hellogo.d.xiaomi.net/8080
+hello 8080<span class="token operator">!</span>
+host hellogo.d.xiaomi.net
+remoteaddr 10.46.23.1:15340
+realip 10.232.41.102
+<span class="token function">hostname</span> hellogo-699f997454-qdrwn 
+
+$ curl http://hellogo.d.xiaomi.net/8080
+hello 8080<span class="token operator">!</span>
+host hellogo.d.xiaomi.net
+remoteaddr 10.46.23.1:15866
+realip 10.232.41.102
+<span class="token function">hostname</span> hellogo-699f997454-qdrwn
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>测试http 8080端口, 请求到pod hellogo-699f997454-b5vs4</p>
+<pre class="line-numbers language-bash"><code class="language-bash">$ curl http://hellogo.d.xiaomi.net/9090
+hello 9090<span class="token operator">!</span>
+host hellogo.d.xiaomi.net
+remoteaddr 10.38.200.195:23706
+realip 10.232.41.102
+<span class="token function">hostname</span> hellogo-699f997454-b5vs4
+
+$ curl http://hellogo.d.xiaomi.net/9090
+hello 9090<span class="token operator">!</span>
+host hellogo.d.xiaomi.net
+remoteaddr 10.38.200.195:23706
+realip 10.232.41.102
+<span class="token function">hostname</span> hellogo-699f997454-b5vs4
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>猜想是由于获取的nginx server列表顺序不一致导致的, 但是看源码ip list是直接从endpoint获取的, 进入nginx-ingress查看</p>
+<pre class="line-numbers language-bash"><code class="language-bash">$ kubectl <span class="token function">exec</span> -it -n kube-system nginx-ingress-controller-m496n sh
+<span class="token comment" spellcheck="true"># dbg工具查看nginx后端列表</span>
+/etc/nginx $ /dbg backends list <span class="token operator">|</span> <span class="token function">grep</span> hellogo
+default-hellogo-8080
+default-hellogo-8081
+default-hellogo-9090
+<span class="token comment" spellcheck="true"># 8080端口的列表</span>
+/etc/nginx $ /dbg backends get default-hellogo-8080
+<span class="token punctuation">{</span>
+  <span class="token string">"endpoints"</span><span class="token keyword">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token string">"address"</span><span class="token keyword">:</span> <span class="token string">"10.46.12.107"</span>,
+      <span class="token string">"port"</span><span class="token keyword">:</span> <span class="token string">"8080"</span>
+    <span class="token punctuation">}</span>,
+    <span class="token punctuation">{</span>
+      <span class="token string">"address"</span><span class="token keyword">:</span> <span class="token string">"10.46.12.108"</span>,
+      <span class="token string">"port"</span><span class="token keyword">:</span> <span class="token string">"8080"</span>
+    <span class="token punctuation">}</span>,
+    <span class="token punctuation">{</span>
+      <span class="token string">"address"</span><span class="token keyword">:</span> <span class="token string">"10.46.12.109"</span>,
+      <span class="token string">"port"</span><span class="token keyword">:</span> <span class="token string">"8080"</span>
+    <span class="token punctuation">}</span>,
+    <span class="token punctuation">{</span>
+      <span class="token string">"address"</span><span class="token keyword">:</span> <span class="token string">"10.46.23.23"</span>,
+      <span class="token string">"port"</span><span class="token keyword">:</span> <span class="token string">"8080"</span>
+    <span class="token punctuation">}</span>,
+    <span class="token punctuation">{</span>
+      <span class="token string">"address"</span><span class="token keyword">:</span> <span class="token string">"10.46.23.25"</span>,
+      <span class="token string">"port"</span><span class="token keyword">:</span> <span class="token string">"8080"</span>
+    <span class="token punctuation">}</span>,
+    <span class="token punctuation">{</span>
+      <span class="token string">"address"</span><span class="token keyword">:</span> <span class="token string">"10.46.23.29"</span>,
+      <span class="token string">"port"</span><span class="token keyword">:</span> <span class="token string">"8080"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>,
+  <span class="token string">"name"</span><span class="token keyword">:</span> <span class="token string">"default-hellogo-8080"</span>,
+  <span class="token string">"noServer"</span><span class="token keyword">:</span> false,
+  <span class="token string">"port"</span><span class="token keyword">:</span> 8080,
+  <span class="token punctuation">..</span>.
+<span class="token punctuation">}</span>
+<span class="token comment" spellcheck="true"># 9090端口的列表</span>
+/etc/nginx $ /dbg backends get default-hellogo-9090
+<span class="token punctuation">{</span>
+  <span class="token string">"endpoints"</span><span class="token keyword">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token string">"address"</span><span class="token keyword">:</span> <span class="token string">"10.46.12.107"</span>,
+      <span class="token string">"port"</span><span class="token keyword">:</span> <span class="token string">"9090"</span>
+    <span class="token punctuation">}</span>,
+    <span class="token punctuation">{</span>
+      <span class="token string">"address"</span><span class="token keyword">:</span> <span class="token string">"10.46.12.108"</span>,
+      <span class="token string">"port"</span><span class="token keyword">:</span> <span class="token string">"9090"</span>
+    <span class="token punctuation">}</span>,
+    <span class="token punctuation">{</span>
+      <span class="token string">"address"</span><span class="token keyword">:</span> <span class="token string">"10.46.12.109"</span>,
+      <span class="token string">"port"</span><span class="token keyword">:</span> <span class="token string">"9090"</span>
+    <span class="token punctuation">}</span>,
+    <span class="token punctuation">{</span>
+      <span class="token string">"address"</span><span class="token keyword">:</span> <span class="token string">"10.46.23.23"</span>,
+      <span class="token string">"port"</span><span class="token keyword">:</span> <span class="token string">"9090"</span>
+    <span class="token punctuation">}</span>,
+    <span class="token punctuation">{</span>
+      <span class="token string">"address"</span><span class="token keyword">:</span> <span class="token string">"10.46.23.25"</span>,
+      <span class="token string">"port"</span><span class="token keyword">:</span> <span class="token string">"9090"</span>
+    <span class="token punctuation">}</span>,
+    <span class="token punctuation">{</span>
+      <span class="token string">"address"</span><span class="token keyword">:</span> <span class="token string">"10.46.23.29"</span>,
+      <span class="token string">"port"</span><span class="token keyword">:</span> <span class="token string">"9090"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>,
+  <span class="token string">"name"</span><span class="token keyword">:</span> <span class="token string">"default-hellogo-9090"</span>,
+  <span class="token string">"noServer"</span><span class="token keyword">:</span> false,
+  <span class="token string">"port"</span><span class="token keyword">:</span> 9090,
+  <span class="token punctuation">..</span>.
+<span class="token punctuation">}</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>对比发现两个端口的列表是一样的,只能看看代码.</p>
+<p>ip-hash代码在<a href="https://github.com/kubernetes/ingress-nginx/blob/master/rootfs/etc/nginx/lua/balancer/chash.lua" target="_blank" rel="noopener">https://github.com/kubernetes/ingress-nginx/blob/master/rootfs/etc/nginx/lua/balancer/chash.lua</a></p>
+<pre class="line-numbers language-lua"><code class="language-lua"><span class="token keyword">function</span> _M<span class="token punctuation">.</span><span class="token function">new</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> backend<span class="token punctuation">)</span>
+  <span class="token keyword">local</span> nodes <span class="token operator">=</span> util<span class="token punctuation">.</span><span class="token function">get_nodes</span><span class="token punctuation">(</span>backend<span class="token punctuation">.</span>endpoints<span class="token punctuation">)</span>
+  <span class="token keyword">local</span> o <span class="token operator">=</span> <span class="token punctuation">{</span>
+    instance <span class="token operator">=</span> self<span class="token punctuation">.</span>factory<span class="token punctuation">:</span><span class="token function">new</span><span class="token punctuation">(</span>nodes<span class="token punctuation">)</span><span class="token punctuation">,</span>  <span class="token comment" spellcheck="true">--获取后端pod ip列表</span>
+    hash_by <span class="token operator">=</span> backend<span class="token punctuation">[</span><span class="token string">"upstreamHashByConfig"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"upstream-hash-by"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    traffic_shaping_policy <span class="token operator">=</span> backend<span class="token punctuation">.</span>trafficShapingPolicy<span class="token punctuation">,</span>
+    alternative_backends <span class="token operator">=</span> backend<span class="token punctuation">.</span>alternativeBackends<span class="token punctuation">,</span>
+  <span class="token punctuation">}</span>
+  <span class="token function">setmetatable</span><span class="token punctuation">(</span>o<span class="token punctuation">,</span> self<span class="token punctuation">)</span>
+  self<span class="token punctuation">.</span>__index <span class="token operator">=</span> self
+  <span class="token keyword">return</span> o
+<span class="token keyword">end</span>
+
+<span class="token keyword">function</span> _M<span class="token punctuation">.</span><span class="token function">balance</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span>
+  <span class="token keyword">local</span> key <span class="token operator">=</span> util<span class="token punctuation">.</span><span class="token function">lua_ngx_var</span><span class="token punctuation">(</span>self<span class="token punctuation">.</span>hash_by<span class="token punctuation">)</span> <span class="token comment" spellcheck="true">--获取需要hash的变量</span>
+  <span class="token keyword">return</span> self<span class="token punctuation">.</span>instance<span class="token punctuation">:</span><span class="token function">find</span><span class="token punctuation">(</span>key<span class="token punctuation">)</span>  <span class="token comment" spellcheck="true">--计算hash值</span>
+<span class="token keyword">end</span>
+
+<span class="token keyword">return</span> _M
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>关键是在<code>get_nodes</code>函数,位于<a href="https://github.com/kubernetes/ingress-nginx/blob/master/rootfs/etc/nginx/lua/util.lua" target="_blank" rel="noopener">https://github.com/kubernetes/ingress-nginx/blob/master/rootfs/etc/nginx/lua/util.lua</a></p>
+<pre class="line-numbers language-lua"><code class="language-lua"><span class="token keyword">function</span> _M<span class="token punctuation">.</span><span class="token function">get_nodes</span><span class="token punctuation">(</span>endpoints<span class="token punctuation">)</span>
+  <span class="token keyword">local</span> nodes <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+  <span class="token keyword">local</span> weight <span class="token operator">=</span> <span class="token number">1</span> <span class="token comment" spellcheck="true">--所有后端weight相同都为1</span>
+
+  <span class="token keyword">for</span> _<span class="token punctuation">,</span> endpoint <span class="token keyword">in</span> <span class="token function">pairs</span><span class="token punctuation">(</span>endpoints<span class="token punctuation">)</span> <span class="token keyword">do</span>
+    <span class="token keyword">local</span> endpoint_string <span class="token operator">=</span> endpoint<span class="token punctuation">.</span>address <span class="token operator">..</span> <span class="token string">":"</span> <span class="token operator">..</span> endpoint<span class="token punctuation">.</span>port <span class="token comment" spellcheck="true">--endpoint为ip+port</span>
+    nodes<span class="token punctuation">[</span>endpoint_string<span class="token punctuation">]</span> <span class="token operator">=</span> weight
+  <span class="token keyword">end</span>
+
+  <span class="token keyword">return</span> nodes
+<span class="token keyword">end</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>通过代码可以看到在<code>ingress-nginx</code>中,实际的后端(upstream)是包含端口的,通过hash计算得到的值也不一样。</p>
+<h2 id="解决建议"><a href="#解决建议" class="headerlink" title="解决建议"></a>解决建议</h2><p>首先确认系统的架构是不是合理，不同的端口提供不同的服务，一般是相互独立的。<br>如果确实有类似需求：</p>
+<ul>
+<li>通过同一个端口提供服务，使用path来区分不同功能</li>
+<li>修改代码，也比较简单</li>
+</ul>
+
+            </div>
+            <hr/>
+
+            
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/k8s/">
+                                    <span class="chip bg-color">k8s</span>
+                                </a>
+                            
+                                <a href="/tags/ingress/">
+                                    <span class="chip bg-color">ingress</span>
+                                </a>
+                            
+                                <a href="/tags/nginx/">
+                                    <span class="chip bg-color">nginx</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="wechat,weibo" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    
+        <link rel="stylesheet" href="/libs/gitalk/gitalk.css">
+<link rel="stylesheet" href="/libs/gitalk/gitalk.min.js">
+
+<div class="card gitalk-card" data-aos="fade-up">
+    <div class="comment_headling" style="font-size: 20px; font-weight: 700; position: relative; padding-left: 20px; top: 15px; padding-bottom: 5px;">
+        <i class="fas fa-comments fa-fw" aria-hidden="true"></i>
+        <span>评论</span>
+    </div>
+    <div id="gitalk-container" class="card-content"></div>
+</div>
+
+<script src="/libs/gitalk/gitalk.min.js"></script>
+<script>
+    let gitalk = new Gitalk({
+        clientID: 'a705189dfc18ec59a7d0',
+        clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
+        repo: 'qingwave.github.io',
+        owner: 'qingwave',
+        admin: "qingwave",
+        id: '2020-04-15T15-47-09',
+        distractionFreeMode: false  // Facebook-like distraction free mode
+    });
+
+    gitalk.render('gitalk-container');
+</script>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/kube-apiserver-authorization-code/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/1.jpg" class="responsive-img" alt="kube-apiserver鉴权源码分析">
+                        
+                        <span class="card-title">kube-apiserver鉴权源码分析</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            简介kube-apiserver中与权限相关的主要有三种机制，即认证、鉴权和准入控制。上节讲到认证流程。
+认证与授权很容易混淆：
+
+认证(Authentication), 负责检查你是谁，识别user
+授权(Authorization), 
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2020-04-23
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/cloud/" class="post-category">
+                                    cloud
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/k8s/">
+                        <span class="chip bg-color">k8s</span>
+                    </a>
+                    
+                    <a href="/tags/rbac/">
+                        <span class="chip bg-color">rbac</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/pod-graceful-lifecycle/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/15.jpg" class="responsive-img" alt="如何做一个优雅的Pod">
+                        
+                        <span class="card-title">如何做一个优雅的Pod</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            没有人不想优雅的活着，在这喧闹的生活中过得优雅从容并不容易。但在k8s的世界中，如何做个优雅的Pod还是有套路可循的。
+Pod的生命周期在优雅之前，我们先谈谈Pod的一生，大体分为以下几个阶段
+
+创建，通过kubectl或者api创建pod
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2020-04-11
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/cloud/" class="post-category">
+                                    cloud
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/k8s/">
+                        <span class="chip bg-color">k8s</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeBlockFuction.js"></script>
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeShrink.js"></script>
+
+
+<!-- 代码块折行 -->
+
+<style type="text/css">
+code[class*="language-"], pre[class*="language-"] { white-space: pre !important; }
+</style>
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-mini waves-effect bnt-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('0'),
+            headingSelector: 'h2, h3, h4'
+        });
+
+        // modify the toc link href to support Chinese.
+        let i = 0;
+        let tocHeading = 'toc-heading-';
+        $('#toc-content a').each(function () {
+            $(this).attr('href', '#' + tocHeading + (++i));
+        });
+
+        // modify the heading title id to support Chinese.
+        i = 0;
+        $('#articleContent').children('h2, h3, h4').each(function () {
+            $(this).attr('id', tocHeading + (++i));
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+    <div class="container row center-align" style="margin-bottom: 0px !important;">
+        <div class="center-align">
+            Copyright&nbsp;&copy;
+            <span id="year">2018</span>
+            <a href="https://qinng.now.sh" target="_blank">Qinng</a>
+            <br>
+            
+            &nbsp;<i class="fas fa-chart-area"></i>&nbsp;&nbsp;<span
+                >49.9k</span>&nbsp;
+            
+            
+            
+            
+            
+            
+            <span id="busuanzi_container_site_pv">
+                |&nbsp;<i class="far fa-eye"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_pv"
+                    ></span>&nbsp;
+            </span>
+            
+            
+            <span id="busuanzi_container_site_uv">
+                |&nbsp;<i class="fas fa-users"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_uv"
+                    ></span>&nbsp;
+            </span>
+            
+            <br>
+            
+            <br>
+            
+        </div>
+        <!-- <div class="col s12 m4 l4 social-link social-statis">
+    <a href="https://github.com/qingwave" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
+        <i class="fab fa-github"></i>
+    </a>
+
+
+
+    <a href="mailto:isguory@gmail.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <a href="https://www.douban.com/people/69458430"
+       target="_blank" data-tooltip="关注我的豆瓣: 69458430" data-position="top"
+       data-delay="50">
+        <i class="fa fa-inverse">豆</i>
+    </a>
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div> -->
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/search.js"></script>
+<script type="text/javascript">
+$(function () {
+    searchFunc("https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/search.xml", 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-mini waves-effect" href="#!">
+        <!-- <i class="fas fa-caret-up"></i> -->
+        <!-- <i class="fas fa-chevron-up"></i> -->
+        <i class="fas fa-angle-double-up"></i>
+    </a>
+</div>
+
+
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/matery.js"></script>
+
+    <!-- Baidu Analytics -->
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    
+    <script async src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+</body>
+
+</html>

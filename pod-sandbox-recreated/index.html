@@ -1,0 +1,992 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+    <meta charset="utf-8">
+    <meta name="keywords" content="pod sandbox 创建失败, Qinng">
+    <meta name="description" content="Coding, Reading and Daydreaming">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+
+    <title>pod sandbox 创建失败 | Qinng</title>
+    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png">
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/awesome/css/all.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/animate/animate.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/css/lightgallery.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/matery.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/my.css">
+
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/jquery/jquery.min.js"></script>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+
+<body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Qinng</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>标签</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>分类</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>归档</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/contact" class="waves-effect waves-light">
+      
+      <i class="fas fa-comments" style="zoom: 0.6;"></i>
+      
+      <span>留言</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Qinng</div>
+        <div class="logo-desc">
+            
+            Coding, Reading and Daydreaming
+            
+        </div>
+    </div>
+
+    
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			标签
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			分类
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			归档
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/contact" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-comments"></i>
+			
+			留言
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			关于
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/23.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">pod sandbox 创建失败</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.css">
+<style>
+    #articleContent h1::before,
+    #articleContent h2::before,
+    #articleContent h3::before,
+    #articleContent h4::before,
+    #articleContent h5::before,
+    #articleContent h6::before {
+        display: block;
+        content: " ";
+        height: 100px;
+        margin-top: -100px;
+        visibility: hidden;
+    }
+
+    #articleContent :focus {
+        outline: none;
+    }
+
+    .toc-fixed {
+        position: fixed;
+        top: 64px;
+    }
+
+    .toc-widget {
+        width: 345px;
+        padding-left: 20px;
+    }
+
+    .toc-widget .toc-title {
+        margin: 35px 0 15px 0;
+        padding-left: 17px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+    }
+
+    .toc-widget ol {
+        padding: 0;
+        list-style: none;
+    }
+
+    #toc-content {
+        height: calc(100vh - 250px);
+        overflow: auto;
+    }
+
+    #toc-content ol {
+        padding-left: 10px;
+    }
+
+    #toc-content ol li {
+        padding-left: 10px;
+    }
+
+    #toc-content .toc-link:hover {
+        color: #42b983;
+        font-weight: 700;
+        text-decoration: underline;
+    }
+
+    #toc-content .toc-link::before {
+        background-color: transparent;
+        max-height: 25px;
+
+        position: absolute;
+        right: 23.5vw;
+        display: block;
+    }
+
+    #toc-content .is-active-link {
+        color: #42b983;
+    }
+
+    #floating-toc-btn {
+        position: fixed;
+        right: 15px;
+        bottom: 76px;
+        padding-top: 15px;
+        margin-bottom: 0;
+        z-index: 998;
+    }
+
+    #floating-toc-btn .btn-floating {
+        background: #fff !important;
+        opacity: 0.8;
+    }
+
+    #floating-toc-btn .btn-floating i {
+        color: #1f4d71;
+        font-size: 1rem;
+    }
+
+    #floating-toc-btn .after {
+        color: #000;
+        font-size: 1rem;
+    }
+</style>
+<div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/k8s/">
+                                <span class="chip bg-color">k8s</span>
+                            </a>
+                        
+                            <a href="/tags/docker/">
+                                <span class="chip bg-color">docker</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/cloud/" class="post-category">
+                                cloud
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2020-03-18
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    1.5k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    8 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>今天在k8s更新服务时,发现pod启动失败,报错<code>failed to start sandbox container</code>,如下所示:</p>
+<pre class="line-numbers language-bash"><code class="language-bash">Events:
+  Type     Reason                  Age                     From                                           Message
+  ----     ------                  ----                    ----                                           -------
+  Normal   Scheduled               28m                     default-scheduler                              Successfully assigned kube-system/k8s-proxy-7wkt4 to tj1-staging-com-ocean007-201812.kscn
+  Warning  FailedCreatePodSandBox  28m <span class="token punctuation">(</span>x13 over 28m<span class="token punctuation">)</span>      kubelet, tj1-staging-com-ocean007-201812.kscn  Failed create pod sandbox: rpc error: code <span class="token operator">=</span> Unknown desc <span class="token operator">=</span> failed to start sandbox container <span class="token keyword">for</span> pod <span class="token string">"k8s-proxy-7wkt4"</span><span class="token keyword">:</span> Error response from daemon: OCI runtime create failed: container_linux.go:345: starting container process caused <span class="token string">"process_linux.go:297: getting the final child's pid from pipe caused \"EOF\""</span><span class="token keyword">:</span> unknown
+  Normal   SandboxChanged          3m19s <span class="token punctuation">(</span>x1364 over 28m<span class="token punctuation">)</span>  kubelet, tj1-staging-com-ocean007-201812.kscn  Pod sandbox changed, it will be killed and re-created.
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><p>sandbox 创建失败只是表象,是宿主机其他异常导致的,一般是(cpu,diskio,mem)导致的.</p>
+<p>首先,上节点看kubelet,docker有无异常,日志没有明显错误,通过<code>top</code>看到docker cpu占用非常高</p>
+<pre class="line-numbers language-bash"><code class="language-bash"><span class="token punctuation">[</span>root@tj1-staging-com-ocean007-201812 ~<span class="token punctuation">]</span><span class="token comment" spellcheck="true"># top</span>
+
+<span class="token function">top</span> - 17:55:00 up 265 days,  3:41,  1 user,  load average: 10.71, 11.34, 10.76
+Tasks: 816 total,   5 running, 811 sleeping,   0 stopped,   0 zombie
+%Cpu<span class="token punctuation">(</span>s<span class="token punctuation">)</span>: 24.0 us, 34.5 sy,  0.0 ni, 41.4 id,  0.0 wa,  0.0 hi,  0.1 si,  0.0 st
+KiB Mem <span class="token keyword">:</span> 65746380 total, 20407940 free, 11007040 used, 34331400 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 49134416 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND                                                                                                                                      
+ 115483 root      20   0 3965212 273188  34564 S 489.7  0.4 382260:40 dockerd                                                                                                                                      
+1367523 root      20   0   18376   2972   2716 R  66.9  0.0  20163:45 <span class="token function">bash</span>                                                                                                                                         
+1367487 root      20   0   11856   5616   4512 S  54.0  0.0  16748:26 containerd-shim                                                                                                                              
+3200169 root      20   0    1300      4      0 R  53.3  0.0  14913:49 sh                                                                                                                                           
+2429952 root      20   0    1300      4      0 S  49.3  0.0   9620:56 sh                                                                                                                                           
+3200130 root      20   0    9392   4756   3884 S  47.7  0.0  13417:30 containerd-shim                                                                                                                              
+3718475 root      20   0    1300      4      0 R  47.4  0.0   8600:20 sh                                                                                                                                           
+3718440 root      20   0   10736   5516   4512 S  42.1  0.0   7575:31 containerd-shim                                                                                                                              
+2429917 root      20   0   11856   5556   4512 S  40.1  0.0   8313:22 containerd-shim                                                                                                                              
+3205493 root      20   0 3775924 230996  66704 S  18.9  0.4   2559:07 kubelet                                                                                                                                      
+      1 root      20   0  195240 157000   3932 S   7.9  0.2   1417:46 systemd                                                                                                                                      
+    804 dbus      20   0   30308   6460   2464 S   1.7  0.0 462:18.84 dbus-daemon                                                                                                                                  
+1011737 root      20   0  277656 122788  18428 S   1.3  0.2 768:03.00 cadvisor                                                                                                                                     
+ 115508 root      20   0 7139200  32896  24288 S   1.0  0.1 662:25.27 containerd                                                                                                                                   
+    806 root      20   0   24572   3060   2480 S   0.7  0.0 171:22.52 systemd-logind                                                                                                                               
+ 511080 root       0 -20 2751348  52552  15744 S   0.7  0.1 178:27.51 sagent                                                                                                                                       
+1102507 root      20   0   11792   7292   4512 S   0.7  0.0  23:36.37 containerd-shim                                                                                                                              
+1272223 root      20   0  164800   5296   3824 R   0.7  0.0   0:00.38 <span class="token function">top</span>                                                                                                                                          
+2866292 root      20   0 5045000 1.983g   3080 S   0.7  3.2 230:09.47 redis
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>同时, cpu system异常高.</p>
+<pre class="line-numbers language-bash"><code class="language-bash">%Cpu<span class="token punctuation">(</span>s<span class="token punctuation">)</span>: 24.0 us, 34.5 sy,  0.0 ni, 41.4 id,  0.0 wa,  0.0 hi,  0.1 si,  0.0 st
+<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>按照以前的经验,一般是由某些容器引起的,通过<code>top</code>看到个别<code>sh</code>进程占用cpu较高.</p>
+<p>通过<code>ps</code>看到进程居然是个死循环</p>
+<pre class="line-numbers language-bash"><code class="language-bash"><span class="token punctuation">[</span>root@tj1-staging-com-ocean007-201812 ~<span class="token punctuation">]</span><span class="token comment" spellcheck="true"># ps -ef |grep 1367523</span>
+root     1287628 1247781  0 17:55 pts/1    00:00:00 <span class="token function">grep</span> --color<span class="token operator">=</span>auto 1367523
+root     1367523 1367504 72 Feb28 ?        14-00:04:17 /bin/bash -c <span class="token keyword">while</span> <span class="token boolean">true</span><span class="token punctuation">;</span> <span class="token keyword">do</span> <span class="token keyword">echo</span> hello<span class="token punctuation">;</span> <span class="token keyword">done</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>通过<code>/proc/pid/cgroup</code>找到对应容器</p>
+<pre class="line-numbers language-bash"><code class="language-bash"><span class="token comment" spellcheck="true"># cat /proc/1367523/cgroup</span>
+11:freezer:/kubepods/besteffort/pod55d3adf2-67f7-11ea-93f2-246e968203b8/29842d5544b701dbb5ff647dba19bb4ebec821edc6ee1ffbd7aeee58fa5038fd
+10:devices:/kubepods/besteffort/pod55d3adf2-67f7-11ea-93f2-246e968203b8/29842d5544b701dbb5ff647dba19bb4ebec821edc6ee1ffbd7aeee58fa5038fd
+9:hugetlb:/kubepods/besteffort/pod55d3adf2-67f7-11ea-93f2-246e968203b8/29842d5544b701dbb5ff647dba19bb4ebec821edc6ee1ffbd7aeee58fa5038fd
+8:blkio:/kubepods/besteffort/pod55d3adf2-67f7-11ea-93f2-246e968203b8/29842d5544b701dbb5ff647dba19bb4ebec821edc6ee1ffbd7aeee58fa5038fd
+7:memory:/kubepods/besteffort/pod55d3adf2-67f7-11ea-93f2-246e968203b8/29842d5544b701dbb5ff647dba19bb4ebec821edc6ee1ffbd7aeee58fa5038fd
+6:perf_event:/kubepods/besteffort/pod55d3adf2-67f7-11ea-93f2-246e968203b8/29842d5544b701dbb5ff647dba19bb4ebec821edc6ee1ffbd7aeee58fa5038fd
+5:cpuset:/kubepods/besteffort/pod55d3adf2-67f7-11ea-93f2-246e968203b8/29842d5544b701dbb5ff647dba19bb4ebec821edc6ee1ffbd7aeee58fa5038fd
+4:pids:/kubepods/besteffort/pod55d3adf2-67f7-11ea-93f2-246e968203b8/29842d5544b701dbb5ff647dba19bb4ebec821edc6ee1ffbd7aeee58fa5038fd
+3:net_cls,net_prio:/kubepods/besteffort/pod55d3adf2-67f7-11ea-93f2-246e968203b8/29842d5544b701dbb5ff647dba19bb4ebec821edc6ee1ffbd7aeee58fa5038fd
+2:cpu,cpuacct:/kubepods/besteffort/pod55d3adf2-67f7-11ea-93f2-246e968203b8/29842d5544b701dbb5ff647dba19bb4ebec821edc6ee1ffbd7aeee58fa5038fd
+1:name<span class="token operator">=</span>systemd:/kubepods/besteffort/pod55d3adf2-67f7-11ea-93f2-246e968203b8/29842d5544b701dbb5ff647dba19bb4ebec821edc6ee1ffbd7aeee58fa5038fd
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>找到对应容器</p>
+<pre class="line-numbers language-bash"><code class="language-bash">docker <span class="token function">ps</span> <span class="token operator">|</span> <span class="token function">grep</span> 29842d554
+<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>清理完相关pod后,系统恢复正常</p>
+<pre><code>top - 18:25:57 up 265 days,  4:12,  1 user,  load average: 1.05, 1.24, 4.02
+Tasks: 769 total,   1 running, 768 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  1.7 us,  0.9 sy,  0.0 ni, 97.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 65746380 total, 22106960 free, 10759860 used, 32879560 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 49401576 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND                                                                                                                                      
+3205493 root      20   0 3775924 229844  66704 S   9.9  0.3   2563:18 kubelet                                                                                                                                      
+ 115483 root      20   0 3965468 249124  34564 S   7.9  0.4 382323:36 dockerd                                                                                                                                      
+      1 root      20   0  195240 157000   3932 S   6.3  0.2   1419:48 systemd                                                                                                                                      
+    804 dbus      20   0   30308   6460   2464 S   2.0  0.0 462:51.51 dbus-daemon                                                                                                                                  
+3085322 root      20   0 12.045g 1.578g  19028 S   1.3  2.5 767:51.19 java                                                                                                                                         
+ 115508 root      20   0 7139200  32264  24288 S   1.0  0.0 662:42.18 containerd                                                                                                                                   
+ 511080 root       0 -20 2751348  42116  15744 S   1.0  0.1 178:44.79 sagent                                                                                                                                       
+1011737 root      20   0  277656 111836  18428 S   1.0  0.2 768:49.01 cadvisor                                                                                                                                     
+1523167 root      20   0  164800   5436   4012 R   0.7  0.0   0:00.04 top                                                                                                                                          
+3199459 root      20   0 1554708  43668   9496 S   0.7  0.1  28:50.60 falcon-agent                                                                                                                                 
+      7 root      20   0       0      0      0 S   0.3  0.0 619:07.64 rcu_sched                                                                                                                                    
+    806 root      20   0   24572   3060   2480 S   0.3  0.0 171:33.69 systemd-logind                                                                                                                               
+  11921 root      20   0   94820  20480   5840 S   0.3  0.0   1402:42 consul                                                                                                                                       
+ 575838 root      20   0  411464  17092   7364 S   0.3  0.0  15:16.25 python                                                                                                                                       
+ 856593 root      20   0 1562392  37912   9612 S   0.3  0.1  21:34.23 falcon-agent                                                                                                                                 
+ 931957 33        20   0   90728   3392   1976 S   0.3  0.0   0:51.23 nginx                                                                                                                                        
+1212186 root      20   0       0      0      0 S   0.3  0.0   0:01.12 kworker/14:1                                                                                                                                 
+1726228 root      20   0    9392   4496   3808 S   0.3  0.0   0:00.67 containerd-shim                                                                                                                              
+1887128 root      20   0  273160   7932   3128 S   0.3  0.0  46:05.23 redis-server                                                                                                                                 
+2788111 root      20   0  273160   6300   3080 S   0.3  0.0  25:18.55 redis-server                                                                                                                                 
+3199297 root      20   0 1563160  44812   9624 S   0.3  0.1  31:13.73 falcon-agent     
+</code></pre><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>sandox创建失败的原因是各种各样的, 如[memory设置错误触发的异常][1],[dockerd异常][2].</p>
+<p>针对此处问题是由于某些测试pod通过<code>while true; do echo hello; done</code>启动,死循环一直<code>echo hello</code>产生大量<code>read()</code>系统调用,所在cpu飙升.多个类似pod导致系统非常繁忙,无法正常处理其他请求.</p>
+<p>此类问题不容易在pod创建时直接检测到,只能通过添加物理节点相关报警(dockerd cpu使用率, node cpu.sys使用率)及时发现问题.</p>
+<h2 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h2><p>[1] <a href="https://github.com/kubernetes/kubernetes/issues/56996" target="_blank" rel="noopener">https://github.com/kubernetes/kubernetes/issues/56996</a><br>[2] <a href="https://plugaru.org/2018/05/21/pod-sandbox-changed-it-will-be-killed-and-re-created/" target="_blank" rel="noopener">https://plugaru.org/2018/05/21/pod-sandbox-changed-it-will-be-killed-and-re-created/</a></p>
+
+            </div>
+            <hr/>
+
+            
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/k8s/">
+                                    <span class="chip bg-color">k8s</span>
+                                </a>
+                            
+                                <a href="/tags/docker/">
+                                    <span class="chip bg-color">docker</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="wechat,weibo" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    
+        <link rel="stylesheet" href="/libs/gitalk/gitalk.css">
+<link rel="stylesheet" href="/libs/gitalk/gitalk.min.js">
+
+<div class="card gitalk-card" data-aos="fade-up">
+    <div class="comment_headling" style="font-size: 20px; font-weight: 700; position: relative; padding-left: 20px; top: 15px; padding-bottom: 5px;">
+        <i class="fas fa-comments fa-fw" aria-hidden="true"></i>
+        <span>评论</span>
+    </div>
+    <div id="gitalk-container" class="card-content"></div>
+</div>
+
+<script src="/libs/gitalk/gitalk.min.js"></script>
+<script>
+    let gitalk = new Gitalk({
+        clientID: 'a705189dfc18ec59a7d0',
+        clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
+        repo: 'qingwave.github.io',
+        owner: 'qingwave',
+        admin: "qingwave",
+        id: '2020-03-18T18-22-05',
+        distractionFreeMode: false  // Facebook-like distraction free mode
+    });
+
+    gitalk.render('gitalk-container');
+</script>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/ingress-nginx-controller-admission-webhook/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/15.jpg" class="responsive-img" alt="nginx ingress controller 最后的倔强: admission webhook">
+                        
+                        <span class="card-title">nginx ingress controller 最后的倔强: admission webhook</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            背景k8s中大多使用nginx-ingress-controller来实现ingress, 但是脆弱的nginx-controller通过ingress解析出nginx配置, 对于某些annotation会reload nignx配置失败,
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2020-04-03
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/cloud/" class="post-category">
+                                    cloud
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/k8s/">
+                        <span class="chip bg-color">k8s</span>
+                    </a>
+                    
+                    <a href="/tags/ingress/">
+                        <span class="chip bg-color">ingress</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/hexo-matery-beauty/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/7.jpg" class="responsive-img" alt="Hexo-matery主题美化以及zeit部署">
+                        
+                        <span class="card-title">Hexo-matery主题美化以及zeit部署</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            简介本文主要介绍Metery主题的安装使用，主题优化内容包括
+
+添加404，诗词样式
+配置提出，在hexo项目_data/matery.yml中配置主题样式，可覆盖themes/matery/_config配置
+调整配色，去掉彩虹配置
+
+部
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2020-02-12
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/tool/" class="post-category">
+                                    tool
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/hexo/">
+                        <span class="chip bg-color">hexo</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeBlockFuction.js"></script>
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeShrink.js"></script>
+
+
+<!-- 代码块折行 -->
+
+<style type="text/css">
+code[class*="language-"], pre[class*="language-"] { white-space: pre !important; }
+</style>
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-mini waves-effect bnt-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('0'),
+            headingSelector: 'h2, h3, h4'
+        });
+
+        // modify the toc link href to support Chinese.
+        let i = 0;
+        let tocHeading = 'toc-heading-';
+        $('#toc-content a').each(function () {
+            $(this).attr('href', '#' + tocHeading + (++i));
+        });
+
+        // modify the heading title id to support Chinese.
+        i = 0;
+        $('#articleContent').children('h2, h3, h4').each(function () {
+            $(this).attr('id', tocHeading + (++i));
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+    <div class="container row center-align" style="margin-bottom: 0px !important;">
+        <div class="center-align">
+            Copyright&nbsp;&copy;
+            <span id="year">2018</span>
+            <a href="https://qinng.now.sh" target="_blank">Qinng</a>
+            <br>
+            
+            &nbsp;<i class="fas fa-chart-area"></i>&nbsp;&nbsp;<span
+                >49.9k</span>&nbsp;
+            
+            
+            
+            
+            
+            
+            <span id="busuanzi_container_site_pv">
+                |&nbsp;<i class="far fa-eye"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_pv"
+                    ></span>&nbsp;
+            </span>
+            
+            
+            <span id="busuanzi_container_site_uv">
+                |&nbsp;<i class="fas fa-users"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_uv"
+                    ></span>&nbsp;
+            </span>
+            
+            <br>
+            
+            <br>
+            
+        </div>
+        <!-- <div class="col s12 m4 l4 social-link social-statis">
+    <a href="https://github.com/qingwave" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
+        <i class="fab fa-github"></i>
+    </a>
+
+
+
+    <a href="mailto:isguory@gmail.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <a href="https://www.douban.com/people/69458430"
+       target="_blank" data-tooltip="关注我的豆瓣: 69458430" data-position="top"
+       data-delay="50">
+        <i class="fa fa-inverse">豆</i>
+    </a>
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div> -->
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/search.js"></script>
+<script type="text/javascript">
+$(function () {
+    searchFunc("https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/search.xml", 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-mini waves-effect" href="#!">
+        <!-- <i class="fas fa-caret-up"></i> -->
+        <!-- <i class="fas fa-chevron-up"></i> -->
+        <i class="fas fa-angle-double-up"></i>
+    </a>
+</div>
+
+
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/matery.js"></script>
+
+    <!-- Baidu Analytics -->
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    
+    <script async src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+</body>
+
+</html>

@@ -1,0 +1,1083 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+    <meta charset="utf-8">
+    <meta name="keywords" content="Prometheus分区实践, Qinng">
+    <meta name="description" content="Coding, Reading and Daydreaming">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+
+    <title>Prometheus分区实践 | Qinng</title>
+    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png">
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/awesome/css/all.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/animate/animate.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/css/lightgallery.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/matery.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/my.css">
+
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/jquery/jquery.min.js"></script>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+
+<body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Qinng</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>标签</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>分类</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>归档</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/contact" class="waves-effect waves-light">
+      
+      <i class="fas fa-comments" style="zoom: 0.6;"></i>
+      
+      <span>留言</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Qinng</div>
+        <div class="logo-desc">
+            
+            Coding, Reading and Daydreaming
+            
+        </div>
+    </div>
+
+    
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			标签
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			分类
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			归档
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/contact" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-comments"></i>
+			
+			留言
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			关于
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/21.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">Prometheus分区实践</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.css">
+<style>
+    #articleContent h1::before,
+    #articleContent h2::before,
+    #articleContent h3::before,
+    #articleContent h4::before,
+    #articleContent h5::before,
+    #articleContent h6::before {
+        display: block;
+        content: " ";
+        height: 100px;
+        margin-top: -100px;
+        visibility: hidden;
+    }
+
+    #articleContent :focus {
+        outline: none;
+    }
+
+    .toc-fixed {
+        position: fixed;
+        top: 64px;
+    }
+
+    .toc-widget {
+        width: 345px;
+        padding-left: 20px;
+    }
+
+    .toc-widget .toc-title {
+        margin: 35px 0 15px 0;
+        padding-left: 17px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+    }
+
+    .toc-widget ol {
+        padding: 0;
+        list-style: none;
+    }
+
+    #toc-content {
+        height: calc(100vh - 250px);
+        overflow: auto;
+    }
+
+    #toc-content ol {
+        padding-left: 10px;
+    }
+
+    #toc-content ol li {
+        padding-left: 10px;
+    }
+
+    #toc-content .toc-link:hover {
+        color: #42b983;
+        font-weight: 700;
+        text-decoration: underline;
+    }
+
+    #toc-content .toc-link::before {
+        background-color: transparent;
+        max-height: 25px;
+
+        position: absolute;
+        right: 23.5vw;
+        display: block;
+    }
+
+    #toc-content .is-active-link {
+        color: #42b983;
+    }
+
+    #floating-toc-btn {
+        position: fixed;
+        right: 15px;
+        bottom: 76px;
+        padding-top: 15px;
+        margin-bottom: 0;
+        z-index: 998;
+    }
+
+    #floating-toc-btn .btn-floating {
+        background: #fff !important;
+        opacity: 0.8;
+    }
+
+    #floating-toc-btn .btn-floating i {
+        color: #1f4d71;
+        font-size: 1rem;
+    }
+
+    #floating-toc-btn .after {
+        color: #000;
+        font-size: 1rem;
+    }
+</style>
+<div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/k8s/">
+                                <span class="chip bg-color">k8s</span>
+                            </a>
+                        
+                            <a href="/tags/prometheus/">
+                                <span class="chip bg-color">prometheus</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/cloud/" class="post-category">
+                                cloud
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2019-02-12
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    1k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    4 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>单个Prometheus Server可以轻松的处理数以百万的时间序列。但当机器规模过大时，需要对其进行分区，Prometheus也提供了集群联邦的功能，方便对其扩展。</p>
+<p>我们采用Prometheus来监控k8s集群，节点数400，采集的samples是280w，Prometheus官方的显示每秒可抓取10w samples。当集群规模扩大到上千节点时，单个Prometheus不足以处理大量数据，需要对其进行分区。</p>
+<blockquote>
+<p>可以根据<code>scrape_samples_scraped{job=${JOBNAME}}</code>来统计各个job的samples数目<br>可以根据<code>count({__name__=~&quot;.*:.*&quot;})</code>来统计metrics总数</p>
+</blockquote>
+<h2 id="集群联邦"><a href="#集群联邦" class="headerlink" title="集群联邦"></a>集群联邦</h2><p>在Promehtues的源码中，<code>federate</code>联邦功能在<code>web</code>中，是一个特殊的查询接口，允许一个prometheus抓取另一个prometheus的metrics</p>
+<p>可以通过全局的prometheus抓取其他slave prometheus从而达到分区的目的<br><img src="/img/blogImg/federate1.png" alt="federate"></p>
+<p>使用federate进行分区通过有两种方式</p>
+<h3 id="功能分区"><a href="#功能分区" class="headerlink" title="功能分区"></a>功能分区</h3><p>每个模块为一个分区，如node-exporter为一个分区，kube-state-metrics为一个分区，再使用全局的Prometheus汇总<br><img src="/img/blogImg/federate2.png" alt="federate by job"></p>
+<p>实现简单，但当单个job采集任务过大（如node-exporter）时，单个Prometheus slave也会成为瓶颈</p>
+<h3 id="水平扩展"><a href="#水平扩展" class="headerlink" title="水平扩展"></a>水平扩展</h3><p>针对功能分区的不足，将同一任务的不同实例的监控数据采集任务划分到不同的Prometheus实例。通过relabel设置，我们可以确保当前Prometheus Server只收集当前采集任务的一部分实例的监控指标。<br><img src="/img/blogImg/federate3.png" alt="federate by modulus"></p>
+<p>下为官方提供的配置</p>
+<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token key atrule">global</span><span class="token punctuation">:</span>
+  <span class="token key atrule">external_labels</span><span class="token punctuation">:</span>
+    <span class="token key atrule">slave</span><span class="token punctuation">:</span> <span class="token number">1  </span><span class="token comment" spellcheck="true"># This is the 2nd slave. This prevents clashes between slaves.</span>
+<span class="token key atrule">scrape_configs</span><span class="token punctuation">:</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">job_name</span><span class="token punctuation">:</span> some_job
+    <span class="token comment" spellcheck="true"># Add usual service discovery here, such as static_configs</span>
+    <span class="token key atrule">relabel_configs</span><span class="token punctuation">:</span>
+    <span class="token punctuation">-</span> <span class="token key atrule">source_labels</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>__address__<span class="token punctuation">]</span>
+      <span class="token key atrule">modulus</span><span class="token punctuation">:</span>       <span class="token number">4    </span><span class="token comment" spellcheck="true"># 4 slaves</span>
+      <span class="token key atrule">target_label</span><span class="token punctuation">:</span>  __tmp_hash
+      <span class="token key atrule">action</span><span class="token punctuation">:</span>        hashmod
+    <span class="token punctuation">-</span> <span class="token key atrule">source_labels</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>__tmp_hash<span class="token punctuation">]</span>
+      <span class="token key atrule">regex</span><span class="token punctuation">:</span>         ^1$  <span class="token comment" spellcheck="true"># This is the 2nd slave</span>
+      <span class="token key atrule">action</span><span class="token punctuation">:</span>        keep
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>并且通过当前数据中心的一个中心Prometheus Server将监控数据进行聚合到任务级别。</p>
+<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token punctuation">-</span> <span class="token key atrule">scrape_config</span><span class="token punctuation">:</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">job_name</span><span class="token punctuation">:</span> slaves
+    <span class="token key atrule">honor_labels</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+    <span class="token key atrule">metrics_path</span><span class="token punctuation">:</span> /federate
+    <span class="token key atrule">params</span><span class="token punctuation">:</span>
+      match<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+        <span class="token punctuation">-</span> <span class="token string">'{__name__=~"^slave:.*"}'</span>   <span class="token comment" spellcheck="true"># Request all slave-level time series</span>
+    <span class="token key atrule">static_configs</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> <span class="token key atrule">targets</span><span class="token punctuation">:</span>
+        <span class="token punctuation">-</span> slave0<span class="token punctuation">:</span><span class="token number">9090</span>
+        <span class="token punctuation">-</span> slave1<span class="token punctuation">:</span><span class="token number">9090</span>
+        <span class="token punctuation">-</span> slave3<span class="token punctuation">:</span><span class="token number">9090</span>
+        <span class="token punctuation">-</span> slave4<span class="token punctuation">:</span><span class="token number">9090</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>水平扩展，即通过联邦集群的特性在任务的实例级别对Prometheus采集任务进行划分，以支持规模的扩展。</p>
+<h2 id="我们的方案"><a href="#我们的方案" class="headerlink" title="我们的方案"></a>我们的方案</h2><h3 id="整体架构"><a href="#整体架构" class="headerlink" title="整体架构"></a>整体架构</h3><ul>
+<li>Promehtues以容器化的方式部署在k8s集群中</li>
+<li>收集node-exporter、cadvisor、kubelet、kube-state-metrics、k8s核心组件、自定义metrics</li>
+<li>通过实现opentsdb-adapter，对监控数据做持久化</li>
+<li>通过falcon-adapter,为监控数据提供报警<br><img src="/img/blogImg/Promehtues-arch.png" alt="monitor"></li>
+</ul>
+<h3 id="分区方案"><a href="#分区方案" class="headerlink" title="分区方案"></a>分区方案</h3><ul>
+<li>Prometheus分区包括master Prometheus 与 slave Promehtues</li>
+<li>我们将监控数据分为多个层次: cluster, namespace, deployment/daemonset, pod, node</li>
+<li>由于kubelet, node-exporter, cadvisor等是以node为单位采集的，所以安装node节点来划分不同job</li>
+<li>slave Prometheus 按照node切片采集node，pod级别数据</li>
+<li>kube-state-metrics暂时无法切片，可通过replicaset 设置多个，单独作为一个kube-state Prometheus，供其他slave Prometheus采集</li>
+<li>其他etcd, apiserver等自定义组件可通过master Promehtues直接采集</li>
+</ul>
+<p>整体架构如下<br><img src="/img/blogImg/federate-plan.png" alt="federate-plan"></p>
+<p>master Prometheus配置</p>
+<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token key atrule">global</span><span class="token punctuation">:</span>
+  <span class="token key atrule">scrape_interval</span><span class="token punctuation">:</span> 60s
+  <span class="token key atrule">scrape_timeout</span><span class="token punctuation">:</span> 30s
+  <span class="token key atrule">evaluation_interval</span><span class="token punctuation">:</span> 60s
+  <span class="token key atrule">external_labels</span><span class="token punctuation">:</span>
+    <span class="token key atrule">cluster</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">{</span>CLUSTER<span class="token punctuation">}</span><span class="token punctuation">}</span>
+    <span class="token key atrule">production_environment</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">{</span>ENV<span class="token punctuation">}</span><span class="token punctuation">}</span>
+
+<span class="token key atrule">rule_files</span><span class="token punctuation">:</span>
+<span class="token punctuation">-</span> cluster.yml
+<span class="token punctuation">-</span> namespace.yml
+<span class="token punctuation">-</span> deployment.yml
+<span class="token punctuation">-</span> daemonset.yml
+
+<span class="token key atrule">scrape_configs</span><span class="token punctuation">:</span>
+
+<span class="token punctuation">-</span> <span class="token key atrule">job_name</span><span class="token punctuation">:</span> federate<span class="token punctuation">-</span>slave
+  <span class="token key atrule">honor_labels</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+  <span class="token key atrule">metrics_path</span><span class="token punctuation">:</span> <span class="token string">'/federate'</span>
+  <span class="token key atrule">params</span><span class="token punctuation">:</span>
+    'match<span class="token punctuation">[</span><span class="token punctuation">]</span>'<span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> <span class="token string">'{__name__=~"pod:.*|node:.*"}'</span>
+  <span class="token key atrule">kubernetes_sd_configs</span><span class="token punctuation">:</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">role</span><span class="token punctuation">:</span> pod
+    <span class="token key atrule">namespaces</span><span class="token punctuation">:</span>
+      <span class="token key atrule">names</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> kube<span class="token punctuation">-</span>system
+  <span class="token key atrule">relabel_configs</span><span class="token punctuation">:</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">source_labels</span><span class="token punctuation">:</span>
+    <span class="token punctuation">-</span> __meta_kubernetes_pod_label_app
+    <span class="token key atrule">action</span><span class="token punctuation">:</span> keep
+    <span class="token key atrule">regex</span><span class="token punctuation">:</span> prometheus<span class="token punctuation">-</span>slave.*
+  <span class="token punctuation">-</span> <span class="token key atrule">source_labels</span><span class="token punctuation">:</span>
+    <span class="token punctuation">-</span> __meta_kubernetes_pod_container_port_number
+    <span class="token key atrule">action</span><span class="token punctuation">:</span> keep
+    <span class="token key atrule">regex</span><span class="token punctuation">:</span> <span class="token number">9090</span>
+
+<span class="token punctuation">-</span> <span class="token key atrule">job_name</span><span class="token punctuation">:</span> federate<span class="token punctuation">-</span>kubestate
+  <span class="token key atrule">honor_labels</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+  <span class="token key atrule">metrics_path</span><span class="token punctuation">:</span> <span class="token string">'/federate'</span>
+  <span class="token key atrule">params</span><span class="token punctuation">:</span>
+    'match<span class="token punctuation">[</span><span class="token punctuation">]</span>'<span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> <span class="token string">'{__name__=~"deployment:.*|daemonset:.*"}'</span>
+  <span class="token key atrule">kubernetes_sd_configs</span><span class="token punctuation">:</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">role</span><span class="token punctuation">:</span> pod
+    <span class="token key atrule">namespaces</span><span class="token punctuation">:</span>
+      <span class="token key atrule">names</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> kube<span class="token punctuation">-</span>system
+  <span class="token key atrule">relabel_configs</span><span class="token punctuation">:</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">source_labels</span><span class="token punctuation">:</span>
+    <span class="token punctuation">-</span> __meta_kubernetes_pod_label_app
+    <span class="token key atrule">action</span><span class="token punctuation">:</span> keep
+    <span class="token key atrule">regex</span><span class="token punctuation">:</span> prometheus<span class="token punctuation">-</span>kubestate.*
+  <span class="token punctuation">-</span> <span class="token key atrule">source_labels</span><span class="token punctuation">:</span>
+    <span class="token punctuation">-</span> __meta_kubernetes_pod_container_port_number
+    <span class="token key atrule">action</span><span class="token punctuation">:</span> keep
+    <span class="token key atrule">regex</span><span class="token punctuation">:</span> <span class="token number">9090</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>slave Prometheus配置</p>
+<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token key atrule">global</span><span class="token punctuation">:</span>
+  <span class="token key atrule">scrape_interval</span><span class="token punctuation">:</span> 60s
+  <span class="token key atrule">scrape_timeout</span><span class="token punctuation">:</span> 30s
+  <span class="token key atrule">evaluation_interval</span><span class="token punctuation">:</span> 60s
+  <span class="token key atrule">external_labels</span><span class="token punctuation">:</span>
+    <span class="token key atrule">cluster</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">{</span>CLUSTER<span class="token punctuation">}</span><span class="token punctuation">}</span>
+    <span class="token key atrule">production_environment</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">{</span>ENV<span class="token punctuation">}</span><span class="token punctuation">}</span>
+
+<span class="token key atrule">rule_files</span><span class="token punctuation">:</span>
+<span class="token punctuation">-</span> node.yml
+<span class="token punctuation">-</span> pod.yml
+
+<span class="token key atrule">scrape_configs</span><span class="token punctuation">:</span>
+
+<span class="token punctuation">-</span> <span class="token key atrule">job_name</span><span class="token punctuation">:</span> federate<span class="token punctuation">-</span>kubestate
+  <span class="token key atrule">honor_labels</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+  <span class="token key atrule">metrics_path</span><span class="token punctuation">:</span> <span class="token string">'/federate'</span>
+  <span class="token key atrule">params</span><span class="token punctuation">:</span>
+    'match<span class="token punctuation">[</span><span class="token punctuation">]</span>'<span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> <span class="token string">'{__name__=~"pod:.*|node:.*"}'</span>
+  <span class="token key atrule">kubernetes_sd_configs</span><span class="token punctuation">:</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">role</span><span class="token punctuation">:</span> pod
+    <span class="token key atrule">namespaces</span><span class="token punctuation">:</span>
+      <span class="token key atrule">names</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> kube<span class="token punctuation">-</span>system
+  <span class="token key atrule">relabel_configs</span><span class="token punctuation">:</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">source_labels</span><span class="token punctuation">:</span>
+    <span class="token punctuation">-</span> __meta_kubernetes_pod_label_app
+    <span class="token key atrule">action</span><span class="token punctuation">:</span> keep
+    <span class="token key atrule">regex</span><span class="token punctuation">:</span> prometheus<span class="token punctuation">-</span>kubestate.*
+  <span class="token punctuation">-</span> <span class="token key atrule">source_labels</span><span class="token punctuation">:</span>
+    <span class="token punctuation">-</span> __meta_kubernetes_pod_container_port_number
+    <span class="token key atrule">action</span><span class="token punctuation">:</span> keep
+    <span class="token key atrule">regex</span><span class="token punctuation">:</span> <span class="token number">9090</span>
+  <span class="token key atrule">metric_relabel_configs</span><span class="token punctuation">:</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">source_labels</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>node<span class="token punctuation">]</span>
+    <span class="token key atrule">modulus</span><span class="token punctuation">:</span>       <span class="token punctuation">{</span><span class="token punctuation">{</span>MODULES<span class="token punctuation">}</span><span class="token punctuation">}</span>
+    <span class="token key atrule">target_label</span><span class="token punctuation">:</span>  __tmp_hash
+    <span class="token key atrule">action</span><span class="token punctuation">:</span>        hashmod
+  <span class="token punctuation">-</span> <span class="token key atrule">source_labels</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>__tmp_hash<span class="token punctuation">]</span>
+    <span class="token key atrule">regex</span><span class="token punctuation">:</span>         <span class="token punctuation">{</span><span class="token punctuation">{</span>SLAVEID<span class="token punctuation">}</span><span class="token punctuation">}</span>
+    <span class="token key atrule">action</span><span class="token punctuation">:</span>        keep
+
+<span class="token punctuation">-</span> <span class="token key atrule">job_name</span><span class="token punctuation">:</span> kubelet
+  <span class="token key atrule">scheme</span><span class="token punctuation">:</span> https
+  <span class="token key atrule">kubernetes_sd_configs</span><span class="token punctuation">:</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">role</span><span class="token punctuation">:</span> node
+    <span class="token key atrule">namespaces</span><span class="token punctuation">:</span>
+      <span class="token key atrule">names</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+  <span class="token key atrule">tls_config</span><span class="token punctuation">:</span>
+    <span class="token key atrule">insecure_skip_verify</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+  <span class="token key atrule">relabel_configs</span><span class="token punctuation">:</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">source_labels</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+    <span class="token key atrule">regex</span><span class="token punctuation">:</span> __meta_kubernetes_node_label_(.+)
+    <span class="token key atrule">replacement</span><span class="token punctuation">:</span> <span class="token string">"$1"</span>
+    <span class="token key atrule">action</span><span class="token punctuation">:</span> labelmap
+  <span class="token punctuation">-</span> <span class="token key atrule">source_labels</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>__meta_kubernetes_node_label_kubernetes_io_hostname<span class="token punctuation">]</span>
+    <span class="token key atrule">modulus</span><span class="token punctuation">:</span>       <span class="token punctuation">{</span><span class="token punctuation">{</span>MODULES<span class="token punctuation">}</span><span class="token punctuation">}</span>
+    <span class="token key atrule">target_label</span><span class="token punctuation">:</span>  __tmp_hash
+    <span class="token key atrule">action</span><span class="token punctuation">:</span>        hashmod
+  <span class="token punctuation">-</span> <span class="token key atrule">source_labels</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>__tmp_hash<span class="token punctuation">]</span>
+    <span class="token key atrule">regex</span><span class="token punctuation">:</span>         <span class="token punctuation">{</span><span class="token punctuation">{</span>SLAVEID<span class="token punctuation">}</span><span class="token punctuation">}</span>
+    <span class="token key atrule">action</span><span class="token punctuation">:</span>        keep
+
+<span class="token punctuation">-</span> <span class="token key atrule">job_name</span><span class="token punctuation">:</span> <span class="token punctuation">...</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="可能的问题"><a href="#可能的问题" class="headerlink" title="可能的问题"></a>可能的问题</h3><ul>
+<li>如何部署，配置复杂，现在采用shell脚本加kustomize,是否有更简单的方法</li>
+<li>分区的动态扩展随着node的规模</li>
+<li>kube-state-metrics是否会成为瓶颈，目前的<a href="https://docs.google.com/document/d/1hm5XrM9dYYY085yOnmMDXu074E4RxjM7R5FS4-WOflo/edit" target="_blank" rel="noopener">kube-state-metrics性能测试</a></li>
+<li>由于分区同一个job的不同instance采集的时间有偏差，对聚合有一定影响</li>
+<li>可靠性保证，如果一个或多个slave的挂了如何处理，使用k8s来保证prometheus的可用性是否可靠</li>
+</ul>
+
+            </div>
+            <hr/>
+
+            
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/k8s/">
+                                    <span class="chip bg-color">k8s</span>
+                                </a>
+                            
+                                <a href="/tags/prometheus/">
+                                    <span class="chip bg-color">prometheus</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="wechat,weibo" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    
+        <link rel="stylesheet" href="/libs/gitalk/gitalk.css">
+<link rel="stylesheet" href="/libs/gitalk/gitalk.min.js">
+
+<div class="card gitalk-card" data-aos="fade-up">
+    <div class="comment_headling" style="font-size: 20px; font-weight: 700; position: relative; padding-left: 20px; top: 15px; padding-bottom: 5px;">
+        <i class="fas fa-comments fa-fw" aria-hidden="true"></i>
+        <span>评论</span>
+    </div>
+    <div id="gitalk-container" class="card-content"></div>
+</div>
+
+<script src="/libs/gitalk/gitalk.min.js"></script>
+<script>
+    let gitalk = new Gitalk({
+        clientID: 'a705189dfc18ec59a7d0',
+        clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
+        repo: 'qingwave.github.io',
+        owner: 'qingwave',
+        admin: "qingwave",
+        id: '2019-02-12T18-32-27',
+        distractionFreeMode: false  // Facebook-like distraction free mode
+    });
+
+    gitalk.render('gitalk-container');
+</script>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/openssl-cmd/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/9.jpg" class="responsive-img" alt="openssl常用命令">
+                        
+                        <span class="card-title">openssl常用命令</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            输出x509证书信息openssl x509 -noout -text  -in ca.pem
+
+结果如下
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Num
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2019-05-10
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/tool/" class="post-category">
+                                    tool
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/openssl/">
+                        <span class="chip bg-color">openssl</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/festival/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/8.jpg" class="responsive-img" alt="回家">
+                        
+                        <span class="card-title">回家</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            春节到了一年又过去了还没有下雪匆匆忙忙春节又来了回家过年
+来年再见希望的或许实现了或许还在希望着只能留到明年了
+
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2019-02-02
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/杂记/" class="post-category">
+                                    杂记
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/随笔/">
+                        <span class="chip bg-color">随笔</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeBlockFuction.js"></script>
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeShrink.js"></script>
+
+
+<!-- 代码块折行 -->
+
+<style type="text/css">
+code[class*="language-"], pre[class*="language-"] { white-space: pre !important; }
+</style>
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-mini waves-effect bnt-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('0'),
+            headingSelector: 'h2, h3, h4'
+        });
+
+        // modify the toc link href to support Chinese.
+        let i = 0;
+        let tocHeading = 'toc-heading-';
+        $('#toc-content a').each(function () {
+            $(this).attr('href', '#' + tocHeading + (++i));
+        });
+
+        // modify the heading title id to support Chinese.
+        i = 0;
+        $('#articleContent').children('h2, h3, h4').each(function () {
+            $(this).attr('id', tocHeading + (++i));
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+    <div class="container row center-align" style="margin-bottom: 0px !important;">
+        <div class="center-align">
+            Copyright&nbsp;&copy;
+            <span id="year">2018</span>
+            <a href="https://qinng.now.sh" target="_blank">Qinng</a>
+            <br>
+            
+            &nbsp;<i class="fas fa-chart-area"></i>&nbsp;&nbsp;<span
+                >49.9k</span>&nbsp;
+            
+            
+            
+            
+            
+            
+            <span id="busuanzi_container_site_pv">
+                |&nbsp;<i class="far fa-eye"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_pv"
+                    ></span>&nbsp;
+            </span>
+            
+            
+            <span id="busuanzi_container_site_uv">
+                |&nbsp;<i class="fas fa-users"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_uv"
+                    ></span>&nbsp;
+            </span>
+            
+            <br>
+            
+            <br>
+            
+        </div>
+        <!-- <div class="col s12 m4 l4 social-link social-statis">
+    <a href="https://github.com/qingwave" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
+        <i class="fab fa-github"></i>
+    </a>
+
+
+
+    <a href="mailto:isguory@gmail.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <a href="https://www.douban.com/people/69458430"
+       target="_blank" data-tooltip="关注我的豆瓣: 69458430" data-position="top"
+       data-delay="50">
+        <i class="fa fa-inverse">豆</i>
+    </a>
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div> -->
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/search.js"></script>
+<script type="text/javascript">
+$(function () {
+    searchFunc("https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/search.xml", 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-mini waves-effect" href="#!">
+        <!-- <i class="fas fa-caret-up"></i> -->
+        <!-- <i class="fas fa-chevron-up"></i> -->
+        <i class="fas fa-angle-double-up"></i>
+    </a>
+</div>
+
+
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/matery.js"></script>
+
+    <!-- Baidu Analytics -->
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    
+    <script async src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+</body>
+
+</html>

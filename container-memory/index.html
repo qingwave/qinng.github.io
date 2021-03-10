@@ -1,0 +1,1075 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+    <meta charset="utf-8">
+    <meta name="keywords" content="容器内存分析, Qinng">
+    <meta name="description" content="Coding, Reading and Daydreaming">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+
+    <title>容器内存分析 | Qinng</title>
+    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png">
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/awesome/css/all.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/animate/animate.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/css/lightgallery.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/matery.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/my.css">
+
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/jquery/jquery.min.js"></script>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+
+<body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Qinng</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>标签</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>分类</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>归档</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/contact" class="waves-effect waves-light">
+      
+      <i class="fas fa-comments" style="zoom: 0.6;"></i>
+      
+      <span>留言</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Qinng</div>
+        <div class="logo-desc">
+            
+            Coding, Reading and Daydreaming
+            
+        </div>
+    </div>
+
+    
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			标签
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			分类
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			归档
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/contact" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-comments"></i>
+			
+			留言
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			关于
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/4.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">容器内存分析</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.css">
+<style>
+    #articleContent h1::before,
+    #articleContent h2::before,
+    #articleContent h3::before,
+    #articleContent h4::before,
+    #articleContent h5::before,
+    #articleContent h6::before {
+        display: block;
+        content: " ";
+        height: 100px;
+        margin-top: -100px;
+        visibility: hidden;
+    }
+
+    #articleContent :focus {
+        outline: none;
+    }
+
+    .toc-fixed {
+        position: fixed;
+        top: 64px;
+    }
+
+    .toc-widget {
+        width: 345px;
+        padding-left: 20px;
+    }
+
+    .toc-widget .toc-title {
+        margin: 35px 0 15px 0;
+        padding-left: 17px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+    }
+
+    .toc-widget ol {
+        padding: 0;
+        list-style: none;
+    }
+
+    #toc-content {
+        height: calc(100vh - 250px);
+        overflow: auto;
+    }
+
+    #toc-content ol {
+        padding-left: 10px;
+    }
+
+    #toc-content ol li {
+        padding-left: 10px;
+    }
+
+    #toc-content .toc-link:hover {
+        color: #42b983;
+        font-weight: 700;
+        text-decoration: underline;
+    }
+
+    #toc-content .toc-link::before {
+        background-color: transparent;
+        max-height: 25px;
+
+        position: absolute;
+        right: 23.5vw;
+        display: block;
+    }
+
+    #toc-content .is-active-link {
+        color: #42b983;
+    }
+
+    #floating-toc-btn {
+        position: fixed;
+        right: 15px;
+        bottom: 76px;
+        padding-top: 15px;
+        margin-bottom: 0;
+        z-index: 998;
+    }
+
+    #floating-toc-btn .btn-floating {
+        background: #fff !important;
+        opacity: 0.8;
+    }
+
+    #floating-toc-btn .btn-floating i {
+        color: #1f4d71;
+        font-size: 1rem;
+    }
+
+    #floating-toc-btn .after {
+        color: #000;
+        font-size: 1rem;
+    }
+</style>
+<div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/k8s/">
+                                <span class="chip bg-color">k8s</span>
+                            </a>
+                        
+                            <a href="/tags/docker/">
+                                <span class="chip bg-color">docker</span>
+                            </a>
+                        
+                            <a href="/tags/cgroup/">
+                                <span class="chip bg-color">cgroup</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/cloud/" class="post-category">
+                                cloud
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2019-05-29
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    1.2k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    5 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>在容器化环境中，平台需要提供准确的业务监控指标，已方便业务查看。那么如何准确计算容器或Pod的内存使用率，k8s/docker又是如何计算，本文通过实验与源码阅读相结合来分析容器的内存实际使用量。</p>
+<h2 id="预备知识"><a href="#预备知识" class="headerlink" title="预备知识"></a>预备知识</h2><p>不管docker还是k8s(通过cadvisor)最终都通过cgroup的memory group来得到内存的原始文件，memory相关的主要文件如下:</p>
+<pre><code>cgroup.event_control       #用于eventfd的接口
+memory.usage_in_bytes      #显示当前已用的内存
+memory.limit_in_bytes      #设置/显示当前限制的内存额度
+memory.failcnt             #显示内存使用量达到限制值的次数
+memory.max_usage_in_bytes  #历史内存最大使用量
+memory.soft_limit_in_bytes #设置/显示当前限制的内存软额度
+memory.stat                #显示当前cgroup的内存使用情况
+memory.use_hierarchy       #设置/显示是否将子cgroup的内存使用情况统计到当前cgroup里面
+memory.force_empty         #触发系统立即尽可能的回收当前cgroup中可以回收的内存
+memory.pressure_level      #设置内存压力的通知事件，配合cgroup.event_control一起使用
+memory.swappiness          #设置和显示当前的swappiness
+memory.move_charge_at_immigrate #设置当进程移动到其他cgroup中时，它所占用的内存是否也随着移动过去
+memory.oom_control         #设置/显示oom controls相关的配置
+memory.numa_stat           #显示numa相关的内存
+</code></pre><p>更多信息可参考<a href="https://qingwave.github.io/2018/11/15/Pod-memory-usage-in-k8s/#Cadvisor%E4%B8%AD%E6%9C%89%E5%85%B3pod%E5%86%85%E5%AD%98%E4%BD%BF%E7%94%A8%E7%8E%87%E7%9A%84%E6%8C%87%E6%A0%87" target="_blank" rel="noopener">Pod memory usage in k8s</a></p>
+<h2 id="查看源码"><a href="#查看源码" class="headerlink" title="查看源码"></a>查看源码</h2><h3 id="docker-stat"><a href="#docker-stat" class="headerlink" title="docker stat"></a>docker stat</h3><p>docker stat的源码在<a href="https://github.com/docker/cli/blob/37f9a88c696ae81be14c1697bd083d6421b4933c/cli/command/container/stats_helpers.go#L233" target="_blank" rel="noopener">stats_helpers.go</a>,如下：</p>
+<pre class="line-numbers language-golang"><code class="language-golang">func calculateMemUsageUnixNoCache(mem types.MemoryStats) float64 {
+    return float64(mem.Usage - mem.Stats["cache"])
+}
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>内存使用量为<code>memory.usage=memory.usage_in_bytes-cache</code></p>
+<h3 id="kubectl-top"><a href="#kubectl-top" class="headerlink" title="kubectl top"></a>kubectl top</h3><p>在k8s中，<code>kubectl top</code>命令通过<code>metric-server/heapster</code>获取cadvisor中<code>working_set</code>的值，来表示Pod实例使用内存大小(不包括pause),metrics-server 中<a href="https://github.com/kubernetes-sigs/metrics-server/blob/d4432d67b2fc435b9c71a89c13659882008a4c54/pkg/sources/summary/summary.go#L206" target="_blank" rel="noopener">pod内存</a>获取如下：</p>
+<pre class="line-numbers language-golang"><code class="language-golang">func decodeMemory(target *resource.Quantity, memStats *stats.MemoryStats) error {
+    if memStats == nil || memStats.WorkingSetBytes == nil {
+        return fmt.Errorf("missing memory usage metric")
+    }
+
+    *target = *uint64Quantity(*memStats.WorkingSetBytes, 0)
+    target.Format = resource.BinarySI
+
+    return nil
+}
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>cadvisor中<a href="https://github.com/google/cadvisor/blob/0ff17b8d0df3712923c46ca484701b876d02dfee/container/libcontainer/handler.go#L706" target="_blank" rel="noopener">working_set</a>计算如下：</p>
+<pre class="line-numbers language-golang"><code class="language-golang">func setMemoryStats(s *cgroups.Stats, ret *info.ContainerStats) {
+    ret.Memory.Usage = s.MemoryStats.Usage.Usage
+    ret.Memory.MaxUsage = s.MemoryStats.Usage.MaxUsage
+    ret.Memory.Failcnt = s.MemoryStats.Usage.Failcnt
+
+    if s.MemoryStats.UseHierarchy {
+        ret.Memory.Cache = s.MemoryStats.Stats["total_cache"]
+        ret.Memory.RSS = s.MemoryStats.Stats["total_rss"]
+        ret.Memory.Swap = s.MemoryStats.Stats["total_swap"]
+        ret.Memory.MappedFile = s.MemoryStats.Stats["total_mapped_file"]
+    } else {
+        ret.Memory.Cache = s.MemoryStats.Stats["cache"]
+        ret.Memory.RSS = s.MemoryStats.Stats["rss"]
+        ret.Memory.Swap = s.MemoryStats.Stats["swap"]
+        ret.Memory.MappedFile = s.MemoryStats.Stats["mapped_file"]
+    }
+    if v, ok := s.MemoryStats.Stats["pgfault"]; ok {
+        ret.Memory.ContainerData.Pgfault = v
+        ret.Memory.HierarchicalData.Pgfault = v
+    }
+    if v, ok := s.MemoryStats.Stats["pgmajfault"]; ok {
+        ret.Memory.ContainerData.Pgmajfault = v
+        ret.Memory.HierarchicalData.Pgmajfault = v
+    }
+
+    workingSet := ret.Memory.Usage
+    if v, ok := s.MemoryStats.Stats["total_inactive_file"]; ok {
+        if workingSet < v {
+            workingSet = 0
+        } else {
+            workingSet -= v
+        }
+    }
+    ret.Memory.WorkingSet = workingSet
+}
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><code>working_set=memory.usage_in_bytes-total_inactive_file (&gt;=0)</code><br>在kubelet中节点内存不足时同样以<code>working_set</code>判断pod是否OOM的标准</p>
+<h2 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h2><ol>
+<li>创建Pod<br>Pod的资源申请如下：<pre class="line-numbers language-yaml"><code class="language-yaml">     <span class="token key atrule">resources</span><span class="token punctuation">:</span>
+       <span class="token key atrule">limits</span><span class="token punctuation">:</span>
+         <span class="token key atrule">cpu</span><span class="token punctuation">:</span> <span class="token string">"1"</span>
+         <span class="token key atrule">memory</span><span class="token punctuation">:</span> 1Gi
+       <span class="token key atrule">requests</span><span class="token punctuation">:</span>
+         <span class="token key atrule">cpu</span><span class="token punctuation">:</span> <span class="token string">"0"</span>
+         <span class="token key atrule">memory</span><span class="token punctuation">:</span> <span class="token string">"0"</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+</li>
+<li>查看cgroup内存情况<br>找到容器某个进程，查看memory cgroup<pre class="line-numbers language-bash"><code class="language-bash"><span class="token comment" spellcheck="true"># cat /proc/16062/cgroup </span>
+<span class="token punctuation">..</span>.
+8:memory:/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod21a55da5_f9f8_11e9_b051_fa163e7e981a.slice/docker-57ba1991ab4ba50a9b2eaf5bf90e2c20073198d767653becf77d55ee25e1a6f9.scope
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+进入容器memory cgroup对应的目录<pre><code>docker-57ba1991ab4ba50a9b2eaf5bf90e2c20073198d767653becf77d55ee25e1a6f9.scope]# ls
+cgroup.clone_children  memory.kmem.failcnt             memory.kmem.tcp.limit_in_bytes      memory.max_usage_in_bytes        memory.move_charge_at_immigrate  memory.stat            tasks
+cgroup.event_control   memory.kmem.limit_in_bytes      memory.kmem.tcp.max_usage_in_bytes  memory.memsw.failcnt             memory.numa_stat                 memory.swappiness
+cgroup.procs           memory.kmem.max_usage_in_bytes  memory.kmem.tcp.usage_in_bytes      memory.memsw.limit_in_bytes      memory.oom_control               memory.usage_in_bytes
+memory.failcnt         memory.kmem.slabinfo            memory.kmem.usage_in_bytes          memory.memsw.max_usage_in_bytes  memory.pressure_level            memory.use_hierarchy
+memory.force_empty     memory.kmem.tcp.failcnt         memory.limit_in_bytes               memory.memsw.usage_in_bytes      memory.soft_limit_in_bytes       notify_on_release
+</code></pre>查看主要memory文件<pre class="line-numbers language-bash"><code class="language-bash"><span class="token comment" spellcheck="true"># cat memory.limit_in_bytes (容器memory limit值，即1Gi)</span>
+1073741824
+<span class="token punctuation">[</span>root@node01 docker-57ba1991ab4ba50a9b2eaf5bf90e2c20073198d767653becf77d55ee25e1a6f9.scope<span class="token punctuation">]</span><span class="token comment" spellcheck="true"># cat memory.kmem.limit_in_bytes (容器内核使用memory limit值)</span>
+9223372036854771712
+<span class="token punctuation">[</span>root@node01 docker-57ba1991ab4ba50a9b2eaf5bf90e2c20073198d767653becf77d55ee25e1a6f9.scope<span class="token punctuation">]</span><span class="token comment" spellcheck="true"># </span>
+<span class="token punctuation">[</span>root@node01 docker-57ba1991ab4ba50a9b2eaf5bf90e2c20073198d767653becf77d55ee25e1a6f9.scope<span class="token punctuation">]</span><span class="token comment" spellcheck="true"># cat memory.soft_limit_in_bytes</span>
+9223372036854771712
+<span class="token punctuation">[</span>docker-57ba1991ab4ba50a9b2eaf5bf90e2c20073198d767653becf77d55ee25e1a6f9.scope<span class="token punctuation">]</span><span class="token comment" spellcheck="true"># cat notify_on_release</span>
+0
+<span class="token punctuation">[</span>docker-57ba1991ab4ba50a9b2eaf5bf90e2c20073198d767653becf77d55ee25e1a6f9.scope<span class="token punctuation">]</span><span class="token comment" spellcheck="true"># cat memory.oom_control </span>
+oom_kill_disable 0
+under_oom 0
+oom_kill 0
+<span class="token punctuation">[</span>docker-57ba1991ab4ba50a9b2eaf5bf90e2c20073198d767653becf77d55ee25e1a6f9.scope<span class="token punctuation">]</span><span class="token comment" spellcheck="true"># cat memory.usage_in_bytes </span>
+2265088
+<span class="token punctuation">[</span>docker-57ba1991ab4ba50a9b2eaf5bf90e2c20073198d767653becf77d55ee25e1a6f9.scope<span class="token punctuation">]</span><span class="token comment" spellcheck="true"># cat memory.kmem.usage_in_bytes </span>
+901120
+<span class="token punctuation">[</span>docker-57ba1991ab4ba50a9b2eaf5bf90e2c20073198d767653becf77d55ee25e1a6f9.scope<span class="token punctuation">]</span><span class="token comment" spellcheck="true"># cat memory.stat </span>
+cache 12288
+rss 1351680
+rss_huge 0
+shmem 4096
+mapped_file 4096
+dirty 0
+writeback 0
+swap 0
+pgpgin 4544
+pgpgout 4211
+pgfault 1948
+pgmajfault 0
+inactive_anon 4096
+active_anon 1351680
+inactive_file 8192
+active_file 0
+unevictable 0
+hierarchical_memory_limit 1073741824
+hierarchical_memsw_limit 1073741824
+total_cache 12288
+total_rss 1351680
+total_rss_huge 0
+total_shmem 4096
+total_mapped_file 4096
+total_dirty 0
+total_writeback 0
+total_swap 0
+total_pgpgin 4544
+total_pgpgout 4211
+total_pgfault 1948
+total_pgmajfault 0
+total_inactive_anon 4096
+total_active_anon 1351680
+total_inactive_file 8192
+total_active_file 0
+total_unevictable 0
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+根据memory可得到如下关系：<br><code>memory.usage_in_bytes = memory.kmem.usage_in_bytes + rss + cache</code><br>即2265088=901120+1351680+12288</li>
+</ol>
+<p>那么容器的真实内存即：<br><code>memory.usage=memory.usage_in_bytes-cache</code><br>即<code>rss+kmem_usage</code></p>
+<p>通过<code>docker stat</code>查看，与公式相符合</p>
+<pre><code>CONTAINER ID        NAME                                                                                     CPU %               MEM USAGE / LIMIT   MEM %               NET I/O             BLOCK I/O           PIDS
+57ba1991ab4b        k8s...default_21a55da5-f9f8-11e9-b051-fa163e7e981a_0   0.00%               2.148MiB / 1GiB     0.21%               12MB / 68.8MB       0B / 0B             2
+</code></pre><h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>实际环境中，docker与k8s两种内存表示方式不同，一般<code>docker stat</code>总体值会小于<code>kubectl top</code></p>
+<ul>
+<li>docker中内存表示为：<br><code>memory.usage = memory.usage_in_bytes - cache</code></li>
+<li>k8s中：<br><code>memory.usage = working_set = memory.usage_in_bytes - total_inactive_file (&gt;=0)</code><br>根据cgroup memory关系有：<br><code>memory.usage_in_bytes = memory.kmem.usage_in_bytes + rss + cache</code></li>
+</ul>
+<p>真实环境中两种表示相差不大，但更推荐使用<code>working_set</code>作为容器内存真实使用量(kubelt判断OOM的依据)，<br>则容器内存使用率可表示为：<br><code>container_memory_working_set_bytes / memory.limit_in_bytes</code></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
+<li><a href="https://www.kernel.org/doc/Documentation/cgroup-v1/memory.txt" target="_blank" rel="noopener">https://www.kernel.org/doc/Documentation/cgroup-v1/memory.txt</a></li>
+<li><a href="https://medium.com/@zhimin.wen/memory-limit-of-pod-and-oom-killer-891ee1f1cad8" target="_blank" rel="noopener">https://medium.com/@zhimin.wen/memory-limit-of-pod-and-oom-killer-891ee1f1cad8</a></li>
+</ol>
+
+            </div>
+            <hr/>
+
+            
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/k8s/">
+                                    <span class="chip bg-color">k8s</span>
+                                </a>
+                            
+                                <a href="/tags/docker/">
+                                    <span class="chip bg-color">docker</span>
+                                </a>
+                            
+                                <a href="/tags/cgroup/">
+                                    <span class="chip bg-color">cgroup</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="wechat,weibo" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    
+        <link rel="stylesheet" href="/libs/gitalk/gitalk.css">
+<link rel="stylesheet" href="/libs/gitalk/gitalk.min.js">
+
+<div class="card gitalk-card" data-aos="fade-up">
+    <div class="comment_headling" style="font-size: 20px; font-weight: 700; position: relative; padding-left: 20px; top: 15px; padding-bottom: 5px;">
+        <i class="fas fa-comments fa-fw" aria-hidden="true"></i>
+        <span>评论</span>
+    </div>
+    <div id="gitalk-container" class="card-content"></div>
+</div>
+
+<script src="/libs/gitalk/gitalk.min.js"></script>
+<script>
+    let gitalk = new Gitalk({
+        clientID: 'a705189dfc18ec59a7d0',
+        clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
+        repo: 'qingwave.github.io',
+        owner: 'qingwave',
+        admin: "qingwave",
+        id: '2019-05-29T14-37-21',
+        distractionFreeMode: false  // Facebook-like distraction free mode
+    });
+
+    gitalk.render('gitalk-container');
+</script>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/k8s-limit-fd-and-thread1/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/8.jpg" class="responsive-img" alt="k8s中fd与thread限制(一)">
+                        
+                        <span class="card-title">k8s中fd与thread限制(一)</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            背景linux中为了防止进程恶意使用资源，系统使用ulimit来限制进程的资源使用情况（包括文件描述符，线程数，内存大小等）。同样地在容器化场景中，需要限制其系统资源的使用量。
+限制方法
+ulimit: docker 默认支持ulimit设
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2019-07-16
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/cloud/" class="post-category">
+                                    cloud
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/k8s/">
+                        <span class="chip bg-color">k8s</span>
+                    </a>
+                    
+                    <a href="/tags/docker/">
+                        <span class="chip bg-color">docker</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/k8s-docker-stack/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/5.jpg" class="responsive-img" alt="k8s与docker组件堆栈及Debug">
+                        
+                        <span class="card-title">k8s与docker组件堆栈及Debug</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            k8s组件日志级别热更新
+# 调整日志级别到3
+curl -X PUT http://127.0.0.1:8081/debug/flags/v -d "3"
+
+controller manager
+wget http://localhost
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2019-05-11
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/cloud/" class="post-category">
+                                    cloud
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/k8s/">
+                        <span class="chip bg-color">k8s</span>
+                    </a>
+                    
+                    <a href="/tags/docker/">
+                        <span class="chip bg-color">docker</span>
+                    </a>
+                    
+                    <a href="/tags/pprof/">
+                        <span class="chip bg-color">pprof</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeBlockFuction.js"></script>
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeShrink.js"></script>
+
+
+<!-- 代码块折行 -->
+
+<style type="text/css">
+code[class*="language-"], pre[class*="language-"] { white-space: pre !important; }
+</style>
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-mini waves-effect bnt-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('0'),
+            headingSelector: 'h2, h3, h4'
+        });
+
+        // modify the toc link href to support Chinese.
+        let i = 0;
+        let tocHeading = 'toc-heading-';
+        $('#toc-content a').each(function () {
+            $(this).attr('href', '#' + tocHeading + (++i));
+        });
+
+        // modify the heading title id to support Chinese.
+        i = 0;
+        $('#articleContent').children('h2, h3, h4').each(function () {
+            $(this).attr('id', tocHeading + (++i));
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+    <div class="container row center-align" style="margin-bottom: 0px !important;">
+        <div class="center-align">
+            Copyright&nbsp;&copy;
+            <span id="year">2018</span>
+            <a href="https://qinng.now.sh" target="_blank">Qinng</a>
+            <br>
+            
+            &nbsp;<i class="fas fa-chart-area"></i>&nbsp;&nbsp;<span
+                >49.9k</span>&nbsp;
+            
+            
+            
+            
+            
+            
+            <span id="busuanzi_container_site_pv">
+                |&nbsp;<i class="far fa-eye"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_pv"
+                    ></span>&nbsp;
+            </span>
+            
+            
+            <span id="busuanzi_container_site_uv">
+                |&nbsp;<i class="fas fa-users"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_uv"
+                    ></span>&nbsp;
+            </span>
+            
+            <br>
+            
+            <br>
+            
+        </div>
+        <!-- <div class="col s12 m4 l4 social-link social-statis">
+    <a href="https://github.com/qingwave" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
+        <i class="fab fa-github"></i>
+    </a>
+
+
+
+    <a href="mailto:isguory@gmail.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <a href="https://www.douban.com/people/69458430"
+       target="_blank" data-tooltip="关注我的豆瓣: 69458430" data-position="top"
+       data-delay="50">
+        <i class="fa fa-inverse">豆</i>
+    </a>
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div> -->
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/search.js"></script>
+<script type="text/javascript">
+$(function () {
+    searchFunc("https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/search.xml", 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-mini waves-effect" href="#!">
+        <!-- <i class="fas fa-caret-up"></i> -->
+        <!-- <i class="fas fa-chevron-up"></i> -->
+        <i class="fas fa-angle-double-up"></i>
+    </a>
+</div>
+
+
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/matery.js"></script>
+
+    <!-- Baidu Analytics -->
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    
+    <script async src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+</body>
+
+</html>

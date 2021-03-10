@@ -1,0 +1,1139 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+    <meta charset="utf-8">
+    <meta name="keywords" content="kube-apiserver认证源码分析, Qinng">
+    <meta name="description" content="Coding, Reading and Daydreaming">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+
+    <title>kube-apiserver认证源码分析 | Qinng</title>
+    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png">
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/awesome/css/all.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/animate/animate.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/css/lightgallery.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/matery.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/my.css">
+
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/jquery/jquery.min.js"></script>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+
+<body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Qinng</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>标签</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>分类</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>归档</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/contact" class="waves-effect waves-light">
+      
+      <i class="fas fa-comments" style="zoom: 0.6;"></i>
+      
+      <span>留言</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Qinng</div>
+        <div class="logo-desc">
+            
+            Coding, Reading and Daydreaming
+            
+        </div>
+    </div>
+
+    
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			标签
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			分类
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			归档
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/contact" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-comments"></i>
+			
+			留言
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			关于
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/5.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">kube-apiserver认证源码分析</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.css">
+<style>
+    #articleContent h1::before,
+    #articleContent h2::before,
+    #articleContent h3::before,
+    #articleContent h4::before,
+    #articleContent h5::before,
+    #articleContent h6::before {
+        display: block;
+        content: " ";
+        height: 100px;
+        margin-top: -100px;
+        visibility: hidden;
+    }
+
+    #articleContent :focus {
+        outline: none;
+    }
+
+    .toc-fixed {
+        position: fixed;
+        top: 64px;
+    }
+
+    .toc-widget {
+        width: 345px;
+        padding-left: 20px;
+    }
+
+    .toc-widget .toc-title {
+        margin: 35px 0 15px 0;
+        padding-left: 17px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+    }
+
+    .toc-widget ol {
+        padding: 0;
+        list-style: none;
+    }
+
+    #toc-content {
+        height: calc(100vh - 250px);
+        overflow: auto;
+    }
+
+    #toc-content ol {
+        padding-left: 10px;
+    }
+
+    #toc-content ol li {
+        padding-left: 10px;
+    }
+
+    #toc-content .toc-link:hover {
+        color: #42b983;
+        font-weight: 700;
+        text-decoration: underline;
+    }
+
+    #toc-content .toc-link::before {
+        background-color: transparent;
+        max-height: 25px;
+
+        position: absolute;
+        right: 23.5vw;
+        display: block;
+    }
+
+    #toc-content .is-active-link {
+        color: #42b983;
+    }
+
+    #floating-toc-btn {
+        position: fixed;
+        right: 15px;
+        bottom: 76px;
+        padding-top: 15px;
+        margin-bottom: 0;
+        z-index: 998;
+    }
+
+    #floating-toc-btn .btn-floating {
+        background: #fff !important;
+        opacity: 0.8;
+    }
+
+    #floating-toc-btn .btn-floating i {
+        color: #1f4d71;
+        font-size: 1rem;
+    }
+
+    #floating-toc-btn .after {
+        color: #000;
+        font-size: 1rem;
+    }
+</style>
+<div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/k8s/">
+                                <span class="chip bg-color">k8s</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/cloud/" class="post-category">
+                                cloud
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2020-01-31
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    1.5k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    7 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>kube-apiserver中与权限相关的主要有三种机制，即认证、鉴权和准入控制。本文主要分析apiserver的认证流程。</p>
+<h2 id="认证流程分析"><a href="#认证流程分析" class="headerlink" title="认证流程分析"></a>认证流程分析</h2><p>权限相关代码从<code>k8s.io/apiserver/pkg/server/config.go</code>中<code>DefaultBuildHandlerChain</code>函数开始执行</p>
+<pre class="line-numbers language-go"><code class="language-go"><span class="token keyword">func</span> <span class="token function">DefaultBuildHandlerChain</span><span class="token punctuation">(</span>apiHandler http<span class="token punctuation">.</span>Handler<span class="token punctuation">,</span> c <span class="token operator">*</span>Config<span class="token punctuation">)</span> http<span class="token punctuation">.</span>Handler <span class="token punctuation">{</span>
+    handler <span class="token operator">:=</span> genericapifilters<span class="token punctuation">.</span><span class="token function">WithAuthorization</span><span class="token punctuation">(</span>apiHandler<span class="token punctuation">,</span> c<span class="token punctuation">.</span>Authorization<span class="token punctuation">.</span>Authorizer<span class="token punctuation">,</span> c<span class="token punctuation">.</span>Serializer<span class="token punctuation">)</span>
+    handler <span class="token operator">=</span> genericfilters<span class="token punctuation">.</span><span class="token function">WithMaxInFlightLimit</span><span class="token punctuation">(</span>handler<span class="token punctuation">,</span> c<span class="token punctuation">.</span>MaxRequestsInFlight<span class="token punctuation">,</span> c<span class="token punctuation">.</span>MaxMutatingRequestsInFlight<span class="token punctuation">,</span> c<span class="token punctuation">.</span>LongRunningFunc<span class="token punctuation">)</span>
+    handler <span class="token operator">=</span> genericapifilters<span class="token punctuation">.</span><span class="token function">WithImpersonation</span><span class="token punctuation">(</span>handler<span class="token punctuation">,</span> c<span class="token punctuation">.</span>Authorization<span class="token punctuation">.</span>Authorizer<span class="token punctuation">,</span> c<span class="token punctuation">.</span>Serializer<span class="token punctuation">)</span>
+    handler <span class="token operator">=</span> genericapifilters<span class="token punctuation">.</span><span class="token function">WithAudit</span><span class="token punctuation">(</span>handler<span class="token punctuation">,</span> c<span class="token punctuation">.</span>AuditBackend<span class="token punctuation">,</span> c<span class="token punctuation">.</span>AuditPolicyChecker<span class="token punctuation">,</span> c<span class="token punctuation">.</span>LongRunningFunc<span class="token punctuation">)</span>
+    failedHandler <span class="token operator">:=</span> genericapifilters<span class="token punctuation">.</span><span class="token function">Unauthorized</span><span class="token punctuation">(</span>c<span class="token punctuation">.</span>Serializer<span class="token punctuation">,</span> c<span class="token punctuation">.</span>Authentication<span class="token punctuation">.</span>SupportsBasicAuth<span class="token punctuation">)</span>
+    failedHandler <span class="token operator">=</span> genericapifilters<span class="token punctuation">.</span><span class="token function">WithFailedAuthenticationAudit</span><span class="token punctuation">(</span>failedHandler<span class="token punctuation">,</span> c<span class="token punctuation">.</span>AuditBackend<span class="token punctuation">,</span> c<span class="token punctuation">.</span>AuditPolicyChecker<span class="token punctuation">)</span>
+    handler <span class="token operator">=</span> genericapifilters<span class="token punctuation">.</span><span class="token function">WithAuthentication</span><span class="token punctuation">(</span>handler<span class="token punctuation">,</span> c<span class="token punctuation">.</span>Authentication<span class="token punctuation">.</span>Authenticator<span class="token punctuation">,</span> failedHandler<span class="token punctuation">,</span> c<span class="token punctuation">.</span>Authentication<span class="token punctuation">.</span>APIAudiences<span class="token punctuation">)</span>
+    handler <span class="token operator">=</span> genericfilters<span class="token punctuation">.</span><span class="token function">WithCORS</span><span class="token punctuation">(</span>handler<span class="token punctuation">,</span> c<span class="token punctuation">.</span>CorsAllowedOriginList<span class="token punctuation">,</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> <span class="token string">"true"</span><span class="token punctuation">)</span>
+    handler <span class="token operator">=</span> genericfilters<span class="token punctuation">.</span><span class="token function">WithTimeoutForNonLongRunningRequests</span><span class="token punctuation">(</span>handler<span class="token punctuation">,</span> c<span class="token punctuation">.</span>LongRunningFunc<span class="token punctuation">,</span> c<span class="token punctuation">.</span>RequestTimeout<span class="token punctuation">)</span>
+    handler <span class="token operator">=</span> genericfilters<span class="token punctuation">.</span><span class="token function">WithWaitGroup</span><span class="token punctuation">(</span>handler<span class="token punctuation">,</span> c<span class="token punctuation">.</span>LongRunningFunc<span class="token punctuation">,</span> c<span class="token punctuation">.</span>HandlerChainWaitGroup<span class="token punctuation">)</span>
+    handler <span class="token operator">=</span> genericapifilters<span class="token punctuation">.</span><span class="token function">WithRequestInfo</span><span class="token punctuation">(</span>handler<span class="token punctuation">,</span> c<span class="token punctuation">.</span>RequestInfoResolver<span class="token punctuation">)</span>
+    handler <span class="token operator">=</span> genericfilters<span class="token punctuation">.</span><span class="token function">WithPanicRecovery</span><span class="token punctuation">(</span>handler<span class="token punctuation">)</span>
+    <span class="token keyword">return</span> handler
+<span class="token punctuation">}</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><code>DefaultBuildHandlerChain</code>中包含了多种filter（如认证，链接数检验，RBAC权限检验等），认证步骤在<code>WithAuthorization</code>中，如下：</p>
+<pre class="line-numbers language-go"><code class="language-go"><span class="token comment" spellcheck="true">// WithAuthentication creates an http handler that tries to authenticate the given request as a user, and then</span>
+<span class="token comment" spellcheck="true">// stores any such user found onto the provided context for the request. If authentication fails or returns an error</span>
+<span class="token comment" spellcheck="true">// the failed handler is used. On success, "Authorization" header is removed from the request and handler</span>
+<span class="token comment" spellcheck="true">// is invoked to serve the request.</span>
+<span class="token keyword">func</span> <span class="token function">WithAuthentication</span><span class="token punctuation">(</span>handler http<span class="token punctuation">.</span>Handler<span class="token punctuation">,</span> auth authenticator<span class="token punctuation">.</span>Request<span class="token punctuation">,</span> failed http<span class="token punctuation">.</span>Handler<span class="token punctuation">,</span> apiAuds authenticator<span class="token punctuation">.</span>Audiences<span class="token punctuation">)</span> http<span class="token punctuation">.</span>Handler <span class="token punctuation">{</span>
+    <span class="token keyword">if</span> auth <span class="token operator">==</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
+        klog<span class="token punctuation">.</span><span class="token function">Warningf</span><span class="token punctuation">(</span><span class="token string">"Authentication is disabled"</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> handler
+    <span class="token punctuation">}</span>
+    <span class="token keyword">return</span> http<span class="token punctuation">.</span><span class="token function">HandlerFunc</span><span class="token punctuation">(</span><span class="token keyword">func</span><span class="token punctuation">(</span>w http<span class="token punctuation">.</span>ResponseWriter<span class="token punctuation">,</span> req <span class="token operator">*</span>http<span class="token punctuation">.</span>Request<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        authenticationStart <span class="token operator">:=</span> time<span class="token punctuation">.</span><span class="token function">Now</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">if</span> <span class="token function">len</span><span class="token punctuation">(</span>apiAuds<span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0</span> <span class="token punctuation">{</span>
+            req <span class="token operator">=</span> req<span class="token punctuation">.</span><span class="token function">WithContext</span><span class="token punctuation">(</span>authenticator<span class="token punctuation">.</span><span class="token function">WithAudiences</span><span class="token punctuation">(</span>req<span class="token punctuation">.</span><span class="token function">Context</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> apiAuds<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">}</span>
+        <span class="token comment" spellcheck="true">// 认证请求</span>
+        resp<span class="token punctuation">,</span> ok<span class="token punctuation">,</span> err <span class="token operator">:=</span> auth<span class="token punctuation">.</span><span class="token function">AuthenticateRequest</span><span class="token punctuation">(</span>req<span class="token punctuation">)</span>
+        <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token operator">||</span> <span class="token operator">!</span>ok <span class="token punctuation">{</span>
+            <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
+                klog<span class="token punctuation">.</span><span class="token function">Errorf</span><span class="token punctuation">(</span><span class="token string">"Unable to authenticate the request due to an error: %v"</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span>
+                authenticatedAttemptsCounter<span class="token punctuation">.</span><span class="token function">WithLabelValues</span><span class="token punctuation">(</span>errorLabel<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Inc</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+                authenticationLatency<span class="token punctuation">.</span><span class="token function">WithLabelValues</span><span class="token punctuation">(</span>errorLabel<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Observe</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span><span class="token function">Since</span><span class="token punctuation">(</span>authenticationStart<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Seconds</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token operator">!</span>ok <span class="token punctuation">{</span>
+                authenticatedAttemptsCounter<span class="token punctuation">.</span><span class="token function">WithLabelValues</span><span class="token punctuation">(</span>failureLabel<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Inc</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+                authenticationLatency<span class="token punctuation">.</span><span class="token function">WithLabelValues</span><span class="token punctuation">(</span>failureLabel<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Observe</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span><span class="token function">Since</span><span class="token punctuation">(</span>authenticationStart<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Seconds</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">}</span>
+
+            failed<span class="token punctuation">.</span><span class="token function">ServeHTTP</span><span class="token punctuation">(</span>w<span class="token punctuation">,</span> req<span class="token punctuation">)</span>
+            <span class="token keyword">return</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token keyword">if</span> <span class="token function">len</span><span class="token punctuation">(</span>apiAuds<span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0</span> <span class="token operator">&amp;&amp;</span> <span class="token function">len</span><span class="token punctuation">(</span>resp<span class="token punctuation">.</span>Audiences<span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0</span> <span class="token operator">&amp;&amp;</span> <span class="token function">len</span><span class="token punctuation">(</span>authenticator<span class="token punctuation">.</span><span class="token function">Audiences</span><span class="token punctuation">(</span>apiAuds<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Intersect</span><span class="token punctuation">(</span>resp<span class="token punctuation">.</span>Audiences<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span> <span class="token punctuation">{</span>
+            klog<span class="token punctuation">.</span><span class="token function">Errorf</span><span class="token punctuation">(</span><span class="token string">"Unable to match the audience: %v , accepted: %v"</span><span class="token punctuation">,</span> resp<span class="token punctuation">.</span>Audiences<span class="token punctuation">,</span> apiAuds<span class="token punctuation">)</span>
+            failed<span class="token punctuation">.</span><span class="token function">ServeHTTP</span><span class="token punctuation">(</span>w<span class="token punctuation">,</span> req<span class="token punctuation">)</span>
+            <span class="token keyword">return</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token comment" spellcheck="true">// authorization header is not required anymore in case of a successful authentication.</span>
+        <span class="token comment" spellcheck="true">// 认证完则删除header认证信息，exec/log请求将不会携带Authorization，只使用token认证将无法通过</span>
+        req<span class="token punctuation">.</span>Header<span class="token punctuation">.</span><span class="token function">Del</span><span class="token punctuation">(</span><span class="token string">"Authorization"</span><span class="token punctuation">)</span>
+
+        req <span class="token operator">=</span> req<span class="token punctuation">.</span><span class="token function">WithContext</span><span class="token punctuation">(</span>genericapirequest<span class="token punctuation">.</span><span class="token function">WithUser</span><span class="token punctuation">(</span>req<span class="token punctuation">.</span><span class="token function">Context</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> resp<span class="token punctuation">.</span>User<span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+        authenticatedUserCounter<span class="token punctuation">.</span><span class="token function">WithLabelValues</span><span class="token punctuation">(</span><span class="token function">compressUsername</span><span class="token punctuation">(</span>resp<span class="token punctuation">.</span>User<span class="token punctuation">.</span><span class="token function">GetName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Inc</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        authenticatedAttemptsCounter<span class="token punctuation">.</span><span class="token function">WithLabelValues</span><span class="token punctuation">(</span>successLabel<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Inc</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        authenticationLatency<span class="token punctuation">.</span><span class="token function">WithLabelValues</span><span class="token punctuation">(</span>successLabel<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Observe</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span><span class="token function">Since</span><span class="token punctuation">(</span>authenticationStart<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Seconds</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+        handler<span class="token punctuation">.</span><span class="token function">ServeHTTP</span><span class="token punctuation">(</span>w<span class="token punctuation">,</span> req<span class="token punctuation">)</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><code>WithAuthentication</code>调用<code>AuthenticateRequest</code>进行认证：</p>
+<pre class="line-numbers language-go"><code class="language-go"><span class="token comment" spellcheck="true">// AuthenticateRequest authenticates the request using a chain of authenticator.Request objects.</span>
+<span class="token keyword">func</span> <span class="token punctuation">(</span>authHandler <span class="token operator">*</span>unionAuthRequestHandler<span class="token punctuation">)</span> <span class="token function">AuthenticateRequest</span><span class="token punctuation">(</span>req <span class="token operator">*</span>http<span class="token punctuation">.</span>Request<span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token operator">*</span>authenticator<span class="token punctuation">.</span>Response<span class="token punctuation">,</span> <span class="token builtin">bool</span><span class="token punctuation">,</span> <span class="token builtin">error</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">var</span> errlist <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token builtin">error</span>
+    <span class="token comment" spellcheck="true">// 按照Handlers顺序进行认证</span>
+    <span class="token keyword">for</span> <span class="token boolean">_</span><span class="token punctuation">,</span> currAuthRequestHandler <span class="token operator">:=</span> <span class="token keyword">range</span> authHandler<span class="token punctuation">.</span>Handlers <span class="token punctuation">{</span>
+        resp<span class="token punctuation">,</span> ok<span class="token punctuation">,</span> err <span class="token operator">:=</span> currAuthRequestHandler<span class="token punctuation">.</span><span class="token function">AuthenticateRequest</span><span class="token punctuation">(</span>req<span class="token punctuation">)</span>
+        <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
+            <span class="token keyword">if</span> authHandler<span class="token punctuation">.</span>FailOnError <span class="token punctuation">{</span>
+                <span class="token keyword">return</span> resp<span class="token punctuation">,</span> ok<span class="token punctuation">,</span> err
+            <span class="token punctuation">}</span>
+            errlist <span class="token operator">=</span> <span class="token function">append</span><span class="token punctuation">(</span>errlist<span class="token punctuation">,</span> err<span class="token punctuation">)</span>
+            <span class="token keyword">continue</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token comment" spellcheck="true">// 只要有一个认证成功，则返回  </span>
+        <span class="token keyword">if</span> ok <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> resp<span class="token punctuation">,</span> ok<span class="token punctuation">,</span> err
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> <span class="token boolean">false</span><span class="token punctuation">,</span> utilerrors<span class="token punctuation">.</span><span class="token function">NewAggregate</span><span class="token punctuation">(</span>errlist<span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>根据认证逻辑，会按照<code>authHandler.Handlers</code>顺序进行检验，只要有一个认证成功则返回。<code>Handlers</code>的定义在</p>
+<pre class="line-numbers language-go"><code class="language-go"><span class="token comment" spellcheck="true">// New returns a request authenticator that validates credentials using a chain of authenticator.Request objects.</span>
+<span class="token comment" spellcheck="true">// The entire chain is tried until one succeeds. If all fail, an aggregate error is returned.</span>
+<span class="token keyword">func</span> <span class="token function">New</span><span class="token punctuation">(</span>authRequestHandlers <span class="token operator">...</span>authenticator<span class="token punctuation">.</span>Request<span class="token punctuation">)</span> authenticator<span class="token punctuation">.</span>Request <span class="token punctuation">{</span>
+    <span class="token keyword">if</span> <span class="token function">len</span><span class="token punctuation">(</span>authRequestHandlers<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">1</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> authRequestHandlers<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">return</span> <span class="token operator">&amp;</span>unionAuthRequestHandler<span class="token punctuation">{</span>Handlers<span class="token punctuation">:</span> authRequestHandlers<span class="token punctuation">,</span> FailOnError<span class="token punctuation">:</span> <span class="token boolean">false</span><span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>最初的定义在<code>k8s.io/kubernetes/pkg/kubeapiserver/authenticator/config.go</code>中：</p>
+<pre class="line-numbers language-go"><code class="language-go"><span class="token comment" spellcheck="true">// New returns an authenticator.Request or an error that supports the standard</span>
+<span class="token comment" spellcheck="true">// Kubernetes authentication mechanisms.</span>
+<span class="token keyword">func</span> <span class="token punctuation">(</span>config Config<span class="token punctuation">)</span> <span class="token function">New</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>authenticator<span class="token punctuation">.</span>Request<span class="token punctuation">,</span> <span class="token operator">*</span>spec<span class="token punctuation">.</span>SecurityDefinitions<span class="token punctuation">,</span> <span class="token builtin">error</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">var</span> authenticators <span class="token punctuation">[</span><span class="token punctuation">]</span>authenticator<span class="token punctuation">.</span>Request
+    <span class="token keyword">var</span> tokenAuthenticators <span class="token punctuation">[</span><span class="token punctuation">]</span>authenticator<span class="token punctuation">.</span>Token
+    securityDefinitions <span class="token operator">:=</span> spec<span class="token punctuation">.</span>SecurityDefinitions<span class="token punctuation">{</span><span class="token punctuation">}</span>
+
+    <span class="token comment" spellcheck="true">// front-proxy, BasicAuth methods, local first, then remote</span>
+    <span class="token comment" spellcheck="true">// Add the front proxy authenticator if requested</span>
+    <span class="token keyword">if</span> config<span class="token punctuation">.</span>RequestHeaderConfig <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
+        requestHeaderAuthenticator <span class="token operator">:=</span> headerrequest<span class="token punctuation">.</span><span class="token function">NewDynamicVerifyOptionsSecure</span><span class="token punctuation">(</span>
+            config<span class="token punctuation">.</span>RequestHeaderConfig<span class="token punctuation">.</span>CAContentProvider<span class="token punctuation">.</span>VerifyOptions<span class="token punctuation">,</span>
+            config<span class="token punctuation">.</span>RequestHeaderConfig<span class="token punctuation">.</span>AllowedClientNames<span class="token punctuation">,</span>
+            config<span class="token punctuation">.</span>RequestHeaderConfig<span class="token punctuation">.</span>UsernameHeaders<span class="token punctuation">,</span>
+            config<span class="token punctuation">.</span>RequestHeaderConfig<span class="token punctuation">.</span>GroupHeaders<span class="token punctuation">,</span>
+            config<span class="token punctuation">.</span>RequestHeaderConfig<span class="token punctuation">.</span>ExtraHeaderPrefixes<span class="token punctuation">,</span>
+        <span class="token punctuation">)</span>
+        authenticators <span class="token operator">=</span> <span class="token function">append</span><span class="token punctuation">(</span>authenticators<span class="token punctuation">,</span> authenticator<span class="token punctuation">.</span><span class="token function">WrapAudienceAgnosticRequest</span><span class="token punctuation">(</span>config<span class="token punctuation">.</span>APIAudiences<span class="token punctuation">,</span> requestHeaderAuthenticator<span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token comment" spellcheck="true">// basic auth</span>
+    <span class="token keyword">if</span> <span class="token function">len</span><span class="token punctuation">(</span>config<span class="token punctuation">.</span>BasicAuthFile<span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0</span> <span class="token punctuation">{</span>
+        basicAuth<span class="token punctuation">,</span> err <span class="token operator">:=</span> <span class="token function">newAuthenticatorFromBasicAuthFile</span><span class="token punctuation">(</span>config<span class="token punctuation">.</span>BasicAuthFile<span class="token punctuation">)</span>
+        <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> err
+        <span class="token punctuation">}</span>
+        authenticators <span class="token operator">=</span> <span class="token function">append</span><span class="token punctuation">(</span>authenticators<span class="token punctuation">,</span> authenticator<span class="token punctuation">.</span><span class="token function">WrapAudienceAgnosticRequest</span><span class="token punctuation">(</span>config<span class="token punctuation">.</span>APIAudiences<span class="token punctuation">,</span> basicAuth<span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+        securityDefinitions<span class="token punctuation">[</span><span class="token string">"HTTPBasic"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token operator">&amp;</span>spec<span class="token punctuation">.</span>SecurityScheme<span class="token punctuation">{</span>
+            SecuritySchemeProps<span class="token punctuation">:</span> spec<span class="token punctuation">.</span>SecuritySchemeProps<span class="token punctuation">{</span>
+                Type<span class="token punctuation">:</span>        <span class="token string">"basic"</span><span class="token punctuation">,</span>
+                Description<span class="token punctuation">:</span> <span class="token string">"HTTP Basic authentication"</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token comment" spellcheck="true">// X509 methods</span>
+    <span class="token keyword">if</span> config<span class="token punctuation">.</span>ClientCAContentProvider <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
+        certAuth <span class="token operator">:=</span> x509<span class="token punctuation">.</span><span class="token function">NewDynamic</span><span class="token punctuation">(</span>config<span class="token punctuation">.</span>ClientCAContentProvider<span class="token punctuation">.</span>VerifyOptions<span class="token punctuation">,</span> x509<span class="token punctuation">.</span>CommonNameUserConversion<span class="token punctuation">)</span>
+        authenticators <span class="token operator">=</span> <span class="token function">append</span><span class="token punctuation">(</span>authenticators<span class="token punctuation">,</span> certAuth<span class="token punctuation">)</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token comment" spellcheck="true">// Bearer token methods, local first, then remote</span>
+    <span class="token keyword">if</span> <span class="token function">len</span><span class="token punctuation">(</span>config<span class="token punctuation">.</span>TokenAuthFile<span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0</span> <span class="token punctuation">{</span>
+        tokenAuth<span class="token punctuation">,</span> err <span class="token operator">:=</span> <span class="token function">newAuthenticatorFromTokenFile</span><span class="token punctuation">(</span>config<span class="token punctuation">.</span>TokenAuthFile<span class="token punctuation">)</span>
+        <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> err
+        <span class="token punctuation">}</span>
+        tokenAuthenticators <span class="token operator">=</span> <span class="token function">append</span><span class="token punctuation">(</span>tokenAuthenticators<span class="token punctuation">,</span> authenticator<span class="token punctuation">.</span><span class="token function">WrapAudienceAgnosticToken</span><span class="token punctuation">(</span>config<span class="token punctuation">.</span>APIAudiences<span class="token punctuation">,</span> tokenAuth<span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">if</span> <span class="token function">len</span><span class="token punctuation">(</span>config<span class="token punctuation">.</span>ServiceAccountKeyFiles<span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0</span> <span class="token punctuation">{</span>
+        serviceAccountAuth<span class="token punctuation">,</span> err <span class="token operator">:=</span> <span class="token function">newLegacyServiceAccountAuthenticator</span><span class="token punctuation">(</span>config<span class="token punctuation">.</span>ServiceAccountKeyFiles<span class="token punctuation">,</span> config<span class="token punctuation">.</span>ServiceAccountLookup<span class="token punctuation">,</span> config<span class="token punctuation">.</span>APIAudiences<span class="token punctuation">,</span> config<span class="token punctuation">.</span>ServiceAccountTokenGetter<span class="token punctuation">)</span>
+        <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> err
+        <span class="token punctuation">}</span>
+        tokenAuthenticators <span class="token operator">=</span> <span class="token function">append</span><span class="token punctuation">(</span>tokenAuthenticators<span class="token punctuation">,</span> serviceAccountAuth<span class="token punctuation">)</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">if</span> utilfeature<span class="token punctuation">.</span>DefaultFeatureGate<span class="token punctuation">.</span><span class="token function">Enabled</span><span class="token punctuation">(</span>features<span class="token punctuation">.</span>TokenRequest<span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> config<span class="token punctuation">.</span>ServiceAccountIssuer <span class="token operator">!=</span> <span class="token string">""</span> <span class="token punctuation">{</span>
+        serviceAccountAuth<span class="token punctuation">,</span> err <span class="token operator">:=</span> <span class="token function">newServiceAccountAuthenticator</span><span class="token punctuation">(</span>config<span class="token punctuation">.</span>ServiceAccountIssuer<span class="token punctuation">,</span> config<span class="token punctuation">.</span>ServiceAccountKeyFiles<span class="token punctuation">,</span> config<span class="token punctuation">.</span>APIAudiences<span class="token punctuation">,</span> config<span class="token punctuation">.</span>ServiceAccountTokenGetter<span class="token punctuation">)</span>
+        <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> err
+        <span class="token punctuation">}</span>
+        tokenAuthenticators <span class="token operator">=</span> <span class="token function">append</span><span class="token punctuation">(</span>tokenAuthenticators<span class="token punctuation">,</span> serviceAccountAuth<span class="token punctuation">)</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">if</span> config<span class="token punctuation">.</span>BootstrapToken <span class="token punctuation">{</span>
+        <span class="token keyword">if</span> config<span class="token punctuation">.</span>BootstrapTokenAuthenticator <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
+            <span class="token comment" spellcheck="true">// TODO: This can sometimes be nil because of</span>
+            tokenAuthenticators <span class="token operator">=</span> <span class="token function">append</span><span class="token punctuation">(</span>tokenAuthenticators<span class="token punctuation">,</span> authenticator<span class="token punctuation">.</span><span class="token function">WrapAudienceAgnosticToken</span><span class="token punctuation">(</span>config<span class="token punctuation">.</span>APIAudiences<span class="token punctuation">,</span> config<span class="token punctuation">.</span>BootstrapTokenAuthenticator<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+    <span class="token comment" spellcheck="true">// NOTE(ericchiang): Keep the OpenID Connect after Service Accounts.</span>
+    <span class="token comment" spellcheck="true">//</span>
+    <span class="token comment" spellcheck="true">// Because both plugins verify JWTs whichever comes first in the union experiences</span>
+    <span class="token comment" spellcheck="true">// cache misses for all requests using the other. While the service account plugin</span>
+    <span class="token comment" spellcheck="true">// simply returns an error, the OpenID Connect plugin may query the provider to</span>
+    <span class="token comment" spellcheck="true">// update the keys, causing performance hits.</span>
+    <span class="token keyword">if</span> <span class="token function">len</span><span class="token punctuation">(</span>config<span class="token punctuation">.</span>OIDCIssuerURL<span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0</span> <span class="token operator">&amp;&amp;</span> <span class="token function">len</span><span class="token punctuation">(</span>config<span class="token punctuation">.</span>OIDCClientID<span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0</span> <span class="token punctuation">{</span>
+        oidcAuth<span class="token punctuation">,</span> err <span class="token operator">:=</span> <span class="token function">newAuthenticatorFromOIDCIssuerURL</span><span class="token punctuation">(</span>oidc<span class="token punctuation">.</span>Options<span class="token punctuation">{</span>
+            IssuerURL<span class="token punctuation">:</span>            config<span class="token punctuation">.</span>OIDCIssuerURL<span class="token punctuation">,</span>
+            ClientID<span class="token punctuation">:</span>             config<span class="token punctuation">.</span>OIDCClientID<span class="token punctuation">,</span>
+            APIAudiences<span class="token punctuation">:</span>         config<span class="token punctuation">.</span>APIAudiences<span class="token punctuation">,</span>
+            CAFile<span class="token punctuation">:</span>               config<span class="token punctuation">.</span>OIDCCAFile<span class="token punctuation">,</span>
+            UsernameClaim<span class="token punctuation">:</span>        config<span class="token punctuation">.</span>OIDCUsernameClaim<span class="token punctuation">,</span>
+            UsernamePrefix<span class="token punctuation">:</span>       config<span class="token punctuation">.</span>OIDCUsernamePrefix<span class="token punctuation">,</span>
+            GroupsClaim<span class="token punctuation">:</span>          config<span class="token punctuation">.</span>OIDCGroupsClaim<span class="token punctuation">,</span>
+            GroupsPrefix<span class="token punctuation">:</span>         config<span class="token punctuation">.</span>OIDCGroupsPrefix<span class="token punctuation">,</span>
+            SupportedSigningAlgs<span class="token punctuation">:</span> config<span class="token punctuation">.</span>OIDCSigningAlgs<span class="token punctuation">,</span>
+            RequiredClaims<span class="token punctuation">:</span>       config<span class="token punctuation">.</span>OIDCRequiredClaims<span class="token punctuation">,</span>
+        <span class="token punctuation">}</span><span class="token punctuation">)</span>
+        <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> err
+        <span class="token punctuation">}</span>
+        tokenAuthenticators <span class="token operator">=</span> <span class="token function">append</span><span class="token punctuation">(</span>tokenAuthenticators<span class="token punctuation">,</span> oidcAuth<span class="token punctuation">)</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">if</span> <span class="token function">len</span><span class="token punctuation">(</span>config<span class="token punctuation">.</span>WebhookTokenAuthnConfigFile<span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0</span> <span class="token punctuation">{</span>
+        webhookTokenAuth<span class="token punctuation">,</span> err <span class="token operator">:=</span> <span class="token function">newWebhookTokenAuthenticator</span><span class="token punctuation">(</span>config<span class="token punctuation">.</span>WebhookTokenAuthnConfigFile<span class="token punctuation">,</span> config<span class="token punctuation">.</span>WebhookTokenAuthnVersion<span class="token punctuation">,</span> config<span class="token punctuation">.</span>WebhookTokenAuthnCacheTTL<span class="token punctuation">,</span> config<span class="token punctuation">.</span>APIAudiences<span class="token punctuation">)</span>
+        <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> err
+        <span class="token punctuation">}</span>
+        tokenAuthenticators <span class="token operator">=</span> <span class="token function">append</span><span class="token punctuation">(</span>tokenAuthenticators<span class="token punctuation">,</span> webhookTokenAuth<span class="token punctuation">)</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">if</span> <span class="token function">len</span><span class="token punctuation">(</span>tokenAuthenticators<span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0</span> <span class="token punctuation">{</span>
+        <span class="token comment" spellcheck="true">// Union the token authenticators</span>
+        tokenAuth <span class="token operator">:=</span> tokenunion<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span>tokenAuthenticators<span class="token operator">...</span><span class="token punctuation">)</span>
+        <span class="token comment" spellcheck="true">// Optionally cache authentication results</span>
+        <span class="token keyword">if</span> config<span class="token punctuation">.</span>TokenSuccessCacheTTL <span class="token operator">></span> <span class="token number">0</span> <span class="token operator">||</span> config<span class="token punctuation">.</span>TokenFailureCacheTTL <span class="token operator">></span> <span class="token number">0</span> <span class="token punctuation">{</span>
+            tokenAuth <span class="token operator">=</span> tokencache<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span>tokenAuth<span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">,</span> config<span class="token punctuation">.</span>TokenSuccessCacheTTL<span class="token punctuation">,</span> config<span class="token punctuation">.</span>TokenFailureCacheTTL<span class="token punctuation">)</span>
+        <span class="token punctuation">}</span>
+        authenticators <span class="token operator">=</span> <span class="token function">append</span><span class="token punctuation">(</span>authenticators<span class="token punctuation">,</span> bearertoken<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span>tokenAuth<span class="token punctuation">)</span><span class="token punctuation">,</span> websocket<span class="token punctuation">.</span><span class="token function">NewProtocolAuthenticator</span><span class="token punctuation">(</span>tokenAuth<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        securityDefinitions<span class="token punctuation">[</span><span class="token string">"BearerToken"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token operator">&amp;</span>spec<span class="token punctuation">.</span>SecurityScheme<span class="token punctuation">{</span>
+            SecuritySchemeProps<span class="token punctuation">:</span> spec<span class="token punctuation">.</span>SecuritySchemeProps<span class="token punctuation">{</span>
+                Type<span class="token punctuation">:</span>        <span class="token string">"apiKey"</span><span class="token punctuation">,</span>
+                Name<span class="token punctuation">:</span>        <span class="token string">"authorization"</span><span class="token punctuation">,</span>
+                In<span class="token punctuation">:</span>          <span class="token string">"header"</span><span class="token punctuation">,</span>
+                Description<span class="token punctuation">:</span> <span class="token string">"Bearer Token authentication"</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">if</span> <span class="token function">len</span><span class="token punctuation">(</span>authenticators<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span> <span class="token punctuation">{</span>
+        <span class="token keyword">if</span> config<span class="token punctuation">.</span>Anonymous <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> anonymous<span class="token punctuation">.</span><span class="token function">NewAuthenticator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span>securityDefinitions<span class="token punctuation">,</span> <span class="token boolean">nil</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span>securityDefinitions<span class="token punctuation">,</span> <span class="token boolean">nil</span>
+    <span class="token punctuation">}</span>
+
+    authenticator <span class="token operator">:=</span> union<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span>authenticators<span class="token operator">...</span><span class="token punctuation">)</span>
+
+    authenticator <span class="token operator">=</span> group<span class="token punctuation">.</span><span class="token function">NewAuthenticatedGroupAdder</span><span class="token punctuation">(</span>authenticator<span class="token punctuation">)</span>
+
+    <span class="token keyword">if</span> config<span class="token punctuation">.</span>Anonymous <span class="token punctuation">{</span>
+        <span class="token comment" spellcheck="true">// If the authenticator chain returns an error, return an error (don't consider a bad bearer token</span>
+        <span class="token comment" spellcheck="true">// or invalid username/password combination anonymous).</span>
+        authenticator <span class="token operator">=</span> union<span class="token punctuation">.</span><span class="token function">NewFailOnError</span><span class="token punctuation">(</span>authenticator<span class="token punctuation">,</span> anonymous<span class="token punctuation">.</span><span class="token function">NewAuthenticator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">return</span> authenticator<span class="token punctuation">,</span> <span class="token operator">&amp;</span>securityDefinitions<span class="token punctuation">,</span> <span class="token boolean">nil</span>
+<span class="token punctuation">}</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>认证顺序即代码执行顺序:</p>
+<ol>
+<li>Request header, RequestHeader认证，需配置<code>--requestheader-username-headers</code></li>
+<li>Basic auth, 账号密码认证，通过文件<code>--basic-auth-file=SOMEFILE</code>配置对应用户</li>
+<li>X509, 证书认证</li>
+<li>Static token, 通过文件<code>--token-auth-file=SOMEFILE</code>匹配用户</li>
+<li>ServiceAccout token, 一般用于认证Pod</li>
+<li>Bootstrap token, 用于集群初始化阶段，通过配置<code>--experimental-bootstrap-token-auth</code>启用</li>
+<li>OpenID Connect token, OAuth2认证</li>
+<li>Webhook token, 通过webhook认证token，需配置<code>--authentication-token-webhook-config-file</code></li>
+<li>Cache auth, 通过cache认证</li>
+<li>Anonymous， 以上认证未通过则返回匿名用户</li>
+</ol>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Apiserver的认证方式有多种，通过源码分析每次请求都会安装固定的认证顺序执行，高qps下认证配置势必会影响Apiserver的响应延迟，需要根据集群的实际情况配置合理的认证方式。</p>
+<p>目前在我们的线上系统，主要通过RequestHeader(认证普通用户)，基本认证(个别系统组件)，X509（认证kubelet），ServieceAccout（认证Pod）进行认证，仅供参考。</p>
+
+            </div>
+            <hr/>
+
+            
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/k8s/">
+                                    <span class="chip bg-color">k8s</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="wechat,weibo" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    
+        <link rel="stylesheet" href="/libs/gitalk/gitalk.css">
+<link rel="stylesheet" href="/libs/gitalk/gitalk.min.js">
+
+<div class="card gitalk-card" data-aos="fade-up">
+    <div class="comment_headling" style="font-size: 20px; font-weight: 700; position: relative; padding-left: 20px; top: 15px; padding-bottom: 5px;">
+        <i class="fas fa-comments fa-fw" aria-hidden="true"></i>
+        <span>评论</span>
+    </div>
+    <div id="gitalk-container" class="card-content"></div>
+</div>
+
+<script src="/libs/gitalk/gitalk.min.js"></script>
+<script>
+    let gitalk = new Gitalk({
+        clientID: 'a705189dfc18ec59a7d0',
+        clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
+        repo: 'qingwave.github.io',
+        owner: 'qingwave',
+        admin: "qingwave",
+        id: '2020-01-31T16-54-14',
+        distractionFreeMode: false  // Facebook-like distraction free mode
+    });
+
+    gitalk.render('gitalk-container');
+</script>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/candy/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/14.jpg" class="responsive-img" alt="糖">
+                        
+                        <span class="card-title">糖</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            一轮明月沉到了脸底迷恋这红尘 不愿睡去又变成红娘的大痣在招摇过市
+有了糖 她变得小心翼翼吃饭睡觉也含着久久不肯放是通灵宝玉 守护着片刻荣光亦或是君子之遗 化作脸颊的相思
+没人知道它的滋味除了耳边的风远方的惦记以及轻轻拂过的吻
+
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2020-02-02
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/杂记/" class="post-category">
+                                    杂记
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/诗/">
+                        <span class="chip bg-color">诗</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/k8s-leaderelection-code/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/5.jpg" class="responsive-img" alt="k8s基于资源锁的选主分析">
+                        
+                        <span class="card-title">k8s基于资源锁的选主分析</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            简介k8s中为了实现高可用，需要部署多个副本，例如多个apiserver、scheduler、controller-manager等，其中apiserver是无状态的每个组件都可以工作，而scheduler与controller-manag
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2019-12-27
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/cloud/" class="post-category">
+                                    cloud
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/k8s/">
+                        <span class="chip bg-color">k8s</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeBlockFuction.js"></script>
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeShrink.js"></script>
+
+
+<!-- 代码块折行 -->
+
+<style type="text/css">
+code[class*="language-"], pre[class*="language-"] { white-space: pre !important; }
+</style>
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-mini waves-effect bnt-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('0'),
+            headingSelector: 'h2, h3, h4'
+        });
+
+        // modify the toc link href to support Chinese.
+        let i = 0;
+        let tocHeading = 'toc-heading-';
+        $('#toc-content a').each(function () {
+            $(this).attr('href', '#' + tocHeading + (++i));
+        });
+
+        // modify the heading title id to support Chinese.
+        i = 0;
+        $('#articleContent').children('h2, h3, h4').each(function () {
+            $(this).attr('id', tocHeading + (++i));
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+    <div class="container row center-align" style="margin-bottom: 0px !important;">
+        <div class="center-align">
+            Copyright&nbsp;&copy;
+            <span id="year">2018</span>
+            <a href="https://qinng.now.sh" target="_blank">Qinng</a>
+            <br>
+            
+            &nbsp;<i class="fas fa-chart-area"></i>&nbsp;&nbsp;<span
+                >49.9k</span>&nbsp;
+            
+            
+            
+            
+            
+            
+            <span id="busuanzi_container_site_pv">
+                |&nbsp;<i class="far fa-eye"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_pv"
+                    ></span>&nbsp;
+            </span>
+            
+            
+            <span id="busuanzi_container_site_uv">
+                |&nbsp;<i class="fas fa-users"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_uv"
+                    ></span>&nbsp;
+            </span>
+            
+            <br>
+            
+            <br>
+            
+        </div>
+        <!-- <div class="col s12 m4 l4 social-link social-statis">
+    <a href="https://github.com/qingwave" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
+        <i class="fab fa-github"></i>
+    </a>
+
+
+
+    <a href="mailto:isguory@gmail.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <a href="https://www.douban.com/people/69458430"
+       target="_blank" data-tooltip="关注我的豆瓣: 69458430" data-position="top"
+       data-delay="50">
+        <i class="fa fa-inverse">豆</i>
+    </a>
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div> -->
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/search.js"></script>
+<script type="text/javascript">
+$(function () {
+    searchFunc("https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/search.xml", 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-mini waves-effect" href="#!">
+        <!-- <i class="fas fa-caret-up"></i> -->
+        <!-- <i class="fas fa-chevron-up"></i> -->
+        <i class="fas fa-angle-double-up"></i>
+    </a>
+</div>
+
+
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/matery.js"></script>
+
+    <!-- Baidu Analytics -->
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    
+    <script async src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+</body>
+
+</html>

@@ -1,0 +1,1079 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+    <meta charset="utf-8">
+    <meta name="keywords" content="nginx ingress controller 最后的倔强: admission webhook, Qinng">
+    <meta name="description" content="Coding, Reading and Daydreaming">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+
+    <title>nginx ingress controller 最后的倔强: admission webhook | Qinng</title>
+    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png">
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/awesome/css/all.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/animate/animate.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/css/lightgallery.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/matery.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/my.css">
+
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/jquery/jquery.min.js"></script>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+
+<body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Qinng</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>标签</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>分类</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>归档</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/contact" class="waves-effect waves-light">
+      
+      <i class="fas fa-comments" style="zoom: 0.6;"></i>
+      
+      <span>留言</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Qinng</div>
+        <div class="logo-desc">
+            
+            Coding, Reading and Daydreaming
+            
+        </div>
+    </div>
+
+    
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			标签
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			分类
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			归档
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/contact" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-comments"></i>
+			
+			留言
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			关于
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/15.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">nginx ingress controller 最后的倔强: admission webhook</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.css">
+<style>
+    #articleContent h1::before,
+    #articleContent h2::before,
+    #articleContent h3::before,
+    #articleContent h4::before,
+    #articleContent h5::before,
+    #articleContent h6::before {
+        display: block;
+        content: " ";
+        height: 100px;
+        margin-top: -100px;
+        visibility: hidden;
+    }
+
+    #articleContent :focus {
+        outline: none;
+    }
+
+    .toc-fixed {
+        position: fixed;
+        top: 64px;
+    }
+
+    .toc-widget {
+        width: 345px;
+        padding-left: 20px;
+    }
+
+    .toc-widget .toc-title {
+        margin: 35px 0 15px 0;
+        padding-left: 17px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+    }
+
+    .toc-widget ol {
+        padding: 0;
+        list-style: none;
+    }
+
+    #toc-content {
+        height: calc(100vh - 250px);
+        overflow: auto;
+    }
+
+    #toc-content ol {
+        padding-left: 10px;
+    }
+
+    #toc-content ol li {
+        padding-left: 10px;
+    }
+
+    #toc-content .toc-link:hover {
+        color: #42b983;
+        font-weight: 700;
+        text-decoration: underline;
+    }
+
+    #toc-content .toc-link::before {
+        background-color: transparent;
+        max-height: 25px;
+
+        position: absolute;
+        right: 23.5vw;
+        display: block;
+    }
+
+    #toc-content .is-active-link {
+        color: #42b983;
+    }
+
+    #floating-toc-btn {
+        position: fixed;
+        right: 15px;
+        bottom: 76px;
+        padding-top: 15px;
+        margin-bottom: 0;
+        z-index: 998;
+    }
+
+    #floating-toc-btn .btn-floating {
+        background: #fff !important;
+        opacity: 0.8;
+    }
+
+    #floating-toc-btn .btn-floating i {
+        color: #1f4d71;
+        font-size: 1rem;
+    }
+
+    #floating-toc-btn .after {
+        color: #000;
+        font-size: 1rem;
+    }
+</style>
+<div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/k8s/">
+                                <span class="chip bg-color">k8s</span>
+                            </a>
+                        
+                            <a href="/tags/ingress/">
+                                <span class="chip bg-color">ingress</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/cloud/" class="post-category">
+                                cloud
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2020-04-03
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    1.2k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    6 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>k8s中大多使用nginx-ingress-controller来实现ingress, 但是脆弱的nginx-controller通过ingress解析出nginx配置, 对于某些annotation会reload nignx配置失败, 然后controller就卡死了, 不断重启, 除非删除对应的ingress.</p>
+<h3 id="问题复现"><a href="#问题复现" class="headerlink" title="问题复现"></a>问题复现</h3><p>创建有问题的<code>ingress</code></p>
+<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> extensions/v1beta1
+<span class="token key atrule">kind</span><span class="token punctuation">:</span> Ingress
+<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
+  <span class="token key atrule">annotations</span><span class="token punctuation">:</span>
+    <span class="token key atrule">nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream</span><span class="token punctuation">:</span> <span class="token string">"false"</span>
+    <span class="token key atrule">nginx.ingress.kubernetes.io/auth-tls-verify-client</span><span class="token punctuation">:</span> optional
+    <span class="token key atrule">nginx.ingress.kubernetes.io/auth-tls-verify-depth</span><span class="token punctuation">:</span> <span class="token string">"1"</span>
+    <span class="token key atrule">nginx.ingress.kubernetes.io/configuration-snippet</span><span class="token punctuation">:</span> <span class="token punctuation">|</span><span class="token scalar string">
+      proxy_set_header Host $targethost;
+      proxy_buffering     off;
+      proxy_pass          http://$targetbackend;
+      proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+      proxy_redirect      off;
+      proxy_set_header    X-SSL-Client-Verify $ssl_client_verify;
+      proxy_set_header    X-SSL-Client-DN $ssl_client_s_dn;
+      proxy_set_header    X-Real-IP       $remote_addr;
+      proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;</span>
+  <span class="token key atrule">creationTimestamp</span><span class="token punctuation">:</span> <span class="token string">"2020-03-23T04:57:22Z"</span>
+  <span class="token key atrule">generation</span><span class="token punctuation">:</span> <span class="token number">1</span>
+  <span class="token key atrule">name</span><span class="token punctuation">:</span> example<span class="token punctuation">-</span>ingress
+  <span class="token key atrule">namespace</span><span class="token punctuation">:</span> kube<span class="token punctuation">-</span>system
+  <span class="token key atrule">resourceVersion</span><span class="token punctuation">:</span> <span class="token string">"57681168"</span>
+  <span class="token key atrule">selfLink</span><span class="token punctuation">:</span> /apis/extensions/v1beta1/namespaces/kube<span class="token punctuation">-</span>system/ingresses/example<span class="token punctuation">-</span>ingress
+  <span class="token key atrule">uid</span><span class="token punctuation">:</span> c7f66385<span class="token punctuation">-</span>6cc2<span class="token punctuation">-</span>11ea<span class="token punctuation">-</span>b6a8<span class="token punctuation">-</span>246e96d4b538
+<span class="token key atrule">spec</span><span class="token punctuation">:</span>
+  <span class="token key atrule">rules</span><span class="token punctuation">:</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">host</span><span class="token punctuation">:</span> example.com
+    <span class="token key atrule">http</span><span class="token punctuation">:</span>
+      <span class="token key atrule">paths</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> <span class="token key atrule">backend</span><span class="token punctuation">:</span>
+          <span class="token key atrule">serviceName</span><span class="token punctuation">:</span> example<span class="token punctuation">-</span>svc
+          <span class="token key atrule">servicePort</span><span class="token punctuation">:</span> <span class="token number">8008</span>
+        <span class="token key atrule">path</span><span class="token punctuation">:</span> /
+  <span class="token key atrule">tls</span><span class="token punctuation">:</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">hosts</span><span class="token punctuation">:</span>
+    <span class="token punctuation">-</span> example.com
+    <span class="token key atrule">secretName</span><span class="token punctuation">:</span> example<span class="token punctuation">-</span>tls
+<span class="token key atrule">status</span><span class="token punctuation">:</span>
+  <span class="token key atrule">loadBalancer</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>查看<code>nginx-ingress-controller</code>状态全部为<code>CrashLoopBackOff</code></p>
+<pre class="line-numbers language-bash"><code class="language-bash"><span class="token comment" spellcheck="true"># kubectl get po -n kube-system -owide |grep ingress</span>
+nginx-ingress-controller-ftfbg                        1/2     CrashLoopBackOff   6          8m27s
+nginx-ingress-controller-hp4pf                        1/2     CrashLoopBackOff   11         24m  
+nginx-ingress-controller-qlb4l                        1/2     CrashLoopBackOff   11         24m   
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>查看<code>nginx-ingress-controller</code>日志, 显示reload失败<code>&quot;proxy_pass&quot; directive is duplicate in /tmp/nginx-cfg911768424:822</code></p>
+<pre class="line-numbers language-bash"><code class="language-bash">-------------------------------------------------------------------------------
+W0403 10:26:14.716246       1 queue.go:130<span class="token punctuation">]</span> requeuing kube-system/nginx-ingress-controller-4txfk, err 
+-------------------------------------------------------------------------------
+Error: <span class="token keyword">exit</span> status 1
+2020/04/03 10:26:14 <span class="token punctuation">[</span>notice<span class="token punctuation">]</span> 137<span class="token comment" spellcheck="true">#137: ModSecurity-nginx v1.0.0</span>
+2020/04/03 10:26:14 <span class="token punctuation">[</span>warn<span class="token punctuation">]</span> 137<span class="token comment" spellcheck="true">#137: duplicate value "error" in /tmp/nginx-cfg911768424:815</span>
+nginx: <span class="token punctuation">[</span>warn<span class="token punctuation">]</span> duplicate value <span class="token string">"error"</span> <span class="token keyword">in</span> /tmp/nginx-cfg911768424:815
+2020/04/03 10:26:14 <span class="token punctuation">[</span>warn<span class="token punctuation">]</span> 137<span class="token comment" spellcheck="true">#137: duplicate value "timeout" in /tmp/nginx-cfg911768424:815</span>
+nginx: <span class="token punctuation">[</span>warn<span class="token punctuation">]</span> duplicate value <span class="token string">"timeout"</span> <span class="token keyword">in</span> /tmp/nginx-cfg911768424:815
+2020/04/03 10:26:14 <span class="token punctuation">[</span>emerg<span class="token punctuation">]</span> 137<span class="token comment" spellcheck="true">#137: "proxy_pass" directive is duplicate in /tmp/nginx-cfg911768424:822</span>
+nginx: <span class="token punctuation">[</span>emerg<span class="token punctuation">]</span> <span class="token string">"proxy_pass"</span> directive is duplicate <span class="token keyword">in</span> /tmp/nginx-cfg911768424:822
+nginx: configuration <span class="token function">file</span> /tmp/nginx-cfg911768424 <span class="token function">test</span> failed
+
+-------------------------------------------------------------------------------
+W0403 10:26:16.998897       1 nginx_status.go:207<span class="token punctuation">]</span> unexpected error obtaining nginx status info: unexpected error scraping nginx status page: unexpected error scraping nginx <span class="token keyword">:</span> Get http://0.0.0.0:18080/nginx_status: dial tcp 0.0.0.0:18080: connect: connection refused
+I0403 10:26:17.526801       1 main.go:167<span class="token punctuation">]</span> Received SIGTERM, shutting down
+I0403 10:26:17.526827       1 nginx.go:364<span class="token punctuation">]</span> Shutting down controller queues
+I0403 10:26:17.526845       1 status.go:200<span class="token punctuation">]</span> updating status of Ingress rules <span class="token punctuation">(</span>remove<span class="token punctuation">)</span>
+I0403 10:26:17.537511       1 status.go:219<span class="token punctuation">]</span> removing address from ingress status <span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+I0403 10:26:17.537593       1 nginx.go:372<span class="token punctuation">]</span> Stopping NGINX process
+2020/04/03 10:26:17 <span class="token punctuation">[</span>notice<span class="token punctuation">]</span> 141<span class="token comment" spellcheck="true">#141: signal process started</span>
+I0403 10:26:20.547669       1 nginx.go:385<span class="token punctuation">]</span> NGINX process has stopped
+I0403 10:26:20.547692       1 main.go:175<span class="token punctuation">]</span> Handled quit, awaiting Pod deletion
+I0403 10:26:30.547824       1 main.go:178<span class="token punctuation">]</span> Exiting with 0
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><p>创建一个有问题的ingress, 会影响所有新创建的ingress规则, 又一个集群级别的Bug诞生了.那么有没有办法, 提前检验ingress配置, 有问题就不去reload. 那验证步骤肯定要在请求到达nginx-controller之前来做, 是不是想到了<a href="https://kubernetes.io/zh/docs/reference/access-authn-authz/extensible-admission-controllers/" target="_blank" rel="noopener">k8s-admission-webhook</a>, 可以在apiserver持久化对象前拦截请求, 去实现自定义的验证规则. 好在新版本的nginx-ingress-controller(v0.25.0+)已经实现了相关的功能, 只需开启对应配置就行.</p>
+<h3 id="ApiServer配置"><a href="#ApiServer配置" class="headerlink" title="ApiServer配置"></a>ApiServer配置</h3><p>Apiserver开启webhook相关配置, 必须包含<code>MutatingAdmissionWebhook</code>与<code>ValidatingAdmissionWebhook</code></p>
+<pre><code>--admission-control=MutatingAdmissionWebhook,ValidatingAdmissionWebhook
+</code></pre><h3 id="创建webhook相关配置"><a href="#创建webhook相关配置" class="headerlink" title="创建webhook相关配置"></a>创建webhook相关配置</h3><p>启用ValidatingAdmissionWebhook必须使用https, 需要配置对应证书</p>
+<ul>
+<li>手动生成:<pre class="line-numbers language-bash"><code class="language-bash">openssl req -x509 -newkey rsa:2048 -keyout certificate.pem -out key.pem -days 365 -nodes -subj <span class="token string">"/CN=ingress-validation-webhook.ingress-nginx.svc"</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+</li>
+<li><p>CertificateSigningRequest<br>通过k8s <code>CertificateSigningRequest</code>来创建(controller-manager需要开启<code>--cluster-signing-cert-file</code>与<code>--cluster-signing-key-file</code>)<br>可通过如下脚本创建, namespace与service替换成自己的</p>
+<pre class="line-numbers language-bash"><code class="language-bash">SERVICE_NAME<span class="token operator">=</span>ingress-nginx
+NAMESPACE<span class="token operator">=</span>ingress-nginx
+
+TEMP_DIRECTORY<span class="token operator">=</span><span class="token variable"><span class="token variable">$(</span>mktemp -d<span class="token variable">)</span></span>
+<span class="token keyword">echo</span> <span class="token string">"creating certs in directory <span class="token variable">${TEMP_DIRECTORY}</span>"</span>
+
+<span class="token function">cat</span> <span class="token operator">&lt;&lt;</span>EOF <span class="token operator">>></span> <span class="token variable">${TEMP_DIRECTORY}</span>/csr.conf
+<span class="token punctuation">[</span>req<span class="token punctuation">]</span>
+req_extensions <span class="token operator">=</span> v3_req
+distinguished_name <span class="token operator">=</span> req_distinguished_name
+<span class="token punctuation">[</span>req_distinguished_name<span class="token punctuation">]</span>
+<span class="token punctuation">[</span> v3_req <span class="token punctuation">]</span>
+basicConstraints <span class="token operator">=</span> CA:FALSE
+keyUsage <span class="token operator">=</span> nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage <span class="token operator">=</span> serverAuth
+subjectAltName <span class="token operator">=</span> @alt_names
+<span class="token punctuation">[</span>alt_names<span class="token punctuation">]</span>
+DNS.1 <span class="token operator">=</span> <span class="token variable">${SERVICE_NAME}</span>
+DNS.2 <span class="token operator">=</span> <span class="token variable">${SERVICE_NAME}</span><span class="token keyword">.</span><span class="token variable">${NAMESPACE}</span>
+DNS.3 <span class="token operator">=</span> <span class="token variable">${SERVICE_NAME}</span><span class="token keyword">.</span><span class="token variable">${NAMESPACE}</span>.svc
+EOF
+
+openssl genrsa -out <span class="token variable">${TEMP_DIRECTORY}</span>/server-key.pem 2048
+openssl req -new -key <span class="token variable">${TEMP_DIRECTORY}</span>/server-key.pem \
+    -subj <span class="token string">"/CN=<span class="token variable">${SERVICE_NAME}</span>.<span class="token variable">${NAMESPACE}</span>.svc"</span> \
+    -out <span class="token variable">${TEMP_DIRECTORY}</span>/server.csr \
+    -config <span class="token variable">${TEMP_DIRECTORY}</span>/csr.conf
+
+<span class="token function">cat</span> <span class="token operator">&lt;&lt;</span>EOF <span class="token operator">|</span> kubectl create -f -
+apiVersion: certificates.k8s.io/v1beta1
+kind: CertificateSigningRequest
+metadata:
+  name: <span class="token variable">${SERVICE_NAME}</span><span class="token keyword">.</span><span class="token variable">${NAMESPACE}</span>.svc
+spec:
+  request: <span class="token punctuation">$(</span>cat <span class="token variable">${TEMP_DIRECTORY}</span>/server.csr <span class="token operator">|</span> base64 <span class="token operator">|</span> <span class="token function">tr</span> -d <span class="token string">'\n'</span><span class="token punctuation">)</span>
+  usages:
+  - digital signature
+  - key encipherment
+  - server auth
+EOF
+
+kubectl certificate approve <span class="token variable">${SERVICE_NAME}</span><span class="token keyword">.</span><span class="token variable">${NAMESPACE}</span>.svc
+
+<span class="token keyword">for</span> x <span class="token keyword">in</span> <span class="token variable"><span class="token variable">$(</span><span class="token function">seq</span> 10<span class="token variable">)</span></span><span class="token punctuation">;</span> <span class="token keyword">do</span>
+    SERVER_CERT<span class="token operator">=</span><span class="token punctuation">$(</span>kubectl get csr <span class="token variable">${SERVICE_NAME}</span><span class="token keyword">.</span><span class="token variable">${NAMESPACE}</span>.svc -o jsonpath<span class="token operator">=</span><span class="token string">'{.status.certificate}'</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> <span class="token punctuation">[</span><span class="token punctuation">[</span> <span class="token variable">${SERVER_CERT}</span> <span class="token operator">!=</span> <span class="token string">''</span> <span class="token punctuation">]</span><span class="token punctuation">]</span><span class="token punctuation">;</span> <span class="token keyword">then</span>
+        <span class="token keyword">break</span>
+    <span class="token keyword">fi</span>
+    <span class="token function">sleep</span> 1
+<span class="token keyword">done</span>
+<span class="token keyword">if</span> <span class="token punctuation">[</span><span class="token punctuation">[</span> <span class="token variable">${SERVER_CERT}</span> <span class="token operator">==</span> <span class="token string">''</span> <span class="token punctuation">]</span><span class="token punctuation">]</span><span class="token punctuation">;</span> <span class="token keyword">then</span>
+    <span class="token keyword">echo</span> <span class="token string">"ERROR: After approving csr <span class="token variable">${SERVICE_NAME}</span>.<span class="token variable">${NAMESPACE}</span>.svc, the signed certificate did not appear on the resource. Giving up after 10 attempts."</span> <span class="token operator">></span><span class="token operator">&amp;</span>2
+    <span class="token keyword">exit</span> 1
+<span class="token keyword">fi</span>
+<span class="token keyword">echo</span> <span class="token variable">${SERVER_CERT}</span> <span class="token operator">|</span> openssl base64 -d -A -out <span class="token variable">${TEMP_DIRECTORY}</span>/server-cert.pem
+
+kubectl create secret generic ingress-nginx.svc \
+    --from-file<span class="token operator">=</span>key.pem<span class="token operator">=</span><span class="token variable">${TEMP_DIRECTORY}</span>/server-key.pem \
+    --from-file<span class="token operator">=</span>cert.pem<span class="token operator">=</span><span class="token variable">${TEMP_DIRECTORY}</span>/server-cert.pem \
+    -n <span class="token variable">${NAMESPACE}</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+</li>
+</ul>
+<h3 id="配置ingress-controller"><a href="#配置ingress-controller" class="headerlink" title="配置ingress controller"></a>配置ingress controller</h3><p>ingress controller需要启用如下参数, 挂载需要的tls证书</p>
+<table>
+<thead>
+<tr>
+<th>flag</th>
+<th>description</th>
+<th>example usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--validating-webhook</code></td>
+<td>admission webhook的地址</td>
+<td><code>:8080</code></td>
+</tr>
+<tr>
+<td><code>--validating-webhook-certificate</code></td>
+<td>webhook证书</td>
+<td><code>/usr/local/certificates/validating-webhook.pem</code></td>
+</tr>
+<tr>
+<td><code>--validating-webhook-key</code></td>
+<td>webhook私钥</td>
+<td><code>/usr/local/certificates/validating-webhook-key.pem</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h2><p>更新后, 创建有问题的ingress则会拦截, 符合预期</p>
+<pre class="line-numbers language-bash"><code class="language-bash"><span class="token comment" spellcheck="true"># kubectl apply -f ing.yaml</span>
+Error from server: error when creating <span class="token string">"ing.yaml"</span><span class="token keyword">:</span> admission webhook <span class="token string">"validate.nginx.ingress.kubernetes.io"</span> denied the request: 
+-------------------------------------------------------------------------------
+Error: <span class="token keyword">exit</span> status 1
+2020/04/02 10:26:04 <span class="token punctuation">[</span>emerg<span class="token punctuation">]</span> 331<span class="token comment" spellcheck="true">#331: directive "proxy_pass" is not terminated by ";" in /tmp/nginx-cfg461116913:2165</span>
+nginx: <span class="token punctuation">[</span>emerg<span class="token punctuation">]</span> directive <span class="token string">"proxy_pass"</span> is not terminated by <span class="token string">";"</span> <span class="token keyword">in</span> /tmp/nginx-cfg461116913:2165
+nginx: configuration <span class="token function">file</span> /tmp/nginx-cfg461116913 <span class="token function">test</span> failed
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h2><ul>
+<li><a href="https://kubernetes.io/zh/docs/reference/access-authn-authz/extensible-admission-controllers/" target="_blank" rel="noopener">https://kubernetes.io/zh/docs/reference/access-authn-authz/extensible-admission-controllers/</a></li>
+<li><a href="https://kubernetes.github.io/ingress-nginx/deploy/validating-webhook/" target="_blank" rel="noopener">https://kubernetes.github.io/ingress-nginx/deploy/validating-webhook/</a></li>
+</ul>
+
+            </div>
+            <hr/>
+
+            
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/k8s/">
+                                    <span class="chip bg-color">k8s</span>
+                                </a>
+                            
+                                <a href="/tags/ingress/">
+                                    <span class="chip bg-color">ingress</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="wechat,weibo" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    
+        <link rel="stylesheet" href="/libs/gitalk/gitalk.css">
+<link rel="stylesheet" href="/libs/gitalk/gitalk.min.js">
+
+<div class="card gitalk-card" data-aos="fade-up">
+    <div class="comment_headling" style="font-size: 20px; font-weight: 700; position: relative; padding-left: 20px; top: 15px; padding-bottom: 5px;">
+        <i class="fas fa-comments fa-fw" aria-hidden="true"></i>
+        <span>评论</span>
+    </div>
+    <div id="gitalk-container" class="card-content"></div>
+</div>
+
+<script src="/libs/gitalk/gitalk.min.js"></script>
+<script>
+    let gitalk = new Gitalk({
+        clientID: 'a705189dfc18ec59a7d0',
+        clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
+        repo: 'qingwave.github.io',
+        owner: 'qingwave',
+        admin: "qingwave",
+        id: '2020-04-03T18-48-04',
+        distractionFreeMode: false  // Facebook-like distraction free mode
+    });
+
+    gitalk.render('gitalk-container');
+</script>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/pod-graceful-lifecycle/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/15.jpg" class="responsive-img" alt="如何做一个优雅的Pod">
+                        
+                        <span class="card-title">如何做一个优雅的Pod</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            没有人不想优雅的活着，在这喧闹的生活中过得优雅从容并不容易。但在k8s的世界中，如何做个优雅的Pod还是有套路可循的。
+Pod的生命周期在优雅之前，我们先谈谈Pod的一生，大体分为以下几个阶段
+
+创建，通过kubectl或者api创建pod
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2020-04-11
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/cloud/" class="post-category">
+                                    cloud
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/k8s/">
+                        <span class="chip bg-color">k8s</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/pod-sandbox-recreated/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/23.jpg" class="responsive-img" alt="pod sandbox 创建失败">
+                        
+                        <span class="card-title">pod sandbox 创建失败</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            背景今天在k8s更新服务时,发现pod启动失败,报错failed to start sandbox container,如下所示:
+Events:
+  Type     Reason                  Age        
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2020-03-18
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/cloud/" class="post-category">
+                                    cloud
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/k8s/">
+                        <span class="chip bg-color">k8s</span>
+                    </a>
+                    
+                    <a href="/tags/docker/">
+                        <span class="chip bg-color">docker</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeBlockFuction.js"></script>
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeShrink.js"></script>
+
+
+<!-- 代码块折行 -->
+
+<style type="text/css">
+code[class*="language-"], pre[class*="language-"] { white-space: pre !important; }
+</style>
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-mini waves-effect bnt-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('0'),
+            headingSelector: 'h2, h3, h4'
+        });
+
+        // modify the toc link href to support Chinese.
+        let i = 0;
+        let tocHeading = 'toc-heading-';
+        $('#toc-content a').each(function () {
+            $(this).attr('href', '#' + tocHeading + (++i));
+        });
+
+        // modify the heading title id to support Chinese.
+        i = 0;
+        $('#articleContent').children('h2, h3, h4').each(function () {
+            $(this).attr('id', tocHeading + (++i));
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+    <div class="container row center-align" style="margin-bottom: 0px !important;">
+        <div class="center-align">
+            Copyright&nbsp;&copy;
+            <span id="year">2018</span>
+            <a href="https://qinng.now.sh" target="_blank">Qinng</a>
+            <br>
+            
+            &nbsp;<i class="fas fa-chart-area"></i>&nbsp;&nbsp;<span
+                >49.9k</span>&nbsp;
+            
+            
+            
+            
+            
+            
+            <span id="busuanzi_container_site_pv">
+                |&nbsp;<i class="far fa-eye"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_pv"
+                    ></span>&nbsp;
+            </span>
+            
+            
+            <span id="busuanzi_container_site_uv">
+                |&nbsp;<i class="fas fa-users"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_uv"
+                    ></span>&nbsp;
+            </span>
+            
+            <br>
+            
+            <br>
+            
+        </div>
+        <!-- <div class="col s12 m4 l4 social-link social-statis">
+    <a href="https://github.com/qingwave" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
+        <i class="fab fa-github"></i>
+    </a>
+
+
+
+    <a href="mailto:isguory@gmail.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <a href="https://www.douban.com/people/69458430"
+       target="_blank" data-tooltip="关注我的豆瓣: 69458430" data-position="top"
+       data-delay="50">
+        <i class="fa fa-inverse">豆</i>
+    </a>
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div> -->
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/search.js"></script>
+<script type="text/javascript">
+$(function () {
+    searchFunc("https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/search.xml", 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-mini waves-effect" href="#!">
+        <!-- <i class="fas fa-caret-up"></i> -->
+        <!-- <i class="fas fa-chevron-up"></i> -->
+        <i class="fas fa-angle-double-up"></i>
+    </a>
+</div>
+
+
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/matery.js"></script>
+
+    <!-- Baidu Analytics -->
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    
+    <script async src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+</body>
+
+</html>
