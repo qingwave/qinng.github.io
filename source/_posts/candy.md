@@ -2,7 +2,6 @@
 title: 糖
 subtitle: 记某人的大痘
 date: 2020-02-02 14:36:59
-layout: "poem"
 author: "Qinng"
 toc: false
 tags:

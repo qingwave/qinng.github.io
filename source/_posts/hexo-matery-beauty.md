@@ -21,7 +21,7 @@ Github Page在国内访问较慢，可以将服务部署到静态站[zeit.io](ht
 - 导入项目，zeit.io导入项目名称不能包含`.`，可将项目名称`username.github.io`修改为`username`导入，后面再改回
 部署成功
 
-过一会自动部署成功，如[qinng.now.sh](https://qing.now.sh)可访问项目，项目的任何更新会触发重新部署。
+过一会自动部署成功，如[qingwave.github.io](https://qingwave.github.io/)可访问项目，项目的任何更新会触发重新部署。
 
 也可通过zeit.io提供的DNS解析服务配置自己的域名，然后在百度站长里配置信息。
 
@@ -184,9 +184,9 @@ layout: "friends"
     "url": "https://blinkfox.github.io/",
     "title": "前去学习"
 }, {
-    "avatar": "https://qinng.now.sh/medias/avatar.jpg",
-    "name": "有风自南",
-    "introduction": "也无风雨也无晴",
+    "avatar": "https://qingwave.github.io/medias/avatar.jpg",
+    "name": "Qinng",
+    "introduction": "Reading Coding Daydraming",
     "url": "https://qingwave.github.io/",
     "title": "前去学习"
 }]

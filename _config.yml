@@ -9,13 +9,12 @@ description: Coding, Reading and Daydreaming
 keywords: 
 author: Qinng
 language: zh-CN
-timezone:
+timezone: Asia/Shanghai
 email: isguory@gmail.com
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-# url: https://qingwave.github.io/
-url: https://qinng.now.sh
+url: https://qingwave.github.io/
 root: /
 permalink: :title/
 permalink_defaults:
@@ -42,10 +41,20 @@ relative_link: false
 future: true
 
 highlight:
-  enable: false
-  line_number: false
+  enable: true
+  line_number: true
   auto_detect: false
-  tab_replace:
+  tab_replace: ""
+  wrap: false
+  hljs: false
+prismjs:
+  enable: false
+  preprocess: true
+  line_number: true
+  tab_replace: ''
+
+codemirror:
+  modes: ['javascript', 'css', 'xml', 'htmlmixed', 'clike', 'php', 'shell', 'python', "go", "golang"]
 
 prism_plugin:
   mode: 'preprocess'    # realtime/preprocess
@@ -86,7 +95,8 @@ time_format: HH:mm:ss
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: matery
+# obsidian matery oranges next cards
+theme: next
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
@@ -124,42 +134,15 @@ jsonContent:
     categories: false
     tags: true
 
-# Algolia Search API Key
-algolia:
-  appId: 
-  apiKey: 
-  adminApiKey: 
-  indexName: blog
-  chunkSize: 5000
-  fields:
-    - content:strip:truncate,0,500
-    - excerpt:strip
-    - gallery
-    - permalink
-    - photos
-    - slug
-    - tags
 
 search:
   path: search.xml
   field: post
   content: true
 
-# npm install hexo-douban --save
-douban:
-  user: 69458430
-  builtin: false
-  book:
-    title: '书单'
-    quote: '他山之石'
-  movie:
-    title: '影单'
-    quote: '光影魅力'
-  timeout: 10000
-
-githubEmojis:
-  enable: false
-  className: github-emoji
-  inject: true
-  styles:
-  customEmojis:
+# npm install hexo-excerpt --save
+excerpt:
+  depth: 1
+  excerpt_excludes: [h1, h2, h3, h4, h5, h6, img, line-numbers]
+  more_excludes: []
+  hideWholePostExcerpts: true
