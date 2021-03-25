@@ -1,1484 +1,1395 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/medias/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/medias/favicon.png">
+  <meta name="google-site-verification" content="googledbe9fc5bea9bf603.html">
+  <meta name="baidu-site-verification" content="muFp3xopwC">
+
+<link rel="stylesheet" href="/css/main.css">
 
 
-<head><meta name="generator" content="Hexo 3.9.0">
-    <meta charset="utf-8">
-    <meta name="keywords" content="Qinng">
-    <meta name="description" content="Coding, Reading and Daydreaming">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="renderer" content="webkit|ie-stand|ie-comp">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- Global site tag (gtag.js) - Google Analytics -->
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"qingwave.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Coding, Reading and Daydreaming">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Qinng">
+<meta property="og:url" content="https://qingwave.github.io/index.html">
+<meta property="og:site_name" content="Qinng">
+<meta property="og:description" content="Coding, Reading and Daydreaming">
+<meta property="og:locale" content="zh-CN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Qinng">
+<meta name="twitter:description" content="Coding, Reading and Daydreaming">
+
+<link rel="canonical" href="https://qingwave.github.io/">
 
 
-    <title>Qinng</title>
-    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png">
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : true,
+    isPost : false,
+    lang   : 'zh-CN'
+  };
+</script>
 
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/awesome/css/all.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/animate/animate.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/css/lightgallery.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/matery.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/my.css">
+  <title>Qinng</title>
+  
 
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/jquery/jquery.min.js"></script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
 
 <link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
 <link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
 
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
 
-<body>
-    <header class="navbar-fixed">
-    <nav id="headNav" class="bg-color nav-transparent">
-        <div id="navContainer" class="nav-wrapper container">
-            <div class="brand-logo">
-                <a href="/" class="waves-effect waves-light">
-                    
-                    <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img" alt="LOGO">
-                    
-                    <span class="logo-span">Qinng</span>
-                </a>
-            </div>
-            
-
-<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
-<ul class="right nav-menu">
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/" class="waves-effect waves-light">
-      
-      <i class="fas fa-home" style="zoom: 0.6;"></i>
-      
-      <span>首页</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/tags" class="waves-effect waves-light">
-      
-      <i class="fas fa-tags" style="zoom: 0.6;"></i>
-      
-      <span>标签</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/categories" class="waves-effect waves-light">
-      
-      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
-      
-      <span>分类</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/archives" class="waves-effect waves-light">
-      
-      <i class="fas fa-archive" style="zoom: 0.6;"></i>
-      
-      <span>归档</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/contact" class="waves-effect waves-light">
-      
-      <i class="fas fa-comments" style="zoom: 0.6;"></i>
-      
-      <span>留言</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/about" class="waves-effect waves-light">
-      
-      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
-      
-      <span>关于</span>
-    </a>
-    
-  </li>
-  
-  <li>
-    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
-      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
-    </a>
-  </li>
-</ul>
-
-
-<div id="mobile-nav" class="side-nav sidenav">
-
-    <div class="mobile-head bg-color">
-        
-        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img circle responsive-img">
-        
-        <div class="logo-name">Qinng</div>
-        <div class="logo-desc">
-            
-            Coding, Reading and Daydreaming
-            
-        </div>
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
     </div>
+  </div>
 
-    
+  <div class="site-meta">
 
-    <ul class="menu-list mobile-menu-list">
-        
-        <li class="m-nav-item">
-	  
-		<a href="/" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-home"></i>
-			
-			首页
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/tags" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-tags"></i>
-			
-			标签
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/categories" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-bookmark"></i>
-			
-			分类
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/archives" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-archive"></i>
-			
-			归档
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/contact" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-comments"></i>
-			
-			留言
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/about" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-user-circle"></i>
-			
-			关于
-		</a>
-          
-        </li>
-        
-        
-    </ul>
-</div>
-
-
-        </div>
-
-        
-    </nav>
-
-</header>
-
-    
-<style>
-    .carousel-control {
-        width: 45px;
-        height: 45px;
-        line-height: 55px;
-        border-radius: 45px;
-        background: transparent;
-        cursor: pointer;
-        z-index: 100;
-    }
-
-    #prev-cover {
-        position: absolute;
-        top: 48%;
-        left: 8px;
-    }
-
-    #next-cover {
-        position: absolute;
-        top: 48%;
-        right: 8px;;
-    }
-
-    #prev-cover i {
-        margin-right: 3px;
-    }
-
-    #next-cover i {
-        margin-left: 3px;
-    }
-
-    .carousel-control:hover {
-        background-color: rgba(0, 0, 0, .4);
-    }
-
-    .carousel-control i {
-        color: #fff;
-        font-size: 2.4rem;
-    }
-</style>
-
-
-
-<div class="carousel carousel-slider center index-cover" data-indicators="true" style="margin-top: -64px;">
-    
-
-    <div class="carousel-item red white-text bg-cover about-cover">
-        <div class="container">
-            <div class="row">
-    <div class="col s10 offset-s1 m8 offset-m2 l8 offset-l2">
-        <div class="brand">
-            <div class="title center-align">
-                
-                Qinng
-                
-            </div>
-
-            <div class="description center-align">
-                
-                <span id="subtitle"></span>
-                <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11"></script>
-                <script>
-                    var typed = new Typed("#subtitle", {
-                        strings: ['喂马劈柴，周游世界','Coding, Reading and Daydreaming'],
-                        startDelay: 300,
-                        typeSpeed: 100,
-                        loop: true,
-                        backSpeed: 50,
-                        showCursor: true
-                    });
-                </script>
-                
-            </div>
-        </div>
-    </div>
-</div>
-
-
-<script>
-    // 每天切换 banner 图.  Switch banner image every day.
-    $('.bg-cover').css('background-image', 'url(https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/banner/3.jpg)');
-</script>
-
-
-
-            <div class="cover-btns">
-                <a href="#indexCard" class="waves-effect waves-light btn">
-                    <i class="fa fa-angle-double-down"></i>开始阅读
-                </a>
-
-                
-                    <a href="https://github.com/qingwave" class="waves-effect waves-light btn" target="_blank">
-                        <i class="fab fa-github-alt"></i>Github
-                    </a>
-                
-            </div>
-            <div class="cover-social-link">
-    <a href="https://github.com/qingwave" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
-        <i class="fab fa-github"></i>
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Qinng</h1>
+      <span class="logo-line-after"><i></i></span>
     </a>
+      <p class="site-subtitle" itemprop="description">Qinng</p>
+  </div>
 
-
-
-    <a href="mailto:isguory@gmail.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
-        <i class="fas fa-envelope-open"></i>
-    </a>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <a href="https://www.douban.com/people/69458430"
-       target="_blank" data-tooltip="关注我的豆瓣: 69458430" data-position="top"
-       data-delay="50">
-        <i class="fa fa-inverse">豆</i>
-    </a>
-
-
-
-    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
-        <i class="fas fa-rss"></i>
-    </a>
-
-</div>
-        </div>
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
     </div>
-
-    
-        
-
-        
-            
-            <div class="carousel-item amber white-text carousel-post bg-cover"
-                 style="background-image: url('https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/5.jpg');">
-                <div class="container">
-                    <div class="row">
-                        <div class="col s10 offset-s1">
-                            <div class="title center-align">kube-apiserver认证源码分析</div>
-                            <div class="description center-align">
-                                
-                                    通过分析apiserver源码探究认证流程以及注意事项
-                                
-                            </div>
-                            <div class="cover-btns">
-                                <a href="/kube-apiserver-authorization-code" class="waves-effect waves-light btn"
-                                   target="_blank">
-                                    <i class="icon fa fa-eye fa-fw"></i>阅读更多
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        
-            
-            <div class="carousel-item amber white-text carousel-post bg-cover"
-                 style="background-image: url('https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/5.jpg');">
-                <div class="container">
-                    <div class="row">
-                        <div class="col s10 offset-s1">
-                            <div class="title center-align">k8s基于资源锁的选主分析</div>
-                            <div class="description center-align">
-                                
-                                    k8s采用了资源版本号的乐观锁方式来实现选主，通过源码分析选主流程
-                                
-                            </div>
-                            <div class="cover-btns">
-                                <a href="/k8s-leaderelection-code" class="waves-effect waves-light btn"
-                                   target="_blank">
-                                    <i class="icon fa fa-eye fa-fw"></i>阅读更多
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        
-            
-            <div class="carousel-item amber white-text carousel-post bg-cover"
-                 style="background-image: url('https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/21.jpg');">
-                <div class="container">
-                    <div class="row">
-                        <div class="col s10 offset-s1">
-                            <div class="title center-align">Prometheus分区实践</div>
-                            <div class="description center-align">
-                                
-                                    大规模集群下Prometheus落地指北
-                                
-                            </div>
-                            <div class="cover-btns">
-                                <a href="/prometheus-federation" class="waves-effect waves-light btn"
-                                   target="_blank">
-                                    <i class="icon fa fa-eye fa-fw"></i>阅读更多
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        
-    
-</div>
-
-<script>
-    $(function () {
-        let coverSlider = $('.carousel');
-
-        //用户触摸轮播自动 restartPlay 是否生效
-        let initUserPressedOrDraggedActive = false
-
-        //用户触摸轮播自动 restartPlay
-        function initUserPressedOrDragged(instance) {
-            setInterval(() => {
-                if (instance.pressed || instance.dragged) {
-                    // console.log('initUserPressedOrDragged: ',instance.pressed,instance.dragged)
-                    restartPlay()
-                }
-            }, 1000)
-        }
-
-        coverSlider.carousel({
-            duration: Number('120'),
-            fullWidth: true,
-            indicators: 'true' === 'true',
-            onCycleTo() {
-                if (!initUserPressedOrDraggedActive) {
-                    // console.log('initUserPressedOrDraggedActive')
-                    initUserPressedOrDragged(this)
-                    initUserPressedOrDraggedActive = true
-                }
-            },
-        })
-
-        let carouselIntervalId;
-        
-        // Loop to call the next cover article picture.
-        let autoCarousel = function () {
-            carouselIntervalId = setInterval(function () {
-                coverSlider.carousel('next');
-            }, 8000);
-        };
-        autoCarousel();
-        
-
-        function restartPlay() {
-            
-            clearInterval(carouselIntervalId);
-            autoCarousel();
-            
-        };
-
-        
-    });
-</script>
-
-
-
-<main class="content">
-
-    
-    <div id="indexCard" class="index-card">
-        <div class="container ">
-            <div class="card">
-                <div class="card-content">
-                    
-                        <div class="dream">
-    
-    <div class="row">
-        <div class="col l8 offset-l2 m10 offset-m1 s10 offset-s1 center-align text">
-            晓看天色暮看云，也无风雨也无晴
-        </div>
-    </div>
-</div>
-
-                    
-
-                    
-
-                    
-
-                    
-                    <div id="recommend-sections" class="recommend">
-                        
-
-
-
-
-
-<div class="title"><i class="far fa-thumbs-up"></i>&nbsp;&nbsp;推荐文章</div>
-
-<div class="row">
-
-    
-    
-    <div class="col s12 m6" >
-        <div class="post-card" style="background-image: url('/medias/featureimages/14.jpg')">
-            <div class="post-body">
-                <div class="post-categories">
-                    
-                        <a href="/" class="category"></a>
-                    
-                </div>
-                <a href="/candy">
-                    <h3 class="post-title">糖</h3>
-                </a>
-                <p class="post-description">
-                    
-                        一首关于[糖]的小诗
-                    
-                </p>
-                <a href="/candy" class="read-more btn waves-effect waves-light" style="background: linear-gradient(to right, #FF5E3A 0%, #FF2A68 100%)" target="_blank">
-                    <i class="icon far fa-eye fa-fw"></i>阅读更多
-                </a>
-            </div>
-        </div>
-    </div>
-    
-    
-    <div class="col s12 m6" >
-        <div class="post-card" style="background-image: url('/medias/featureimages/15.jpg')">
-            <div class="post-body">
-                <div class="post-categories">
-                    
-                        <a href="/" class="category"></a>
-                    
-                </div>
-                <a href="/k8s-limit-fd-and-thread1">
-                    <h3 class="post-title">k8s中fd与thread限制</h3>
-                </a>
-                <p class="post-description">
-                    
-                        限制pod内核资源使用量，避免引起内核资源泄露
-                    
-                </p>
-                <a href="/k8s-limit-fd-and-thread1" class="read-more btn waves-effect waves-light" style="background: linear-gradient(to right, #EF4DB6 0%, #C643FC 100%)" target="_blank">
-                    <i class="icon far fa-eye fa-fw"></i>阅读更多
-                </a>
-            </div>
-        </div>
-    </div>
-    
-    
-    <div class="col s12 m6" data-aos="zoom-in-up">
-        <div class="post-card" style="background-image: url('/medias/featureimages/5.jpg')">
-            <div class="post-body">
-                <div class="post-categories">
-                    
-                        <a href="/" class="category"></a>
-                    
-                </div>
-                <a href="/kube-apiserver-authorization-code">
-                    <h3 class="post-title">kube-apiserver认证源码分析</h3>
-                </a>
-                <p class="post-description">
-                    
-                        通过分析apiserver源码探究认证流程以及注意事项
-                    
-                </p>
-                <a href="/kube-apiserver-authorization-code" class="read-more btn waves-effect waves-light" style="background: linear-gradient(to right, #1AD6FD 0%, #1D62F0 100%)" target="_blank">
-                    <i class="icon far fa-eye fa-fw"></i>阅读更多
-                </a>
-            </div>
-        </div>
-    </div>
-    
-    
-    <div class="col s12 m6" data-aos="zoom-in-up">
-        <div class="post-card" style="background-image: url('/medias/featureimages/5.jpg')">
-            <div class="post-body">
-                <div class="post-categories">
-                    
-                        <a href="/" class="category"></a>
-                    
-                </div>
-                <a href="/k8s-leaderelection-code">
-                    <h3 class="post-title">k8s基于资源锁的选主分析</h3>
-                </a>
-                <p class="post-description">
-                    
-                        k8s采用了资源版本号的乐观锁方式来实现选主,通过源码分析选主流程
-                    
-                </p>
-                <a href="/k8s-leaderelection-code" class="read-more btn waves-effect waves-light" style="background: linear-gradient(to right, #FFCC00 0%, #FF9500 100%)" target="_blank">
-                    <i class="icon far fa-eye fa-fw"></i>阅读更多
-                </a>
-            </div>
-        </div>
-    </div>
-    
-
-</div>
-
-
-                    </div>
-                    
-                </div>
-            </div>
-        </div>
-    </div>
-    
-
-    
-
-    <!-- 所有文章卡片 -->
-    <article id="articles" class="container articles">
-        <div class="row article-row">
-            
-            <div class="article col s12 m6 l4" data-aos="zoom-in">
-                <div class="card">
-                    <a href="/golang-zk-statedisconnected/">
-                        <div class="card-image">
-                            
-                            
-                            <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/8.jpg" class="responsive-img" alt="golang zk大量disconnected event">
-                            
-                            <span class="card-title">golang zk大量disconnected event</span>
-                        </div>
-                    </a>
-
-                    <div class="card-content article-content">
-                        <div class="summary block-with-text">
-                            
-                                背景在容器平台上我们提供了zk做白名单功能，Pod启动时 sidecar会自动注册zk。昨天遇到zk server抖动，sidecar容器输出大量StateDisconnected事件，zk正常后仍无法恢复，由于大量日志造成sidecar容
-                            
-                        </div>
-                        <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2021-03-02
-                            </span>
-                            <span class="publish-author">
-                                
-                                <i class="fas fa-bookmark fa-fw icon-category"></i>
-                                
-                                <a href="/categories/coding/" class="post-category">
-                                    coding
-                                </a>
-                                
-                                
-                            </span>
-                        </div>
-                    </div>
-
-                    
-                    <div class="card-action article-tags">
-                        
-                        <a href="/tags/golang/">
-                            <span class="chip bg-color">golang</span>
-                        </a>
-                        
-                        <a href="/tags/zk/">
-                            <span class="chip bg-color">zk</span>
-                        </a>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-            
-            <div class="article col s12 m6 l4" data-aos="zoom-in">
-                <div class="card">
-                    <a href="/docker-shell-signal/">
-                        <div class="card-image">
-                            
-                            
-                            <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/23.jpg" class="responsive-img" alt="k8s中shell脚本启动如何传递信号">
-                            
-                            <span class="card-title">k8s中shell脚本启动如何传递信号</span>
-                        </div>
-                    </a>
-
-                    <div class="card-content article-content">
-                        <div class="summary block-with-text">
-                            
-                                背景在k8s或docker中，有时候我们需要通过shell来启动程序，但是默认shell不会传递信号（sigterm）给子进程，当在pod终止时应用无法优雅退出，直到最大时间时间后强制退出（kill -9）。
-分析普通情况下，大多业务的启动
-                            
-                        </div>
-                        <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2021-02-03
-                            </span>
-                            <span class="publish-author">
-                                
-                                <i class="fas fa-bookmark fa-fw icon-category"></i>
-                                
-                                <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                                
-                                
-                            </span>
-                        </div>
-                    </div>
-
-                    
-                    <div class="card-action article-tags">
-                        
-                        <a href="/tags/k8s/">
-                            <span class="chip bg-color">k8s</span>
-                        </a>
-                        
-                        <a href="/tags/docker/">
-                            <span class="chip bg-color">docker</span>
-                        </a>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-            
-            <div class="article col s12 m6 l4" data-aos="zoom-in">
-                <div class="card">
-                    <a href="/k8s-dns-optimize/">
-                        <div class="card-image">
-                            
-                            
-                            <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/22.jpg" class="responsive-img" alt="优化Kubernetes集群内DNS">
-                            
-                            <span class="card-title">优化Kubernetes集群内DNS</span>
-                        </div>
-                    </a>
-
-                    <div class="card-content article-content">
-                        <div class="summary block-with-text">
-                            
-                                kubernetes集群内置的dns插件kubedns/coredns在高并发情况下可能遇到性能瓶颈，以下从配置与本地缓存方面说明如何减少dns查询失败率，提高性能。
-配置优化dnsPolicyk8s 默认的 dnsPolicy 是Clus
-                            
-                        </div>
-                        <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2021-02-01
-                            </span>
-                            <span class="publish-author">
-                                
-                                <i class="fas fa-bookmark fa-fw icon-category"></i>
-                                
-                                <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                                
-                                
-                            </span>
-                        </div>
-                    </div>
-
-                    
-                    <div class="card-action article-tags">
-                        
-                        <a href="/tags/k8s/">
-                            <span class="chip bg-color">k8s</span>
-                        </a>
-                        
-                        <a href="/tags/dns/">
-                            <span class="chip bg-color">dns</span>
-                        </a>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-            
-            <div class="article col s12 m6 l4" data-aos="zoom-in">
-                <div class="card">
-                    <a href="/k8s-rate-limit/">
-                        <div class="card-image">
-                            
-                            
-                            <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/13.jpg" class="responsive-img" alt="kubernetes apiserver限流方案">
-                            
-                            <span class="card-title">kubernetes apiserver限流方案</span>
-                        </div>
-                    </a>
-
-                    <div class="card-content article-content">
-                        <div class="summary block-with-text">
-                            
-                                背景为了防止突发流量影响apiserver可用性，k8s支持多种限流配置，包括：
-
-MaxInFlightLimit，server级别整体限流
-Client限流
-EventRateLimit, 限制event
-APF，更细力度的限制配置
-
-
-                            
-                        </div>
-                        <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-11-11
-                            </span>
-                            <span class="publish-author">
-                                
-                                <i class="fas fa-bookmark fa-fw icon-category"></i>
-                                
-                                <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                                
-                                
-                            </span>
-                        </div>
-                    </div>
-
-                    
-                    <div class="card-action article-tags">
-                        
-                        <a href="/tags/k8s/">
-                            <span class="chip bg-color">k8s</span>
-                        </a>
-                        
-                        <a href="/tags/apiserver/">
-                            <span class="chip bg-color">apiserver</span>
-                        </a>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-            
-            <div class="article col s12 m6 l4" data-aos="zoom-in">
-                <div class="card">
-                    <a href="/k8s-sideccar-lifecycle/">
-                        <div class="card-image">
-                            
-                            
-                            <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/0.jpg" class="responsive-img" alt="Kubernetes中Sidecar生命周期管理">
-                            
-                            <span class="card-title">Kubernetes中Sidecar生命周期管理</span>
-                        </div>
-                    </a>
-
-                    <div class="card-content article-content">
-                        <div class="summary block-with-text">
-                            
-                                背景在多个容器的Pod中，通常业务容器需要依赖sidecar。启动时sidecar需要先启动，退出时sidecar需要在业务容器退出后再退出。k8s目前对于sidecar的生命周期比较有争议，见issue、sidecarcontainers
-                            
-                        </div>
-                        <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-09-21
-                            </span>
-                            <span class="publish-author">
-                                
-                                <i class="fas fa-bookmark fa-fw icon-category"></i>
-                                
-                                <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                                
-                                
-                            </span>
-                        </div>
-                    </div>
-
-                    
-                    <div class="card-action article-tags">
-                        
-                        <a href="/tags/k8s/">
-                            <span class="chip bg-color">k8s</span>
-                        </a>
-                        
-                        <a href="/tags/container/">
-                            <span class="chip bg-color">container</span>
-                        </a>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-            
-            <div class="article col s12 m6 l4" data-aos="zoom-in">
-                <div class="card">
-                    <a href="/cotainer-init/">
-                        <div class="card-image">
-                            
-                            
-                            <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/1.jpg" class="responsive-img" alt="开启shareProcessNamespace后容器异常">
-                            
-                            <span class="card-title">开启shareProcessNamespace后容器异常</span>
-                        </div>
-                    </a>
-
-                    <div class="card-content article-content">
-                        <div class="summary block-with-text">
-                            
-                                背景目前k8s不支持容器启动顺序，部分业务通过开启shareProcessNamespace监控某些进程状态。当开启共享pid后，有用户反馈某个容器主进程退出，但是容器并没有重启，执行exec会卡住，现象参考issue
-复现
-创建deplo
-                            
-                        </div>
-                        <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-07-28
-                            </span>
-                            <span class="publish-author">
-                                
-                                <i class="fas fa-bookmark fa-fw icon-category"></i>
-                                
-                                <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                                
-                                
-                            </span>
-                        </div>
-                    </div>
-
-                    
-                    <div class="card-action article-tags">
-                        
-                        <a href="/tags/k8s/">
-                            <span class="chip bg-color">k8s</span>
-                        </a>
-                        
-                        <a href="/tags/docker/">
-                            <span class="chip bg-color">docker</span>
-                        </a>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-            
-            <div class="article col s12 m6 l4" data-aos="zoom-in">
-                <div class="card">
-                    <a href="/prometheus-best-practice-operation/">
-                        <div class="card-image">
-                            
-                            
-                            <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/22.jpg" class="responsive-img" alt="Prometheus最佳实践-聚合函数">
-                            
-                            <span class="card-title">Prometheus最佳实践-聚合函数</span>
-                        </div>
-                    </a>
-
-                    <div class="card-content article-content">
-                        <div class="summary block-with-text">
-                            
-                                rateprometheus中rate只能用于counter类型，对于需要聚合的数据需要先rate再sum，而不是rate(sum)
-数据准确性rate/increase/delta等操作对于原始值进行了外推（类似线性插件），得到的不是准确
-                            
-                        </div>
-                        <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-07-16
-                            </span>
-                            <span class="publish-author">
-                                
-                                <i class="fas fa-bookmark fa-fw icon-category"></i>
-                                
-                                <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                                
-                                
-                            </span>
-                        </div>
-                    </div>
-
-                    
-                    <div class="card-action article-tags">
-                        
-                        <a href="/tags/prometheus/">
-                            <span class="chip bg-color">prometheus</span>
-                        </a>
-                        
-                        <a href="/tags/monitor/">
-                            <span class="chip bg-color">monitor</span>
-                        </a>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-            
-            <div class="article col s12 m6 l4" data-aos="zoom-in">
-                <div class="card">
-                    <a href="/kubernetes-opensource-project/">
-                        <div class="card-image">
-                            
-                            
-                            <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/22.jpg" class="responsive-img" alt="kubernetes相关开源项目">
-                            
-                            <span class="card-title">kubernetes相关开源项目</span>
-                        </div>
-                    </a>
-
-                    <div class="card-content article-content">
-                        <div class="summary block-with-text">
-                            
-                                总结下项目中可参考k8s相关开源项目，不断更新中…
-cncf
-project
-sandbox
-
-阿里
-kruise: 各种自定义app，包括增强deployment/statefulset等
-kubernetes-cronhpa-contr
-                            
-                        </div>
-                        <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-07-14
-                            </span>
-                            <span class="publish-author">
-                                
-                                <i class="fas fa-bookmark fa-fw icon-category"></i>
-                                
-                                <a href="/categories/k8s/" class="post-category">
-                                    k8s
-                                </a>
-                                
-                                
-                            </span>
-                        </div>
-                    </div>
-
-                    
-                    <div class="card-action article-tags">
-                        
-                        <a href="/tags/k8s/">
-                            <span class="chip bg-color">k8s</span>
-                        </a>
-                        
-                        <a href="/tags/crd/">
-                            <span class="chip bg-color">crd</span>
-                        </a>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-            
-            <div class="article col s12 m6 l4" data-aos="zoom-in">
-                <div class="card">
-                    <a href="/k8s-graceful-update-app/">
-                        <div class="card-image">
-                            
-                            
-                            <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/2.jpg" class="responsive-img" alt="k8s如何优雅升级应用">
-                            
-                            <span class="card-title">k8s如何优雅升级应用</span>
-                        </div>
-                    </a>
-
-                    <div class="card-content article-content">
-                        <div class="summary block-with-text">
-                            
-                                在k8s中通常用户通过ingress接入流量，转发到后端实例(ingress → pod)，在后端应用更新过程中，ingress是否能做到优雅升级，本文将通过分析升级流程与实验验证，说明在k8s中如何实现优化升级。
-Ingress原理用户创
-                            
-                        </div>
-                        <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-06-19
-                            </span>
-                            <span class="publish-author">
-                                
-                                <i class="fas fa-bookmark fa-fw icon-category"></i>
-                                
-                                <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                                
-                                
-                            </span>
-                        </div>
-                    </div>
-
-                    
-                    <div class="card-action article-tags">
-                        
-                        <a href="/tags/k8s/">
-                            <span class="chip bg-color">k8s</span>
-                        </a>
-                        
-                        <a href="/tags/ingress/">
-                            <span class="chip bg-color">ingress</span>
-                        </a>
-                        
-                        <a href="/tags/nginx/">
-                            <span class="chip bg-color">nginx</span>
-                        </a>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-            
-            <div class="article col s12 m6 l4" data-aos="zoom-in">
-                <div class="card">
-                    <a href="/ingress-real-ip/">
-                        <div class="card-image">
-                            
-                            
-                            <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/14.jpg" class="responsive-img" alt="Ingress获取真实IP">
-                            
-                            <span class="card-title">Ingress获取真实IP</span>
-                        </div>
-                    </a>
-
-                    <div class="card-content article-content">
-                        <div class="summary block-with-text">
-                            
-                                一般情况下，经过ingress的请求会携带headerX-Real-IP，用户可根据header解析出真实访问IP。
-特殊情况，用户请求可能经过多个nginx才达到ingress, 通过上述方法得到的并不是用户的真实IP。
-
-request
-                            
-                        </div>
-                        <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-06-05
-                            </span>
-                            <span class="publish-author">
-                                
-                                <i class="fas fa-bookmark fa-fw icon-category"></i>
-                                
-                                <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                                
-                                
-                            </span>
-                        </div>
-                    </div>
-
-                    
-                    <div class="card-action article-tags">
-                        
-                        <a href="/tags/k8s/">
-                            <span class="chip bg-color">k8s</span>
-                        </a>
-                        
-                        <a href="/tags/ingress/">
-                            <span class="chip bg-color">ingress</span>
-                        </a>
-                        
-                        <a href="/tags/nginx/">
-                            <span class="chip bg-color">nginx</span>
-                        </a>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-            
-            <div class="article col s12 m6 l4" data-aos="zoom-in">
-                <div class="card">
-                    <a href="/ingress-header-too-large/">
-                        <div class="card-image">
-                            
-                            
-                            <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/23.jpg" class="responsive-img" alt="Ingress Header Too Large">
-                            
-                            <span class="card-title">Ingress Header Too Large</span>
-                        </div>
-                    </a>
-
-                    <div class="card-content article-content">
-                        <div class="summary block-with-text">
-                            
-                                线上遇到多次由ingress header过大引起的请求失败, 可能返回502/400，解决方案如下。
-502 – too big header502错误一般是后端服务不可用，但这里是nginx-ingress返回的，在nginx-ingr
-                            
-                        </div>
-                        <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-06-05
-                            </span>
-                            <span class="publish-author">
-                                
-                                <i class="fas fa-bookmark fa-fw icon-category"></i>
-                                
-                                <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                                
-                                
-                            </span>
-                        </div>
-                    </div>
-
-                    
-                    <div class="card-action article-tags">
-                        
-                        <a href="/tags/k8s/">
-                            <span class="chip bg-color">k8s</span>
-                        </a>
-                        
-                        <a href="/tags/ingress/">
-                            <span class="chip bg-color">ingress</span>
-                        </a>
-                        
-                        <a href="/tags/nginx/">
-                            <span class="chip bg-color">nginx</span>
-                        </a>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-            
-            <div class="article col s12 m6 l4" data-aos="zoom-in">
-                <div class="card">
-                    <a href="/ingress-benchmark/">
-                        <div class="card-image">
-                            
-                            
-                            <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/4.jpg" class="responsive-img" alt="ingress nginx benchmark">
-                            
-                            <span class="card-title">ingress nginx benchmark</span>
-                        </div>
-                    </a>
-
-                    <div class="card-content article-content">
-                        <div class="summary block-with-text">
-                            
-                                Ingress是目前Kubernetes集群流量接入的重要入口，了解其性能指标有助于用户选用合适的网络方案。
-测试方案通过wrk压测后端nginx服务，对比ingress-nginx, 原生nginx，以及直连后端性能的差异，如下图:
-
-方
-                            
-                        </div>
-                        <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-05-21
-                            </span>
-                            <span class="publish-author">
-                                
-                                <i class="fas fa-bookmark fa-fw icon-category"></i>
-                                
-                                <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                                
-                                
-                            </span>
-                        </div>
-                    </div>
-
-                    
-                    <div class="card-action article-tags">
-                        
-                        <a href="/tags/k8s/">
-                            <span class="chip bg-color">k8s</span>
-                        </a>
-                        
-                        <a href="/tags/ingress/">
-                            <span class="chip bg-color">ingress</span>
-                        </a>
-                        
-                        <a href="/tags/nginx/">
-                            <span class="chip bg-color">nginx</span>
-                        </a>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-            
-        </div>
-    </article>
-
-</main>
-
-
-<div class="container paging">
-    <div class="row">
-        <div class="col s6 m4 l4">
-            
-            <a class="left btn-floating disabled">
-                <i class="fas fa-angle-left"></i>
-            </a>
-            
-        </div>
-        <div class="page-info col m4 l4 hide-on-small-only">
-            <div class="center-align b-text-gray">1 / 4</div>
-        </div>
-        <div class="col s6 m4 l4">
-            
-            <a href="/page/2/"
-               class="right btn-floating waves-effect bnt-bg">
-               <i class="fas fa-angle-right"></i>
-            </a>
-            
-        </div>
-    </div>
+  </div>
 </div>
 
 
 
 
-    <footer class="page-footer bg-color">
-    
-    <div class="container row center-align" style="margin-bottom: 0px !important;">
-        <div class="center-align">
-            Copyright&nbsp;&copy;
-            <span id="year">2018</span>
-            <a href="https://qinng.now.sh" target="_blank">Qinng</a>
-            <br>
-            
-            &nbsp;<i class="fas fa-chart-area"></i>&nbsp;&nbsp;<span
-                >49.9k</span>&nbsp;
-            
-            
-            
-            
-            
-            
-            <span id="busuanzi_container_site_pv">
-                |&nbsp;<i class="far fa-eye"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_pv"
-                    ></span>&nbsp;
-            </span>
-            
-            
-            <span id="busuanzi_container_site_uv">
-                |&nbsp;<i class="fas fa-users"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_uv"
-                    ></span>&nbsp;
-            </span>
-            
-            <br>
-            
-            <br>
-            
-        </div>
-        <!-- <div class="col s12 m4 l4 social-link social-statis">
-    <a href="https://github.com/qingwave" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
-        <i class="fab fa-github"></i>
-    </a>
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>
+        </a>
+      </li>
+  </ul>
+</nav>
 
 
 
-    <a href="mailto:isguory@gmail.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
-        <i class="fas fa-envelope-open"></i>
-    </a>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <a href="https://www.douban.com/people/69458430"
-       target="_blank" data-tooltip="关注我的豆瓣: 69458430" data-position="top"
-       data-delay="50">
-        <i class="fa fa-inverse">豆</i>
-    </a>
-
-
-
-    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
-        <i class="fas fa-rss"></i>
-    </a>
-
-</div> -->
-    </div>
-</footer>
-
-<div class="progress-bar"></div>
-
-
-    <!-- 搜索遮罩框 -->
-<div id="searchModal" class="modal">
-    <div class="modal-content">
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
         <div class="search-header">
-            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
-            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
-                   class="search-input">
-        </div>
-        <div id="searchResult"></div>
-    </div>
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/search.js"></script>
-<script type="text/javascript">
-$(function () {
-    searchFunc("https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/search.xml", 'searchInput', 'searchResult');
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content index posts-expand">
+            
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/golang-zk-statedisconnected/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Qinng">
+      <meta itemprop="description" content="Coding, Reading and Daydreaming">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qinng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/golang-zk-statedisconnected/" class="post-title-link" itemprop="url">golang zk大量disconnected event</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-03-02 17:16:23" itemprop="dateCreated datePublished" datetime="2021-03-02T17:16:23+08:00">2021-03-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-03-22 20:57:19" itemprop="dateModified" datetime="2021-03-22T20:57:19+08:00">2021-03-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/coding/" itemprop="url" rel="index"><span itemprop="name">coding</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>在容器平台上我们提供了<code>zk</code>做白名单功能，<code>Pod</code>启动时 sidecar会自动注册<code>zk</code>。昨天遇到<code>zk server</code>抖动，<code>sidecar</code>容器输出大量<code>StateDisconnected</code>事件，zk正常后仍无法恢复，由于大量日志造成<code>sidecar</code>容器 cpu占用过高，进而引发<code>dockerd</code>cpu占用过高，严重时影响dockerd正常调用。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/golang-zk-statedisconnected/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/docker-shell-signal/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Qinng">
+      <meta itemprop="description" content="Coding, Reading and Daydreaming">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qinng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/docker-shell-signal/" class="post-title-link" itemprop="url">k8s中shell脚本启动如何传递信号</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-02-03 15:13:10" itemprop="dateCreated datePublished" datetime="2021-02-03T15:13:10+08:00">2021-02-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-04 15:39:19" itemprop="dateModified" datetime="2021-02-04T15:39:19+08:00">2021-02-04</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/cloud/" itemprop="url" rel="index"><span itemprop="name">cloud</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>在k8s或docker中，有时候我们需要通过shell来启动程序，但是默认shell不会传递信号（sigterm）给子进程，当在pod终止时应用无法优雅退出，直到最大时间时间后强制退出（<code>kill -9</code>）。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/docker-shell-signal/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/k8s-dns-optimize/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Qinng">
+      <meta itemprop="description" content="Coding, Reading and Daydreaming">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qinng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/k8s-dns-optimize/" class="post-title-link" itemprop="url">优化Kubernetes集群内DNS</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-02-01 10:17:40" itemprop="dateCreated datePublished" datetime="2021-02-01T10:17:40+08:00">2021-02-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-03 15:13:09" itemprop="dateModified" datetime="2021-02-03T15:13:09+08:00">2021-02-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/cloud/" itemprop="url" rel="index"><span itemprop="name">cloud</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>kubernetes集群内置的dns插件<code>kubedns/coredns</code>在高并发情况下可能遇到性能瓶颈，以下从配置与本地缓存方面说明如何减少dns查询失败率，提高性能。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/k8s-dns-optimize/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/k8s-rate-limit/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Qinng">
+      <meta itemprop="description" content="Coding, Reading and Daydreaming">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qinng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/k8s-rate-limit/" class="post-title-link" itemprop="url">kubernetes apiserver限流方案</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-11-11 13:17:00 / 修改时间：14:23:53" itemprop="dateCreated datePublished" datetime="2020-11-11T13:17:00+08:00">2020-11-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/cloud/" itemprop="url" rel="index"><span itemprop="name">cloud</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>为了防止突发流量影响apiserver可用性，k8s支持多种限流配置，包括：</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/k8s-rate-limit/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/k8s-sideccar-lifecycle/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Qinng">
+      <meta itemprop="description" content="Coding, Reading and Daydreaming">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qinng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/k8s-sideccar-lifecycle/" class="post-title-link" itemprop="url">Kubernetes中Sidecar生命周期管理</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-09-21 11:45:00 / 修改时间：14:30:50" itemprop="dateCreated datePublished" datetime="2020-09-21T11:45:00+08:00">2020-09-21</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/cloud/" itemprop="url" rel="index"><span itemprop="name">cloud</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>在多个容器的Pod中，通常业务容器需要依赖sidecar。启动时sidecar需要先启动，退出时sidecar需要在业务容器退出后再退出。k8s目前对于sidecar的生命周期比较有争议，见<a href="https://github.com/kubernetes/enhancements/issues/753" target="_blank" rel="noopener">issue</a>、<a href="https://github.com/kubernetes/enhancements/blob/master/keps/sig-node/0753-sidecarcontainers.md" target="_blank" rel="noopener">sidecarcontainers</a>。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/k8s-sideccar-lifecycle/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/cotainer-init/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Qinng">
+      <meta itemprop="description" content="Coding, Reading and Daydreaming">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qinng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/cotainer-init/" class="post-title-link" itemprop="url">开启shareProcessNamespace后容器异常</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-07-28 17:35:49" itemprop="dateCreated datePublished" datetime="2020-07-28T17:35:49+08:00">2020-07-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-08-03 23:16:27" itemprop="dateModified" datetime="2020-08-03T23:16:27+08:00">2020-08-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/cloud/" itemprop="url" rel="index"><span itemprop="name">cloud</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>目前k8s不支持容器启动顺序，部分业务通过开启<code>shareProcessNamespace</code>监控某些进程状态。当开启共享pid后，有用户反馈某个容器主进程退出，但是容器并没有重启，执行<code>exec</code>会卡住，现象参考<a href="3">issue</a></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/cotainer-init/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/prometheus-best-practice-operation/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Qinng">
+      <meta itemprop="description" content="Coding, Reading and Daydreaming">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qinng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/prometheus-best-practice-operation/" class="post-title-link" itemprop="url">Prometheus最佳实践-聚合函数</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-07-16 15:28:39" itemprop="dateCreated datePublished" datetime="2020-07-16T15:28:39+08:00">2020-07-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-08-03 23:21:47" itemprop="dateModified" datetime="2020-08-03T23:21:47+08:00">2020-08-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/cloud/" itemprop="url" rel="index"><span itemprop="name">cloud</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>prometheus中<code>rate</code>只能用于<code>counter</code>类型，对于需要聚合的数据需要先<code>rate</code>再<code>sum</code>，而不是<code>rate(sum)</code></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/prometheus-best-practice-operation/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/kubernetes-opensource-project/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Qinng">
+      <meta itemprop="description" content="Coding, Reading and Daydreaming">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qinng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/kubernetes-opensource-project/" class="post-title-link" itemprop="url">kubernetes相关开源项目</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-07-14 11:12:20 / 修改时间：14:26:46" itemprop="dateCreated datePublished" datetime="2020-07-14T11:12:20+08:00">2020-07-14</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/k8s/" itemprop="url" rel="index"><span itemprop="name">k8s</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>总结下项目中可参考k8s相关开源项目，不断更新中…</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/kubernetes-opensource-project/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/k8s-graceful-update-app/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Qinng">
+      <meta itemprop="description" content="Coding, Reading and Daydreaming">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qinng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/k8s-graceful-update-app/" class="post-title-link" itemprop="url">k8s如何优雅升级应用</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-19 18:28:50" itemprop="dateCreated datePublished" datetime="2020-06-19T18:28:50+08:00">2020-06-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-20 13:30:15" itemprop="dateModified" datetime="2020-07-20T13:30:15+08:00">2020-07-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/cloud/" itemprop="url" rel="index"><span itemprop="name">cloud</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>在k8s中通常用户通过<code>ingress</code>接入流量，转发到后端实例(<code>ingress → pod</code>)，在后端应用更新过程中，<code>ingress</code>是否能做到优雅升级，本文将通过分析升级流程与实验验证，说明在k8s中如何实现优化升级。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/k8s-graceful-update-app/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/ingress-real-ip/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Qinng">
+      <meta itemprop="description" content="Coding, Reading and Daydreaming">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qinng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/ingress-real-ip/" class="post-title-link" itemprop="url">Ingress获取真实IP</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-05 14:40:08" itemprop="dateCreated datePublished" datetime="2020-06-05T14:40:08+08:00">2020-06-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-20 13:39:48" itemprop="dateModified" datetime="2020-07-20T13:39:48+08:00">2020-07-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/cloud/" itemprop="url" rel="index"><span itemprop="name">cloud</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>一般情况下，经过ingress的请求会携带header<code>X-Real-IP</code>，用户可根据header解析出真实访问IP。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/ingress-real-ip/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/ingress-header-too-large/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Qinng">
+      <meta itemprop="description" content="Coding, Reading and Daydreaming">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qinng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/ingress-header-too-large/" class="post-title-link" itemprop="url">Ingress Header Too Large</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-06-05 14:17:08 / 修改时间：14:36:20" itemprop="dateCreated datePublished" datetime="2020-06-05T14:17:08+08:00">2020-06-05</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/cloud/" itemprop="url" rel="index"><span itemprop="name">cloud</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>线上遇到多次由ingress header过大引起的请求失败, 可能返回502/400，解决方案如下。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/ingress-header-too-large/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/ingress-benchmark/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Qinng">
+      <meta itemprop="description" content="Coding, Reading and Daydreaming">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qinng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/ingress-benchmark/" class="post-title-link" itemprop="url">ingress nginx benchmark</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-05-21 19:16:04" itemprop="dateCreated datePublished" datetime="2020-05-21T19:16:04+08:00">2020-05-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-05-22 20:53:21" itemprop="dateModified" datetime="2020-05-22T20:53:21+08:00">2020-05-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/cloud/" itemprop="url" rel="index"><span itemprop="name">cloud</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>Ingress是目前Kubernetes集群流量接入的重要入口，了解其性能指标有助于用户选用合适的网络方案。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/ingress-benchmark/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+
+  
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+  </nav>
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Qinng</p>
+  <div class="site-description" itemprop="description">Coding, Reading and Daydreaming</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/qingwave" title="GitHub → https://github.com/qingwave" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:isguory@gmail.com" title="E-Mail → mailto:isguory@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2018 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-terminal"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Qinng</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/pjax/pjax.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/muse.js"></script>
+<script src="/js/next-boot.js"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '.languages',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[data-pjax], script#page-configurations, #pjax script').forEach(element => {
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (element.id) {
+      script.id = element.id;
+    }
+    if (element.className) {
+      script.className = element.className;
+    }
+    if (element.type) {
+      script.type = element.type;
+    }
+    if (element.src) {
+      script.src = element.src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (element.dataset.pjax !== undefined) {
+      script.dataset.pjax = '';
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.subMenu)
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
 });
 </script>
 
-    <!-- 回到顶部按钮 -->
-<div id="backTop" class="top-scroll">
-    <a class="btn-floating btn-mini waves-effect" href="#!">
-        <!-- <i class="fas fa-caret-up"></i> -->
-        <!-- <i class="fas fa-chevron-up"></i> -->
-        <i class="fas fa-angle-double-up"></i>
-    </a>
-</div>
 
 
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/masonry/masonry.pkgd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/scrollprogress/scrollProgress.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/js/lightgallery-all.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/matery.js"></script>
 
-    <!-- Baidu Analytics -->
+  
+  <script data-pjax>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
 
-    <!-- Baidu Push -->
 
-<script>
-    (function () {
-        var bp = document.createElement('script');
-        var curProtocol = window.location.protocol.split(':')[0];
-        if (curProtocol === 'https') {
-            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
-        } else {
-            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
-        }
-        var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(bp, s);
-    })();
-</script>
 
-    
-    
-    <script async src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/others/busuanzi.pure.mini.js"></script>
-    
 
-    
+  <script src="/js/local-search.js"></script>
 
-    
 
-    
 
-    
 
-    
 
-    
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/instantpage/instantpage.js" type="module"></script>
-    
 
+
+
+
+
+
+
+    <div id="pjax">
+  
+
+  
+
+
+    </div>
 </body>
-
 </html>

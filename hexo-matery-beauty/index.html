@@ -1,413 +1,248 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/medias/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/medias/favicon.png">
+  <meta name="google-site-verification" content="googledbe9fc5bea9bf603.html">
+  <meta name="baidu-site-verification" content="muFp3xopwC">
+
+<link rel="stylesheet" href="/css/main.css">
 
 
-<head><meta name="generator" content="Hexo 3.9.0">
-    <meta charset="utf-8">
-    <meta name="keywords" content="Hexo-matery主题美化以及zeit部署, Qinng">
-    <meta name="description" content="Coding, Reading and Daydreaming">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="renderer" content="webkit|ie-stand|ie-comp">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- Global site tag (gtag.js) - Google Analytics -->
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"qingwave.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要介绍Metery主题的安装使用，主题优化内容包括">
+<meta name="keywords" content="hexo">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hexo-matery主题美化以及zeit部署">
+<meta property="og:url" content="https://qingwave.github.io/hexo-matery-beauty/index.html">
+<meta property="og:site_name" content="Qinng">
+<meta property="og:description" content="本文主要介绍Metery主题的安装使用，主题优化内容包括">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://static.blinkfox.com/matery-20181202-1.png">
+<meta property="og:image" content="http://static.blinkfox.com/matery-20181202-2.png">
+<meta property="og:image" content="http://static.blinkfox.com/matery-20181202-3.png">
+<meta property="og:image" content="http://static.blinkfox.com/matery-20181202-7.png">
+<meta property="og:image" content="http://static.blinkfox.com/matery-20181202-8.png">
+<meta property="og:updated_time" content="2021-03-20T05:59:20.407Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hexo-matery主题美化以及zeit部署">
+<meta name="twitter:description" content="本文主要介绍Metery主题的安装使用，主题优化内容包括">
+<meta name="twitter:image" content="http://static.blinkfox.com/matery-20181202-1.png">
+
+<link rel="canonical" href="https://qingwave.github.io/hexo-matery-beauty/">
 
 
-    <title>Hexo-matery主题美化以及zeit部署 | Qinng</title>
-    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png">
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
 
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/awesome/css/all.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/animate/animate.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/css/lightgallery.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/matery.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/my.css">
+  <title>Hexo-matery主题美化以及zeit部署 | Qinng</title>
+  
 
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/jquery/jquery.min.js"></script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
 
 <link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
 <link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
 
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
 
-<body>
-    <header class="navbar-fixed">
-    <nav id="headNav" class="bg-color nav-transparent">
-        <div id="navContainer" class="nav-wrapper container">
-            <div class="brand-logo">
-                <a href="/" class="waves-effect waves-light">
-                    
-                    <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img" alt="LOGO">
-                    
-                    <span class="logo-span">Qinng</span>
-                </a>
-            </div>
-            
-
-<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
-<ul class="right nav-menu">
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/" class="waves-effect waves-light">
-      
-      <i class="fas fa-home" style="zoom: 0.6;"></i>
-      
-      <span>首页</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/tags" class="waves-effect waves-light">
-      
-      <i class="fas fa-tags" style="zoom: 0.6;"></i>
-      
-      <span>标签</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/categories" class="waves-effect waves-light">
-      
-      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
-      
-      <span>分类</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/archives" class="waves-effect waves-light">
-      
-      <i class="fas fa-archive" style="zoom: 0.6;"></i>
-      
-      <span>归档</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/contact" class="waves-effect waves-light">
-      
-      <i class="fas fa-comments" style="zoom: 0.6;"></i>
-      
-      <span>留言</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/about" class="waves-effect waves-light">
-      
-      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
-      
-      <span>关于</span>
-    </a>
-    
-  </li>
-  
-  <li>
-    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
-      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
-    </a>
-  </li>
-</ul>
-
-
-<div id="mobile-nav" class="side-nav sidenav">
-
-    <div class="mobile-head bg-color">
-        
-        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img circle responsive-img">
-        
-        <div class="logo-name">Qinng</div>
-        <div class="logo-desc">
-            
-            Coding, Reading and Daydreaming
-            
-        </div>
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
     </div>
+  </div>
 
-    
+  <div class="site-meta">
 
-    <ul class="menu-list mobile-menu-list">
-        
-        <li class="m-nav-item">
-	  
-		<a href="/" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-home"></i>
-			
-			首页
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/tags" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-tags"></i>
-			
-			标签
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/categories" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-bookmark"></i>
-			
-			分类
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/archives" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-archive"></i>
-			
-			归档
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/contact" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-comments"></i>
-			
-			留言
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/about" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-user-circle"></i>
-			
-			关于
-		</a>
-          
-        </li>
-        
-        
-    </ul>
-</div>
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Qinng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Qinng</p>
+  </div>
 
-
-        </div>
-
-        
-    </nav>
-
-</header>
-
-    
-
-
-
-<div class="bg-cover pd-header post-cover" style="background-image: url('https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/7.jpg')">
-    <div class="container" style="right: 0px;left: 0px;">
-        <div class="row">
-            <div class="col s12 m12 l12">
-                <div class="brand">
-                    <h1 class="description center-align post-title">Hexo-matery主题美化以及zeit部署</h1>
-                </div>
-            </div>
-        </div>
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
     </div>
+  </div>
 </div>
 
 
 
 
-<main class="post-container content">
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
 
     
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.css">
-<style>
-    #articleContent h1::before,
-    #articleContent h2::before,
-    #articleContent h3::before,
-    #articleContent h4::before,
-    #articleContent h5::before,
-    #articleContent h6::before {
-        display: block;
-        content: " ";
-        height: 100px;
-        margin-top: -100px;
-        visibility: hidden;
-    }
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
 
-    #articleContent :focus {
-        outline: none;
-    }
 
-    .toc-fixed {
-        position: fixed;
-        top: 64px;
-    }
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
 
-    .toc-widget {
-        width: 345px;
-        padding-left: 20px;
-    }
+          <div class="content post posts-expand">
+            
 
-    .toc-widget .toc-title {
-        margin: 35px 0 15px 0;
-        padding-left: 17px;
-        font-size: 1.5rem;
-        font-weight: bold;
-        line-height: 1.5rem;
-    }
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/hexo-matery-beauty/">
 
-    .toc-widget ol {
-        padding: 0;
-        list-style: none;
-    }
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Qinng">
+      <meta itemprop="description" content="Coding, Reading and Daydreaming">
+    </span>
 
-    #toc-content {
-        height: calc(100vh - 250px);
-        overflow: auto;
-    }
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qinng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Hexo-matery主题美化以及zeit部署
+        </h1>
 
-    #toc-content ol {
-        padding-left: 10px;
-    }
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
 
-    #toc-content ol li {
-        padding-left: 10px;
-    }
+              <time title="创建时间：2020-02-12 00:33:26" itemprop="dateCreated datePublished" datetime="2020-02-12T00:33:26+08:00">2020-02-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-03-20 13:59:20" itemprop="dateModified" datetime="2021-03-20T13:59:20+08:00">2021-03-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/tool/" itemprop="url" rel="index"><span itemprop="name">tool</span></a>
+                </span>
+            </span>
 
-    #toc-content .toc-link:hover {
-        color: #42b983;
-        font-weight: 700;
-        text-decoration: underline;
-    }
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
 
-    #toc-content .toc-link::before {
-        background-color: transparent;
-        max-height: 25px;
-
-        position: absolute;
-        right: 23.5vw;
-        display: block;
-    }
-
-    #toc-content .is-active-link {
-        color: #42b983;
-    }
-
-    #floating-toc-btn {
-        position: fixed;
-        right: 15px;
-        bottom: 76px;
-        padding-top: 15px;
-        margin-bottom: 0;
-        z-index: 998;
-    }
-
-    #floating-toc-btn .btn-floating {
-        background: #fff !important;
-        opacity: 0.8;
-    }
-
-    #floating-toc-btn .btn-floating i {
-        color: #1f4d71;
-        font-size: 1rem;
-    }
-
-    #floating-toc-btn .after {
-        color: #000;
-        font-size: 1rem;
-    }
-</style>
-<div class="row">
-    <div id="main-content" class="col s12 m12 l9">
-        <!-- 文章内容详情 -->
-<div id="artDetail">
-    <div class="card">
-        <div class="card-content article-info">
-            <div class="row tag-cate">
-                <div class="col s7">
-                    
-                    <div class="article-tag">
-                        
-                            <a href="/tags/hexo/">
-                                <span class="chip bg-color">hexo</span>
-                            </a>
-                        
-                    </div>
-                    
-                </div>
-                <div class="col s5 right-align">
-                    
-                    <div class="post-cate">
-                        <i class="fas fa-bookmark fa-fw icon-category"></i>
-                        
-                            <a href="/categories/tool/" class="post-category">
-                                tool
-                            </a>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-
-            <div class="post-info">
-                
-                <div class="post-date info-break-policy">
-                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2020-02-12
-                </div>
-                
-
-                
-
-                
-                <div class="info-break-policy">
-                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    4.7k
-                </div>
-                
-
-                
-                <div class="info-break-policy">
-                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    18 分
-                </div>
-                
-
-                
-                    <div id="busuanzi_container_page_pv" class="info-break-policy">
-                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
-                        <span id="busuanzi_value_page_pv"></span>
-                    </div>
-				
-            </div>
         </div>
-        <hr class="clearfix">
-        <div class="card-content article-card-content">
-            <div id="articleContent">
-                <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>本文主要介绍<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank" rel="noopener">Metery主题</a>的安装使用，<a href="https://github.com/qingwave/hexo-theme-matery" target="_blank" rel="noopener">主题优化</a>内容包括</p>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>本文主要介绍<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank" rel="noopener">Metery主题</a>的安装使用，<a href="https://github.com/qingwave/hexo-theme-matery" target="_blank" rel="noopener">主题优化</a>内容包括</p>
 <ul>
 <li>添加404，诗词样式</li>
 <li>配置提出，在hexo项目<code>_data/matery.yml</code>中配置主题样式，可覆盖<code>themes/matery/_config</code>配置</li>
@@ -418,7 +253,7 @@
 <li>Github 账户登陆zeit.io，授予 zeit repo 的 read 权限</li>
 <li>导入项目，zeit.io导入项目名称不能包含<code>.</code>，可将项目名称<code>username.github.io</code>修改为<code>username</code>导入，后面再改回<br>部署成功</li>
 </ul>
-<p>过一会自动部署成功，如<a href="https://qing.now.sh" target="_blank" rel="noopener">qinng.now.sh</a>可访问项目，项目的任何更新会触发重新部署。</p>
+<p>过一会自动部署成功，如<a href="https://qingwave.github.io/">qingwave.github.io</a>可访问项目，项目的任何更新会触发重新部署。</p>
 <p>也可通过zeit.io提供的DNS解析服务配置自己的域名，然后在百度站长里配置信息。</p>
 <h2 id="特性"><a href="#特性" class="headerlink" title="特性"></a>特性</h2><ul>
 <li>简单漂亮，文章内容美观易读</li>
@@ -444,12 +279,8 @@
 <h2 id="下载"><a href="#下载" class="headerlink" title="下载"></a>下载</h2><p>当你看到这里的时候，应该已经有一个自己的 <a href="https://hexo.io/zh-cn/" target="_blank" rel="noopener">Hexo</a> 博客了。如果还没有的话，不妨使用 Hexo 和 <a href="https://www.appinn.com/markdown/" target="_blank" rel="noopener">Markdown</a> 来写博客和文章。</p>
 <p>点击 <a href="https://codeload.github.com/qingwave/hexo-theme-matery/zip/qinng" target="_blank" rel="noopener">这里</a> 下载 <code>master</code> 分支的最新稳定版的代码，解压缩后，将 <code>hexo-theme-matery</code> 的文件夹复制到你 Hexo 的 <code>themes</code> 文件夹中即可。</p>
 <p>当然你也可以在你的 <code>themes</code> 文件夹下使用 <code>Git clone</code> 命令来下载:</p>
-<pre class="line-numbers language-bash"><code class="language-bash"><span class="token function">git</span> clone https://github.com/qingwave/hexo-theme-matery.git
-<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>更推荐使用<code>git submodule</code>方式，可获取主题更新</p>
-<pre class="line-numbers language-bash"><code class="language-bash"><span class="token function">git</span> submodule add https://github.com/qingwave/hexo-theme-matery.git themes/matery
-<span class="token function">git</span> submodule update --init
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/qingwave/hexo-theme-matery.git</span><br></pre></td></tr></tbody></table></figure>
+<p>更推荐使用<code>git submodule</code>方式，可获取主题更新<br></p><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git submodule add https://github.com/qingwave/hexo-theme-matery.git themes/matery</span><br><span class="line">git submodule update --init</span><br></pre></td></tr></tbody></table></figure><p></p>
 <h2 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h2><h3 id="切换主题"><a href="#切换主题" class="headerlink" title="切换主题"></a>切换主题</h3><p>修改 Hexo 根目录下的 <code>_config.yml</code> 的  <code>theme</code> 的值：<code>theme: hexo-theme-matery</code></p>
 <h4 id="config-yml-文件的其它修改建议"><a href="#config-yml-文件的其它修改建议" class="headerlink" title="_config.yml 文件的其它修改建议:"></a><code>_config.yml</code> 文件的其它修改建议:</h4><ul>
 <li>请修改 <code>_config.yml</code> 的 <code>url</code> 的值为你的网站主 <code>URL</code>（如：<code>http://xxx.github.io</code>）。</li>
@@ -457,218 +288,70 @@
 <li>如果你是中文用户，则建议修改 <code>language</code> 的值为 <code>zh-CN</code>。</li>
 </ul>
 <h3 id="新建分类-categories-页"><a href="#新建分类-categories-页" class="headerlink" title="新建分类 categories 页"></a>新建分类 categories 页</h3><p><code>categories</code> 页是用来展示所有分类的页面，如果在你的博客 <code>source</code> 目录下还没有 <code>categories/index.md</code> 文件，那么你就需要新建一个，命令如下：</p>
-<pre class="line-numbers language-bash"><code class="language-bash">hexo new page <span class="token string">"categories"</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo new page <span class="string">"categories"</span></span><br></pre></td></tr></tbody></table></figure>
 <p>编辑你刚刚新建的页面文件 <code>/source/categories/index.md</code>，至少需要以下内容：</p>
-<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token punctuation">---</span>
-<span class="token key atrule">title</span><span class="token punctuation">:</span> categories
-<span class="token key atrule">date</span><span class="token punctuation">:</span> <span class="token datetime number">2018-09-30 17:25:30</span>
-<span class="token key atrule">type</span><span class="token punctuation">:</span> <span class="token string">"categories"</span>
-<span class="token key atrule">layout</span><span class="token punctuation">:</span> <span class="token string">"categories"</span>
-<span class="token punctuation">---</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">title:</span> <span class="string">categories</span></span><br><span class="line"><span class="attr">date:</span> <span class="number">2018</span><span class="bullet">-09</span><span class="bullet">-30</span> <span class="number">17</span><span class="string">:25:30</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">"categories"</span></span><br><span class="line"><span class="attr">layout:</span> <span class="string">"categories"</span></span><br><span class="line"><span class="meta">---</span></span><br></pre></td></tr></tbody></table></figure>
 <h3 id="新建标签-tags-页"><a href="#新建标签-tags-页" class="headerlink" title="新建标签 tags 页"></a>新建标签 tags 页</h3><p><code>tags</code> 页是用来展示所有标签的页面，如果在你的博客 <code>source</code> 目录下还没有 <code>tags/index.md</code> 文件，那么你就需要新建一个，命令如下：</p>
-<pre class="line-numbers language-bash"><code class="language-bash">hexo new page <span class="token string">"tags"</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo new page <span class="string">"tags"</span></span><br></pre></td></tr></tbody></table></figure>
 <p>编辑你刚刚新建的页面文件 <code>/source/tags/index.md</code>，至少需要以下内容：</p>
-<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token punctuation">---</span>
-<span class="token key atrule">title</span><span class="token punctuation">:</span> tags
-<span class="token key atrule">date</span><span class="token punctuation">:</span> <span class="token datetime number">2018-09-30 18:23:38</span>
-<span class="token key atrule">type</span><span class="token punctuation">:</span> <span class="token string">"tags"</span>
-<span class="token key atrule">layout</span><span class="token punctuation">:</span> <span class="token string">"tags"</span>
-<span class="token punctuation">---</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">title:</span> <span class="string">tags</span></span><br><span class="line"><span class="attr">date:</span> <span class="number">2018</span><span class="bullet">-09</span><span class="bullet">-30</span> <span class="number">18</span><span class="string">:23:38</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">"tags"</span></span><br><span class="line"><span class="attr">layout:</span> <span class="string">"tags"</span></span><br><span class="line"><span class="meta">---</span></span><br></pre></td></tr></tbody></table></figure>
 <h3 id="新建关于我-about-页"><a href="#新建关于我-about-页" class="headerlink" title="新建关于我 about 页"></a>新建关于我 about 页</h3><p><code>about</code> 页是用来展示<strong>关于我和我的博客</strong>信息的页面，如果在你的博客 <code>source</code> 目录下还没有 <code>about/index.md</code> 文件，那么你就需要新建一个，命令如下：</p>
-<pre class="line-numbers language-bash"><code class="language-bash">hexo new page <span class="token string">"about"</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo new page <span class="string">"about"</span></span><br></pre></td></tr></tbody></table></figure>
 <p>编辑你刚刚新建的页面文件 <code>/source/about/index.md</code>，至少需要以下内容：</p>
-<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token punctuation">---</span>
-<span class="token key atrule">title</span><span class="token punctuation">:</span> about
-<span class="token key atrule">date</span><span class="token punctuation">:</span> <span class="token datetime number">2018-09-30 17:25:30</span>
-<span class="token key atrule">type</span><span class="token punctuation">:</span> <span class="token string">"about"</span>
-<span class="token key atrule">layout</span><span class="token punctuation">:</span> <span class="token string">"about"</span>
-<span class="token punctuation">---</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">title:</span> <span class="string">about</span></span><br><span class="line"><span class="attr">date:</span> <span class="number">2018</span><span class="bullet">-09</span><span class="bullet">-30</span> <span class="number">17</span><span class="string">:25:30</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">"about"</span></span><br><span class="line"><span class="attr">layout:</span> <span class="string">"about"</span></span><br><span class="line"><span class="meta">---</span></span><br></pre></td></tr></tbody></table></figure>
 <h3 id="新建留言板-contact-页（可选的）"><a href="#新建留言板-contact-页（可选的）" class="headerlink" title="新建留言板 contact 页（可选的）"></a>新建留言板 contact 页（可选的）</h3><p><code>contact</code> 页是用来展示<strong>留言板</strong>信息的页面，如果在你的博客 <code>source</code> 目录下还没有 <code>contact/index.md</code> 文件，那么你就需要新建一个，命令如下：</p>
-<pre class="line-numbers language-bash"><code class="language-bash">hexo new page <span class="token string">"contact"</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo new page <span class="string">"contact"</span></span><br></pre></td></tr></tbody></table></figure>
 <p>编辑你刚刚新建的页面文件 <code>/source/contact/index.md</code>，至少需要以下内容：</p>
-<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token punctuation">---</span>
-<span class="token key atrule">title</span><span class="token punctuation">:</span> contact
-<span class="token key atrule">date</span><span class="token punctuation">:</span> <span class="token datetime number">2018-09-30 17:25:30</span>
-<span class="token key atrule">type</span><span class="token punctuation">:</span> <span class="token string">"contact"</span>
-<span class="token key atrule">layout</span><span class="token punctuation">:</span> <span class="token string">"contact"</span>
-<span class="token punctuation">---</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">title:</span> <span class="string">contact</span></span><br><span class="line"><span class="attr">date:</span> <span class="number">2018</span><span class="bullet">-09</span><span class="bullet">-30</span> <span class="number">17</span><span class="string">:25:30</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">"contact"</span></span><br><span class="line"><span class="attr">layout:</span> <span class="string">"contact"</span></span><br><span class="line"><span class="meta">---</span></span><br></pre></td></tr></tbody></table></figure>
 <blockquote>
 <p><strong>注</strong>：本留言板功能依赖于第三方评论系统，请<strong>激活</strong>你的评论系统才有效果。并且在主题的 <code>_config.yml</code> 文件中，第 <code>19</code> 至 <code>21</code> 行的“<strong>菜单</strong>”配置，取消关于留言板的注释即可。</p>
 </blockquote>
 <h3 id="新建友情连接-friends-页（可选的）"><a href="#新建友情连接-friends-页（可选的）" class="headerlink" title="新建友情连接 friends 页（可选的）"></a>新建友情连接 friends 页（可选的）</h3><p><code>friends</code> 页是用来展示<strong>友情连接</strong>信息的页面，如果在你的博客 <code>source</code> 目录下还没有 <code>friends/index.md</code> 文件，那么你就需要新建一个，命令如下：</p>
-<pre class="line-numbers language-bash"><code class="language-bash">hexo new page <span class="token string">"friends"</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo new page <span class="string">"friends"</span></span><br></pre></td></tr></tbody></table></figure>
 <p>编辑你刚刚新建的页面文件 <code>/source/friends/index.md</code>，至少需要以下内容：</p>
-<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token punctuation">---</span>
-<span class="token key atrule">title</span><span class="token punctuation">:</span> friends
-<span class="token key atrule">date</span><span class="token punctuation">:</span> <span class="token datetime number">2018-12-12 21:25:30</span>
-<span class="token key atrule">type</span><span class="token punctuation">:</span> <span class="token string">"friends"</span>
-<span class="token key atrule">layout</span><span class="token punctuation">:</span> <span class="token string">"friends"</span>
-<span class="token punctuation">---</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">title:</span> <span class="string">friends</span></span><br><span class="line"><span class="attr">date:</span> <span class="number">2018</span><span class="bullet">-12</span><span class="bullet">-12</span> <span class="number">21</span><span class="string">:25:30</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">"friends"</span></span><br><span class="line"><span class="attr">layout:</span> <span class="string">"friends"</span></span><br><span class="line"><span class="meta">---</span></span><br></pre></td></tr></tbody></table></figure>
 <p>同时，在你的博客 <code>source</code> 目录下新建 <code>_data</code> 目录，在 <code>_data</code> 目录中新建 <code>friends.json</code> 文件，文件内容如下所示：</p>
-<pre class="line-numbers language-json"><code class="language-json"><span class="token punctuation">[</span><span class="token punctuation">{</span>
-    <span class="token property">"avatar"</span><span class="token operator">:</span> <span class="token string">"http://image.luokangyuan.com/4027734.jpeg"</span><span class="token punctuation">,</span>
-    <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"闪烁之狐"</span><span class="token punctuation">,</span>
-    <span class="token property">"introduction"</span><span class="token operator">:</span> <span class="token string">"编程界大佬，技术牛，人还特别好，不懂的都可以请教大佬"</span><span class="token punctuation">,</span>
-    <span class="token property">"url"</span><span class="token operator">:</span> <span class="token string">"https://blinkfox.github.io/"</span><span class="token punctuation">,</span>
-    <span class="token property">"title"</span><span class="token operator">:</span> <span class="token string">"前去学习"</span>
-<span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-    <span class="token property">"avatar"</span><span class="token operator">:</span> <span class="token string">"https://qinng.now.sh/medias/avatar.jpg"</span><span class="token punctuation">,</span>
-    <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"有风自南"</span><span class="token punctuation">,</span>
-    <span class="token property">"introduction"</span><span class="token operator">:</span> <span class="token string">"也无风雨也无晴"</span><span class="token punctuation">,</span>
-    <span class="token property">"url"</span><span class="token operator">:</span> <span class="token string">"https://qingwave.github.io/"</span><span class="token punctuation">,</span>
-    <span class="token property">"title"</span><span class="token operator">:</span> <span class="token string">"前去学习"</span>
-<span class="token punctuation">}</span><span class="token punctuation">]</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight json"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[{</span><br><span class="line">    <span class="attr">"avatar"</span>: <span class="string">"http://image.luokangyuan.com/4027734.jpeg"</span>,</span><br><span class="line">    <span class="attr">"name"</span>: <span class="string">"闪烁之狐"</span>,</span><br><span class="line">    <span class="attr">"introduction"</span>: <span class="string">"编程界大佬，技术牛，人还特别好，不懂的都可以请教大佬"</span>,</span><br><span class="line">    <span class="attr">"url"</span>: <span class="string">"https://blinkfox.github.io/"</span>,</span><br><span class="line">    <span class="attr">"title"</span>: <span class="string">"前去学习"</span></span><br><span class="line">}, {</span><br><span class="line">    <span class="attr">"avatar"</span>: <span class="string">"https://qingwave.github.io/medias/avatar.jpg"</span>,</span><br><span class="line">    <span class="attr">"name"</span>: <span class="string">"Qinng"</span>,</span><br><span class="line">    <span class="attr">"introduction"</span>: <span class="string">"Reading Coding Daydraming"</span>,</span><br><span class="line">    <span class="attr">"url"</span>: <span class="string">"https://qingwave.github.io/"</span>,</span><br><span class="line">    <span class="attr">"title"</span>: <span class="string">"前去学习"</span></span><br><span class="line">}]</span><br></pre></td></tr></tbody></table></figure>
 <h3 id="菜单导航配置"><a href="#菜单导航配置" class="headerlink" title="菜单导航配置"></a>菜单导航配置</h3><h4 id="配置基本菜单导航的名称、路径url和图标icon"><a href="#配置基本菜单导航的名称、路径url和图标icon" class="headerlink" title="配置基本菜单导航的名称、路径url和图标icon."></a>配置基本菜单导航的名称、路径url和图标icon.</h4><p>1.菜单导航名称可以是中文也可以是英文(如：<code>Index</code>或<code>主页</code>)<br>2.图标icon 可以在<a href="https://fontawesome.com/icons" target="_blank" rel="noopener">Font Awesome</a> 中查找   </p>
-<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token key atrule">menu</span><span class="token punctuation">:</span>
-  <span class="token key atrule">Index</span><span class="token punctuation">:</span>
-    <span class="token key atrule">url</span><span class="token punctuation">:</span> /
-    <span class="token key atrule">icon</span><span class="token punctuation">:</span> fas fa<span class="token punctuation">-</span>home
-  <span class="token key atrule">Tags</span><span class="token punctuation">:</span>
-    <span class="token key atrule">url</span><span class="token punctuation">:</span> /tags
-    <span class="token key atrule">icon</span><span class="token punctuation">:</span> fas fa<span class="token punctuation">-</span>tags
-  <span class="token key atrule">Categories</span><span class="token punctuation">:</span>
-    <span class="token key atrule">url</span><span class="token punctuation">:</span> /categories
-    <span class="token key atrule">icon</span><span class="token punctuation">:</span> fas fa<span class="token punctuation">-</span>bookmark
-  <span class="token key atrule">Archives</span><span class="token punctuation">:</span>
-    <span class="token key atrule">url</span><span class="token punctuation">:</span> /archives
-    <span class="token key atrule">icon</span><span class="token punctuation">:</span> fas fa<span class="token punctuation">-</span>archive
-  <span class="token key atrule">About</span><span class="token punctuation">:</span>
-    <span class="token key atrule">url</span><span class="token punctuation">:</span> /about
-    <span class="token key atrule">icon</span><span class="token punctuation">:</span> fas fa<span class="token punctuation">-</span>user<span class="token punctuation">-</span>circle
-  <span class="token key atrule">Friends</span><span class="token punctuation">:</span>
-    <span class="token key atrule">url</span><span class="token punctuation">:</span> /friends
-    <span class="token key atrule">icon</span><span class="token punctuation">:</span> fas fa<span class="token punctuation">-</span>address<span class="token punctuation">-</span>book
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">menu:</span></span><br><span class="line"><span class="attr">  Index:</span></span><br><span class="line"><span class="attr">    url:</span> <span class="string">/</span></span><br><span class="line"><span class="attr">    icon:</span> <span class="string">fas</span> <span class="string">fa-home</span></span><br><span class="line"><span class="attr">  Tags:</span></span><br><span class="line"><span class="attr">    url:</span> <span class="string">/tags</span></span><br><span class="line"><span class="attr">    icon:</span> <span class="string">fas</span> <span class="string">fa-tags</span></span><br><span class="line"><span class="attr">  Categories:</span></span><br><span class="line"><span class="attr">    url:</span> <span class="string">/categories</span></span><br><span class="line"><span class="attr">    icon:</span> <span class="string">fas</span> <span class="string">fa-bookmark</span></span><br><span class="line"><span class="attr">  Archives:</span></span><br><span class="line"><span class="attr">    url:</span> <span class="string">/archives</span></span><br><span class="line"><span class="attr">    icon:</span> <span class="string">fas</span> <span class="string">fa-archive</span></span><br><span class="line"><span class="attr">  About:</span></span><br><span class="line"><span class="attr">    url:</span> <span class="string">/about</span></span><br><span class="line"><span class="attr">    icon:</span> <span class="string">fas</span> <span class="string">fa-user-circle</span></span><br><span class="line"><span class="attr">  Friends:</span></span><br><span class="line"><span class="attr">    url:</span> <span class="string">/friends</span></span><br><span class="line"><span class="attr">    icon:</span> <span class="string">fas</span> <span class="string">fa-address-book</span></span><br></pre></td></tr></tbody></table></figure>
 <h4 id="二级菜单配置方法"><a href="#二级菜单配置方法" class="headerlink" title="二级菜单配置方法"></a>二级菜单配置方法</h4><p>如果你需要二级菜单则可以在原基本菜单导航的基础上如下操作<br>1.在需要添加二级菜单的一级菜单下添加<code>children</code>关键字(如:<code>About</code>菜单下添加<code>children</code>)<br>2.在<code>children</code>下创建二级菜单的 名称name,路径url和图标icon.<br>3.注意每个二级菜单模块前要加 <code>-</code>.<br>4.注意缩进格式  </p>
-<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token key atrule">menu</span><span class="token punctuation">:</span>
-  <span class="token key atrule">Index</span><span class="token punctuation">:</span>
-    <span class="token key atrule">url</span><span class="token punctuation">:</span> /
-    <span class="token key atrule">icon</span><span class="token punctuation">:</span> fas fa<span class="token punctuation">-</span>home
-  <span class="token key atrule">Tags</span><span class="token punctuation">:</span>
-    <span class="token key atrule">url</span><span class="token punctuation">:</span> /tags
-    <span class="token key atrule">icon</span><span class="token punctuation">:</span> fas fa<span class="token punctuation">-</span>tags
-  <span class="token key atrule">Categories</span><span class="token punctuation">:</span>
-    <span class="token key atrule">url</span><span class="token punctuation">:</span> /categories
-    <span class="token key atrule">icon</span><span class="token punctuation">:</span> fas fa<span class="token punctuation">-</span>bookmark
-  <span class="token key atrule">Archives</span><span class="token punctuation">:</span>
-    <span class="token key atrule">url</span><span class="token punctuation">:</span> /archives
-    <span class="token key atrule">icon</span><span class="token punctuation">:</span> fas fa<span class="token punctuation">-</span>archive
-  <span class="token key atrule">About</span><span class="token punctuation">:</span>
-    <span class="token key atrule">url</span><span class="token punctuation">:</span> /about
-    <span class="token key atrule">icon</span><span class="token punctuation">:</span> fas fa<span class="token punctuation">-</span>user<span class="token punctuation">-</span>circle<span class="token punctuation">-</span>o
-  <span class="token key atrule">Friends</span><span class="token punctuation">:</span>
-    <span class="token key atrule">url</span><span class="token punctuation">:</span> /friends
-    <span class="token key atrule">icon</span><span class="token punctuation">:</span> fas fa<span class="token punctuation">-</span>address<span class="token punctuation">-</span>book
-  <span class="token key atrule">Medias</span><span class="token punctuation">:</span>
-    <span class="token key atrule">icon</span><span class="token punctuation">:</span> fas fa<span class="token punctuation">-</span>list
-    <span class="token key atrule">children</span><span class="token punctuation">:</span>
-      <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> Musics
-        <span class="token key atrule">url</span><span class="token punctuation">:</span> /musics
-        <span class="token key atrule">icon</span><span class="token punctuation">:</span> fas fa<span class="token punctuation">-</span>music
-      <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> Movies
-        <span class="token key atrule">url</span><span class="token punctuation">:</span> /movies
-        <span class="token key atrule">icon</span><span class="token punctuation">:</span> fas fa<span class="token punctuation">-</span>film
-      <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> Books
-        <span class="token key atrule">url</span><span class="token punctuation">:</span> /books
-        <span class="token key atrule">icon</span><span class="token punctuation">:</span> fas fa<span class="token punctuation">-</span>book
-      <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> Galleries
-        <span class="token key atrule">url</span><span class="token punctuation">:</span> /galleries
-        <span class="token key atrule">icon</span><span class="token punctuation">:</span> fas fa<span class="token punctuation">-</span>image
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">menu:</span></span><br><span class="line"><span class="attr">  Index:</span></span><br><span class="line"><span class="attr">    url:</span> <span class="string">/</span></span><br><span class="line"><span class="attr">    icon:</span> <span class="string">fas</span> <span class="string">fa-home</span></span><br><span class="line"><span class="attr">  Tags:</span></span><br><span class="line"><span class="attr">    url:</span> <span class="string">/tags</span></span><br><span class="line"><span class="attr">    icon:</span> <span class="string">fas</span> <span class="string">fa-tags</span></span><br><span class="line"><span class="attr">  Categories:</span></span><br><span class="line"><span class="attr">    url:</span> <span class="string">/categories</span></span><br><span class="line"><span class="attr">    icon:</span> <span class="string">fas</span> <span class="string">fa-bookmark</span></span><br><span class="line"><span class="attr">  Archives:</span></span><br><span class="line"><span class="attr">    url:</span> <span class="string">/archives</span></span><br><span class="line"><span class="attr">    icon:</span> <span class="string">fas</span> <span class="string">fa-archive</span></span><br><span class="line"><span class="attr">  About:</span></span><br><span class="line"><span class="attr">    url:</span> <span class="string">/about</span></span><br><span class="line"><span class="attr">    icon:</span> <span class="string">fas</span> <span class="string">fa-user-circle-o</span></span><br><span class="line"><span class="attr">  Friends:</span></span><br><span class="line"><span class="attr">    url:</span> <span class="string">/friends</span></span><br><span class="line"><span class="attr">    icon:</span> <span class="string">fas</span> <span class="string">fa-address-book</span></span><br><span class="line"><span class="attr">  Medias:</span></span><br><span class="line"><span class="attr">    icon:</span> <span class="string">fas</span> <span class="string">fa-list</span></span><br><span class="line"><span class="attr">    children:</span></span><br><span class="line"><span class="attr">      - name:</span> <span class="string">Musics</span></span><br><span class="line"><span class="attr">        url:</span> <span class="string">/musics</span></span><br><span class="line"><span class="attr">        icon:</span> <span class="string">fas</span> <span class="string">fa-music</span></span><br><span class="line"><span class="attr">      - name:</span> <span class="string">Movies</span></span><br><span class="line"><span class="attr">        url:</span> <span class="string">/movies</span></span><br><span class="line"><span class="attr">        icon:</span> <span class="string">fas</span> <span class="string">fa-film</span></span><br><span class="line"><span class="attr">      - name:</span> <span class="string">Books</span></span><br><span class="line"><span class="attr">        url:</span> <span class="string">/books</span></span><br><span class="line"><span class="attr">        icon:</span> <span class="string">fas</span> <span class="string">fa-book</span></span><br><span class="line"><span class="attr">      - name:</span> <span class="string">Galleries</span></span><br><span class="line"><span class="attr">        url:</span> <span class="string">/galleries</span></span><br><span class="line"><span class="attr">        icon:</span> <span class="string">fas</span> <span class="string">fa-image</span></span><br></pre></td></tr></tbody></table></figure>
 <p>执行 <code>hexo clean &amp;&amp; hexo g</code> 重新生成博客文件，然后就可以在文章中对应位置看到你用<code>emoji</code>语法写的表情了。</p>
 <h3 id="代码高亮"><a href="#代码高亮" class="headerlink" title="代码高亮"></a>代码高亮</h3><p>由于 Hexo 自带的代码高亮主题显示不好看，所以主题中使用到了 <a href="https://github.com/ele828/hexo-prism-plugin" target="_blank" rel="noopener">hexo-prism-plugin</a> 的 Hexo 插件来做代码高亮，安装命令如下：</p>
-<pre class="line-numbers language-bash"><code class="language-bash"><span class="token function">npm</span> i -S hexo-prism-plugin
-<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm i -S hexo-prism-plugin</span><br></pre></td></tr></tbody></table></figure>
 <p>然后，修改 Hexo 根目录下 <code>_config.yml</code> 文件中 <code>highlight.enable</code> 的值为 <code>false</code>，并新增 <code>prism</code> 插件相关的配置，主要配置如下：</p>
-<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token key atrule">highlight</span><span class="token punctuation">:</span>
-  <span class="token key atrule">enable</span><span class="token punctuation">:</span> <span class="token boolean important">false</span>
-
-<span class="token key atrule">prism_plugin</span><span class="token punctuation">:</span>
-  <span class="token key atrule">mode</span><span class="token punctuation">:</span> <span class="token string">'preprocess'</span>    <span class="token comment" spellcheck="true"># realtime/preprocess</span>
-  <span class="token key atrule">theme</span><span class="token punctuation">:</span> <span class="token string">'tomorrow'</span>
-  <span class="token key atrule">line_number</span><span class="token punctuation">:</span> <span class="token boolean important">false    </span><span class="token comment" spellcheck="true"># default false</span>
-  <span class="token key atrule">custom_css</span><span class="token punctuation">:</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">highlight:</span></span><br><span class="line"><span class="attr">  enable:</span> <span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="attr">prism_plugin:</span></span><br><span class="line"><span class="attr">  mode:</span> <span class="string">'preprocess'</span>    <span class="comment"># realtime/preprocess</span></span><br><span class="line"><span class="attr">  theme:</span> <span class="string">'tomorrow'</span></span><br><span class="line"><span class="attr">  line_number:</span> <span class="literal">false</span>    <span class="comment"># default false</span></span><br><span class="line"><span class="attr">  custom_css:</span></span><br></pre></td></tr></tbody></table></figure>
 <h3 id="搜索"><a href="#搜索" class="headerlink" title="搜索"></a>搜索</h3><p>本主题中还使用到了 <a href="https://github.com/wzpan/hexo-generator-search" target="_blank" rel="noopener">hexo-generator-search</a> 的 Hexo 插件来做内容搜索，安装命令如下：</p>
-<pre class="line-numbers language-bash"><code class="language-bash"><span class="token function">npm</span> <span class="token function">install</span> hexo-generator-search --save
-<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install hexo-generator-search --save</span><br></pre></td></tr></tbody></table></figure>
 <p>在 Hexo 根目录下的 <code>_config.yml</code> 文件中，新增以下的配置项：</p>
-<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token key atrule">search</span><span class="token punctuation">:</span>
-  <span class="token key atrule">path</span><span class="token punctuation">:</span> search.xml
-  <span class="token key atrule">field</span><span class="token punctuation">:</span> post
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">search:</span></span><br><span class="line"><span class="attr">  path:</span> <span class="string">search.xml</span></span><br><span class="line"><span class="attr">  field:</span> <span class="string">post</span></span><br></pre></td></tr></tbody></table></figure>
 <h3 id="中文链接转拼音（建议安装）"><a href="#中文链接转拼音（建议安装）" class="headerlink" title="中文链接转拼音（建议安装）"></a>中文链接转拼音（建议安装）</h3><p>如果你的文章名称是中文的，那么 Hexo 默认生成的永久链接也会有中文，这样不利于 <code>SEO</code>，且 <code>gitment</code> 评论对中文链接也不支持。我们可以用 <a href="https://github.com/viko16/hexo-permalink-pinyin" target="_blank" rel="noopener">hexo-permalink-pinyin</a> Hexo 插件使在生成文章时生成中文拼音的永久链接。</p>
 <p>安装命令如下：</p>
-<pre class="line-numbers language-bash"><code class="language-bash"><span class="token function">npm</span> i hexo-permalink-pinyin --save
-<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm i hexo-permalink-pinyin --save</span><br></pre></td></tr></tbody></table></figure>
 <p>在 Hexo 根目录下的 <code>_config.yml</code> 文件中，新增以下的配置项：</p>
-<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token key atrule">permalink_pinyin</span><span class="token punctuation">:</span>
-  <span class="token key atrule">enable</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
-  <span class="token key atrule">separator</span><span class="token punctuation">:</span> <span class="token string">'-'</span> <span class="token comment" spellcheck="true"># default: '-'</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">permalink_pinyin:</span></span><br><span class="line"><span class="attr">  enable:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">  separator:</span> <span class="string">'-'</span> <span class="comment"># default: '-'</span></span><br></pre></td></tr></tbody></table></figure>
 <blockquote>
 <p><strong>注</strong>：除了此插件外，<a href="https://github.com/rozbo/hexo-abbrlink" target="_blank" rel="noopener">hexo-abbrlink</a> 插件也可以生成非中文的链接。</p>
 </blockquote>
 <h3 id="文章字数统计插件（建议安装）"><a href="#文章字数统计插件（建议安装）" class="headerlink" title="文章字数统计插件（建议安装）"></a>文章字数统计插件（建议安装）</h3><p>如果你想要在文章中显示文章字数、阅读时长信息，可以安装 <a href="https://github.com/willin/hexo-wordcount" target="_blank" rel="noopener">hexo-wordcount</a>插件。</p>
 <p>安装命令如下：</p>
-<pre class="line-numbers language-bash"><code class="language-bash"><span class="token function">npm</span> i --save hexo-wordcount
-<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm i --save hexo-wordcount</span><br></pre></td></tr></tbody></table></figure>
 <p>然后只需在本主题下的 <code>_config.yml</code> 文件中，将各个文章字数相关的配置激活即可：</p>
-<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token key atrule">postInfo</span><span class="token punctuation">:</span>
-  <span class="token key atrule">date</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
-  <span class="token key atrule">update</span><span class="token punctuation">:</span> <span class="token boolean important">false</span>
-  <span class="token key atrule">wordCount</span><span class="token punctuation">:</span> <span class="token boolean important">false </span><span class="token comment" spellcheck="true"># 设置文章字数统计为 true.</span>
-  <span class="token key atrule">totalCount</span><span class="token punctuation">:</span> <span class="token boolean important">false </span><span class="token comment" spellcheck="true"># 设置站点文章总字数统计为 true.</span>
-  <span class="token key atrule">min2read</span><span class="token punctuation">:</span> <span class="token boolean important">false </span><span class="token comment" spellcheck="true"># 阅读时长.</span>
-  <span class="token key atrule">readCount</span><span class="token punctuation">:</span> <span class="token boolean important">false </span><span class="token comment" spellcheck="true"># 阅读次数.</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">postInfo:</span></span><br><span class="line"><span class="attr">  date:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">  update:</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">  wordCount:</span> <span class="literal">false</span> <span class="comment"># 设置文章字数统计为 true.</span></span><br><span class="line"><span class="attr">  totalCount:</span> <span class="literal">false</span> <span class="comment"># 设置站点文章总字数统计为 true.</span></span><br><span class="line"><span class="attr">  min2read:</span> <span class="literal">false</span> <span class="comment"># 阅读时长.</span></span><br><span class="line"><span class="attr">  readCount:</span> <span class="literal">false</span> <span class="comment"># 阅读次数.</span></span><br></pre></td></tr></tbody></table></figure>
 <h3 id="添加emoji表情支持（可选的）"><a href="#添加emoji表情支持（可选的）" class="headerlink" title="添加emoji表情支持（可选的）"></a>添加emoji表情支持（可选的）</h3><p>本主题新增了对<code>emoji</code>表情的支持，使用到了 <a href="https://npm.taobao.org/package/hexo-filter-github-emojis" target="_blank" rel="noopener">hexo-filter-github-emojis</a> 的 Hexo 插件来支持 <code>emoji</code>表情的生成，把对应的<code>markdown emoji</code>语法（<code>::</code>,例如：<code>:smile:</code>）转变成会跳跃的<code>emoji</code>表情，安装命令如下：</p>
-<pre class="line-numbers language-bash"><code class="language-bash"><span class="token function">npm</span> <span class="token function">install</span> hexo-filter-github-emojis --save
-<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install hexo-filter-github-emojis --save</span><br></pre></td></tr></tbody></table></figure>
 <p>在 Hexo 根目录下的 <code>_config.yml</code> 文件中，新增以下的配置项：</p>
-<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token key atrule">githubEmojis</span><span class="token punctuation">:</span>
-  <span class="token key atrule">enable</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
-  <span class="token key atrule">className</span><span class="token punctuation">:</span> github<span class="token punctuation">-</span>emoji
-  <span class="token key atrule">inject</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
-  <span class="token key atrule">styles</span><span class="token punctuation">:</span>
-  <span class="token key atrule">customEmojis</span><span class="token punctuation">:</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">githubEmojis:</span></span><br><span class="line"><span class="attr">  enable:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">  className:</span> <span class="string">github-emoji</span></span><br><span class="line"><span class="attr">  inject:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">  styles:</span></span><br><span class="line"><span class="attr">  customEmojis:</span></span><br></pre></td></tr></tbody></table></figure>
 <h3 id="添加-RSS-订阅支持（可选的）"><a href="#添加-RSS-订阅支持（可选的）" class="headerlink" title="添加 RSS 订阅支持（可选的）"></a>添加 RSS 订阅支持（可选的）</h3><p>本主题中还使用到了 <a href="https://github.com/hexojs/hexo-generator-feed" target="_blank" rel="noopener">hexo-generator-feed</a> 的 Hexo 插件来做 <code>RSS</code>，安装命令如下：</p>
-<pre class="line-numbers language-bash"><code class="language-bash"><span class="token function">npm</span> <span class="token function">install</span> hexo-generator-feed --save
-<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install hexo-generator-feed --save</span><br></pre></td></tr></tbody></table></figure>
 <p>在 Hexo 根目录下的 <code>_config.yml</code> 文件中，新增以下的配置项：</p>
-<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token key atrule">feed</span><span class="token punctuation">:</span>
-  <span class="token key atrule">type</span><span class="token punctuation">:</span> atom
-  <span class="token key atrule">path</span><span class="token punctuation">:</span> atom.xml
-  <span class="token key atrule">limit</span><span class="token punctuation">:</span> <span class="token number">20</span>
-  <span class="token key atrule">hub</span><span class="token punctuation">:</span>
-  <span class="token key atrule">content</span><span class="token punctuation">:</span>
-  <span class="token key atrule">content_limit</span><span class="token punctuation">:</span> <span class="token number">140</span>
-  <span class="token key atrule">content_limit_delim</span><span class="token punctuation">:</span> <span class="token string">' '</span>
-  <span class="token key atrule">order_by</span><span class="token punctuation">:</span> <span class="token punctuation">-</span>date
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">feed:</span></span><br><span class="line"><span class="attr">  type:</span> <span class="string">atom</span></span><br><span class="line"><span class="attr">  path:</span> <span class="string">atom.xml</span></span><br><span class="line"><span class="attr">  limit:</span> <span class="number">20</span></span><br><span class="line"><span class="attr">  hub:</span></span><br><span class="line"><span class="attr">  content:</span></span><br><span class="line"><span class="attr">  content_limit:</span> <span class="number">140</span></span><br><span class="line"><span class="attr">  content_limit_delim:</span> <span class="string">' '</span></span><br><span class="line"><span class="attr">  order_by:</span> <span class="bullet">-date</span></span><br></pre></td></tr></tbody></table></figure>
 <p>执行 <code>hexo clean &amp;&amp; hexo g</code> 重新生成博客文件，然后在 <code>public</code> 文件夹中即可看到 <code>atom.xml</code> 文件，说明你已经安装成功了。</p>
 <h3 id="添加-DaoVoice-在线聊天功能（可选的）"><a href="#添加-DaoVoice-在线聊天功能（可选的）" class="headerlink" title="添加 DaoVoice 在线聊天功能（可选的）"></a>添加 <a href="http://www.daovoice.io/" target="_blank" rel="noopener">DaoVoice</a> 在线聊天功能（可选的）</h3><p>前往 <a href="http://www.daovoice.io/" target="_blank" rel="noopener">DaoVoice</a> 官网注册并且获取 <code>app_id</code>，并将 <code>app_id</code> 填入主题的 <code>_config.yml</code> 文件中。</p>
 <h3 id="添加-Tidio-在线聊天功能（可选的）"><a href="#添加-Tidio-在线聊天功能（可选的）" class="headerlink" title="添加 Tidio 在线聊天功能（可选的）"></a>添加 <a href="https://www.tidio.com/" target="_blank" rel="noopener">Tidio</a> 在线聊天功能（可选的）</h3><p>前往 <a href="https://www.tidio.com/" target="_blank" rel="noopener">Tidio</a> 官网注册并且获取 <code>Public Key</code>，并将 <code>Public Key</code> 填入主题的 <code>_config.yml</code> 文件中。</p>
 <h3 id="修改页脚"><a href="#修改页脚" class="headerlink" title="修改页脚"></a>修改页脚</h3><p>页脚信息可能需要做定制化修改，而且它不便于做成配置信息，所以可能需要你自己去再修改和加工。修改的地方在主题文件的 <code>/layout/_partial/footer.ejs</code> 文件中，包括站点、使用的主题、访问量等。</p>
 <h3 id="修改社交链接"><a href="#修改社交链接" class="headerlink" title="修改社交链接"></a>修改社交链接</h3><p>在主题的 <code>_config.yml</code> 文件中，默认支持 <code>QQ</code>、<code>GitHub</code> 和邮箱等的配置，你可以在主题文件的 <code>/layout/_partial/social-link.ejs</code> 文件中，新增、修改你需要的社交链接地址，增加链接可参考如下代码：</p>
-<pre class="line-numbers language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>%</span> <span class="token attr-name">if</span> <span class="token attr-name">(theme.socialLink.github)</span> <span class="token attr-name">{</span> <span class="token attr-name">%</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>&lt;%<span class="token punctuation">=</span> theme.socialLink.github %<span class="token punctuation">></span><span class="token punctuation">"</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>tooltipped<span class="token punctuation">"</span></span> <span class="token attr-name">target</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>_blank<span class="token punctuation">"</span></span> <span class="token attr-name">data-tooltip</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>访问我的GitHub<span class="token punctuation">"</span></span> <span class="token attr-name">data-position</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>top<span class="token punctuation">"</span></span> <span class="token attr-name">data-delay</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>50<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
-        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>i</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>fab fa-github<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>i</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>%</span> <span class="token attr-name">}</span> <span class="token attr-name">%</span><span class="token punctuation">></span></span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight html"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">%</span> <span class="attr">if</span> (<span class="attr">theme.socialLink.github</span>) { %&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">"&lt;%= theme.socialLink.github %&gt;"</span> <span class="attr">class</span>=<span class="string">"tooltipped"</span> <span class="attr">target</span>=<span class="string">"_blank"</span> <span class="attr">data-tooltip</span>=<span class="string">"访问我的GitHub"</span> <span class="attr">data-position</span>=<span class="string">"top"</span> <span class="attr">data-delay</span>=<span class="string">"50"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">i</span> <span class="attr">class</span>=<span class="string">"fab fa-github"</span>&gt;</span><span class="tag">&lt;/<span class="name">i</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">%</span> } %&gt;</span></span><br></pre></td></tr></tbody></table></figure>
 <p>其中，社交图标（如：<code>fa-github</code>）你可以在 <a href="https://fontawesome.com/icons" target="_blank" rel="noopener">Font Awesome</a> 中搜索找到。以下是常用社交图标的标识，供你参考：</p>
 <ul>
 <li>Facebook: <code>fab fa-facebook</code></li>
@@ -689,42 +372,12 @@
 <h3 id="修改打赏的二维码图片"><a href="#修改打赏的二维码图片" class="headerlink" title="修改打赏的二维码图片"></a>修改打赏的二维码图片</h3><p>在主题文件的 <code>source/medias/reward</code> 文件中，你可以替换成你的的微信和支付宝的打赏二维码图片。</p>
 <h3 id="配置音乐播放器（可选的）"><a href="#配置音乐播放器（可选的）" class="headerlink" title="配置音乐播放器（可选的）"></a>配置音乐播放器（可选的）</h3><p>要支持音乐播放，就必须开启音乐的播放配置和音乐数据的文件。</p>
 <p>首先，在你的博客 <code>source</code> 目录下的 <code>_data</code> 目录（没有的话就新建一个）中新建 <code>musics.json</code> 文件，文件内容如下所示：</p>
-<pre class="line-numbers language-json"><code class="language-json"><span class="token punctuation">[</span><span class="token punctuation">{</span>
-    <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"五月雨变奏电音"</span><span class="token punctuation">,</span>
-    <span class="token property">"artist"</span><span class="token operator">:</span> <span class="token string">"AnimeVibe"</span><span class="token punctuation">,</span>
-    <span class="token property">"url"</span><span class="token operator">:</span> <span class="token string">"http://xxx.com/music1.mp3"</span><span class="token punctuation">,</span>
-    <span class="token property">"cover"</span><span class="token operator">:</span> <span class="token string">"http://xxx.com/music-cover1.png"</span>
-<span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-    <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"Take me hand"</span><span class="token punctuation">,</span>
-    <span class="token property">"artist"</span><span class="token operator">:</span> <span class="token string">"DAISHI DANCE,Cecile Corbel"</span><span class="token punctuation">,</span>
-    <span class="token property">"url"</span><span class="token operator">:</span> <span class="token string">"/medias/music/music2.mp3"</span><span class="token punctuation">,</span>
-    <span class="token property">"cover"</span><span class="token operator">:</span> <span class="token string">"/medias/music/cover2.png"</span>
-<span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-    <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"Shape of You"</span><span class="token punctuation">,</span>
-    <span class="token property">"artist"</span><span class="token operator">:</span> <span class="token string">"J.Fla"</span><span class="token punctuation">,</span>
-    <span class="token property">"url"</span><span class="token operator">:</span> <span class="token string">"http://xxx.com/music3.mp3"</span><span class="token punctuation">,</span>
-    <span class="token property">"cover"</span><span class="token operator">:</span> <span class="token string">"http://xxx.com/music-cover3.png"</span>
-<span class="token punctuation">}</span><span class="token punctuation">]</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight json"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">[{</span><br><span class="line">	<span class="attr">"name"</span>: <span class="string">"五月雨变奏电音"</span>,</span><br><span class="line">	<span class="attr">"artist"</span>: <span class="string">"AnimeVibe"</span>,</span><br><span class="line">	<span class="attr">"url"</span>: <span class="string">"http://xxx.com/music1.mp3"</span>,</span><br><span class="line">	<span class="attr">"cover"</span>: <span class="string">"http://xxx.com/music-cover1.png"</span></span><br><span class="line">}, {</span><br><span class="line">	<span class="attr">"name"</span>: <span class="string">"Take me hand"</span>,</span><br><span class="line">	<span class="attr">"artist"</span>: <span class="string">"DAISHI DANCE,Cecile Corbel"</span>,</span><br><span class="line">	<span class="attr">"url"</span>: <span class="string">"/medias/music/music2.mp3"</span>,</span><br><span class="line">	<span class="attr">"cover"</span>: <span class="string">"/medias/music/cover2.png"</span></span><br><span class="line">}, {</span><br><span class="line">	<span class="attr">"name"</span>: <span class="string">"Shape of You"</span>,</span><br><span class="line">	<span class="attr">"artist"</span>: <span class="string">"J.Fla"</span>,</span><br><span class="line">	<span class="attr">"url"</span>: <span class="string">"http://xxx.com/music3.mp3"</span>,</span><br><span class="line">	<span class="attr">"cover"</span>: <span class="string">"http://xxx.com/music-cover3.png"</span></span><br><span class="line">}]</span><br></pre></td></tr></tbody></table></figure>
 <blockquote>
 <p><strong>注</strong>：以上 JSON 中的属性：<code>name</code>、<code>artist</code>、<code>url</code>、<code>cover</code> 分别表示音乐的名称、作者、音乐文件地址、音乐封面。</p>
 </blockquote>
 <p>然后，在主题的 <code>_config.yml</code> 配置文件中激活配置即可：</p>
-<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token comment" spellcheck="true"># 是否在首页显示音乐.</span>
-<span class="token key atrule">music</span><span class="token punctuation">:</span>
-  <span class="token key atrule">enable</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
-  <span class="token key atrule">showTitle</span><span class="token punctuation">:</span> <span class="token boolean important">false</span>
-  <span class="token key atrule">title</span><span class="token punctuation">:</span> 听听音乐
-  <span class="token key atrule">fixed</span><span class="token punctuation">:</span> <span class="token boolean important">false </span><span class="token comment" spellcheck="true"># 是否开启吸底模式</span>
-  <span class="token key atrule">autoplay</span><span class="token punctuation">:</span> <span class="token boolean important">false </span><span class="token comment" spellcheck="true"># 是否自动播放</span>
-  <span class="token key atrule">theme</span><span class="token punctuation">:</span> '<span class="token comment" spellcheck="true">#42b983'</span>
-  <span class="token key atrule">loop</span><span class="token punctuation">:</span> <span class="token string">'all'</span> <span class="token comment" spellcheck="true"># 音频循环播放, 可选值: 'all', 'one', 'none'</span>
-  <span class="token key atrule">order</span><span class="token punctuation">:</span> <span class="token string">'list'</span> <span class="token comment" spellcheck="true"># 音频循环顺序, 可选值: 'list', 'random'</span>
-  <span class="token key atrule">preload</span><span class="token punctuation">:</span> <span class="token string">'auto'</span> <span class="token comment" spellcheck="true"># 预加载，可选值: 'none', 'metadata', 'auto'</span>
-  <span class="token key atrule">volume</span><span class="token punctuation">:</span> <span class="token number">0.7 </span><span class="token comment" spellcheck="true"># 默认音量，请注意播放器会记忆用户设置，用户手动设置音量后默认音量即失效</span>
-  <span class="token key atrule">listFolded</span><span class="token punctuation">:</span> <span class="token boolean important">false </span><span class="token comment" spellcheck="true"># 列表默认折叠</span>
-  <span class="token key atrule">listMaxHeight</span><span class="token punctuation">:</span> <span class="token comment" spellcheck="true"># 列表最大高度</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 是否在首页显示音乐.</span></span><br><span class="line"><span class="attr">music:</span></span><br><span class="line"><span class="attr">  enable:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">  showTitle:</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">  title:</span> <span class="string">听听音乐</span></span><br><span class="line"><span class="attr">  fixed:</span> <span class="literal">false</span> <span class="comment"># 是否开启吸底模式</span></span><br><span class="line"><span class="attr">  autoplay:</span> <span class="literal">false</span> <span class="comment"># 是否自动播放</span></span><br><span class="line"><span class="attr">  theme:</span> <span class="string">'#42b983'</span></span><br><span class="line"><span class="attr">  loop:</span> <span class="string">'all'</span> <span class="comment"># 音频循环播放, 可选值: 'all', 'one', 'none'</span></span><br><span class="line"><span class="attr">  order:</span> <span class="string">'list'</span> <span class="comment"># 音频循环顺序, 可选值: 'list', 'random'</span></span><br><span class="line"><span class="attr">  preload:</span> <span class="string">'auto'</span> <span class="comment"># 预加载，可选值: 'none', 'metadata', 'auto'</span></span><br><span class="line"><span class="attr">  volume:</span> <span class="number">0.7</span> <span class="comment"># 默认音量，请注意播放器会记忆用户设置，用户手动设置音量后默认音量即失效</span></span><br><span class="line"><span class="attr">  listFolded:</span> <span class="literal">false</span> <span class="comment"># 列表默认折叠</span></span><br><span class="line"><span class="attr">  listMaxHeight:</span> <span class="comment"># 列表最大高度</span></span><br></pre></td></tr></tbody></table></figure>
 <h2 id="文章-Front-matter-介绍"><a href="#文章-Front-matter-介绍" class="headerlink" title="文章 Front-matter 介绍"></a>文章 Front-matter 介绍</h2><h3 id="Front-matter-选项详解"><a href="#Front-matter-选项详解" class="headerlink" title="Front-matter 选项详解"></a>Front-matter 选项详解</h3><p><code>Front-matter</code> 选项中的所有内容均为<strong>非必填</strong>的。但我仍然建议至少填写 <code>title</code> 和 <code>date</code> 的值。</p>
 <table>
 <thead>
@@ -822,40 +475,9 @@
 </ol>
 </blockquote>
 <p>以下为文章的 <code>Front-matter</code> 示例。</p>
-<h3 id="最简示例"><a href="#最简示例" class="headerlink" title="最简示例"></a>最简示例</h3><pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token punctuation">---</span>
-<span class="token key atrule">title</span><span class="token punctuation">:</span> typora<span class="token punctuation">-</span>vue<span class="token punctuation">-</span>theme主题介绍
-<span class="token key atrule">date</span><span class="token punctuation">:</span> <span class="token datetime number">2018-09-07 09:25:00</span>
-<span class="token punctuation">---</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="最全示例"><a href="#最全示例" class="headerlink" title="最全示例"></a>最全示例</h3><pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token punctuation">---</span>
-<span class="token key atrule">title</span><span class="token punctuation">:</span> typora<span class="token punctuation">-</span>vue<span class="token punctuation">-</span>theme主题介绍
-<span class="token key atrule">date</span><span class="token punctuation">:</span> <span class="token datetime number">2018-09-07 09:25:00</span>
-<span class="token key atrule">author</span><span class="token punctuation">:</span> 赵奇
-<span class="token key atrule">img</span><span class="token punctuation">:</span> /source/images/xxx.jpg
-<span class="token key atrule">top</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
-<span class="token key atrule">cover</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
-<span class="token key atrule">coverImg</span><span class="token punctuation">:</span> /images/1.jpg
-<span class="token key atrule">password</span><span class="token punctuation">:</span> 8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92
-<span class="token key atrule">toc</span><span class="token punctuation">:</span> <span class="token boolean important">false</span>
-<span class="token key atrule">mathjax</span><span class="token punctuation">:</span> <span class="token boolean important">false</span>
-<span class="token key atrule">summary</span><span class="token punctuation">:</span> 这是你自定义的文章摘要内容，如果这个属性有值，文章卡片摘要就显示这段文字，否则程序会自动截取文章的部分内容作为摘要
-<span class="token key atrule">categories</span><span class="token punctuation">:</span> Markdown
-<span class="token key atrule">tags</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> Typora
-  <span class="token punctuation">-</span> Markdown
-<span class="token punctuation">---</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="诗词样式"><a href="#诗词样式" class="headerlink" title="诗词样式"></a>诗词样式</h3><pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token key atrule">title</span><span class="token punctuation">:</span> 糖
-<span class="token key atrule">subtitle</span><span class="token punctuation">:</span> 记某人的大痘
-<span class="token key atrule">date</span><span class="token punctuation">:</span> <span class="token datetime number">2020-02-02 14:36:59</span>
-<span class="token key atrule">layout</span><span class="token punctuation">:</span> <span class="token string">"poem"</span> <span class="token comment" spellcheck="true">#样式改为poem就行</span>
-<span class="token key atrule">author</span><span class="token punctuation">:</span> <span class="token string">"Qinng"</span>
-<span class="token key atrule">toc</span><span class="token punctuation">:</span> <span class="token boolean important">false</span>
-<span class="token key atrule">tags</span><span class="token punctuation">:</span>
-<span class="token punctuation">-</span> 诗
-<span class="token key atrule">categories</span><span class="token punctuation">:</span>
-<span class="token punctuation">-</span> 杂记
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="最简示例"><a href="#最简示例" class="headerlink" title="最简示例"></a>最简示例</h3><figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">title:</span> <span class="string">typora-vue-theme主题介绍</span></span><br><span class="line"><span class="attr">date:</span> <span class="number">2018</span><span class="bullet">-09</span><span class="bullet">-07</span> <span class="number">09</span><span class="string">:25:00</span></span><br><span class="line"><span class="meta">---</span></span><br></pre></td></tr></tbody></table></figure>
+<h3 id="最全示例"><a href="#最全示例" class="headerlink" title="最全示例"></a>最全示例</h3><figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">title:</span> <span class="string">typora-vue-theme主题介绍</span></span><br><span class="line"><span class="attr">date:</span> <span class="number">2018</span><span class="bullet">-09</span><span class="bullet">-07</span> <span class="number">09</span><span class="string">:25:00</span></span><br><span class="line"><span class="attr">author:</span> <span class="string">赵奇</span></span><br><span class="line"><span class="attr">img:</span> <span class="string">/source/images/xxx.jpg</span></span><br><span class="line"><span class="attr">top:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">cover:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">coverImg:</span> <span class="string">/images/1.jpg</span></span><br><span class="line"><span class="attr">password:</span> <span class="number">8</span><span class="string">d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92</span></span><br><span class="line"><span class="attr">toc:</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">mathjax:</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">summary:</span> <span class="string">这是你自定义的文章摘要内容，如果这个属性有值，文章卡片摘要就显示这段文字，否则程序会自动截取文章的部分内容作为摘要</span></span><br><span class="line"><span class="attr">categories:</span> <span class="string">Markdown</span></span><br><span class="line"><span class="attr">tags:</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">Typora</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">Markdown</span></span><br><span class="line"><span class="meta">---</span></span><br></pre></td></tr></tbody></table></figure>
+<h3 id="诗词样式"><a href="#诗词样式" class="headerlink" title="诗词样式"></a>诗词样式</h3><figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">title:</span> <span class="string">糖</span></span><br><span class="line"><span class="attr">subtitle:</span> <span class="string">记某人的大痘</span></span><br><span class="line"><span class="attr">date:</span> <span class="number">2020</span><span class="bullet">-02</span><span class="bullet">-02</span> <span class="number">14</span><span class="string">:36:59</span></span><br><span class="line"><span class="attr">layout:</span> <span class="string">"poem"</span> <span class="comment">#样式改为poem就行</span></span><br><span class="line"><span class="attr">author:</span> <span class="string">"Qinng"</span></span><br><span class="line"><span class="attr">toc:</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">tags:</span></span><br><span class="line"><span class="bullet">-</span> <span class="string">诗</span></span><br><span class="line"><span class="attr">categories:</span></span><br><span class="line"><span class="bullet">-</span> <span class="string">杂记</span></span><br></pre></td></tr></tbody></table></figure>
 <h2 id="效果截图"><a href="#效果截图" class="headerlink" title="效果截图"></a>效果截图</h2><p><img src="http://static.blinkfox.com/matery-20181202-1.png" alt="首页"></p>
 <p><img src="http://static.blinkfox.com/matery-20181202-2.png" alt="首页推荐文章"></p>
 <p><img src="http://static.blinkfox.com/matery-20181202-3.png" alt="首页文章列表"></p>
@@ -884,499 +506,366 @@
 </ul>
 <p><strong>我认为个人博客应该都有自己的风格和特色</strong>。如果本主题中的诸多功能和主题色彩你不满意，可以在主题中自定义修改，很多更自由的功能和细节点的修改难以在主题的 <code>_config.yml</code> 中完成，需要修改源代码才来完成。以下列出了可能对你有用的地方：</p>
 <h3 id="修改主题颜色"><a href="#修改主题颜色" class="headerlink" title="修改主题颜色"></a>修改主题颜色</h3><p>在主题文件的 <code>/source/css/matery.css</code> 文件中，搜索 <code>.bg-color</code> 来修改背景颜色：</p>
-<pre class="line-numbers language-css"><code class="language-css"><span class="token comment" spellcheck="true">/* 整体背景颜色，包括导航、移动端的导航、页尾、标签页等的背景颜色. */</span>
-<span class="token selector"><span class="token class">.bg-color</span> </span><span class="token punctuation">{</span>
-    <span class="token property">background-image</span><span class="token punctuation">:</span> <span class="token function">linear-gradient</span><span class="token punctuation">(</span>to right, <span class="token hexcode">#4cbf30</span> <span class="token number">0%</span>, <span class="token hexcode">#0f9d58</span> <span class="token number">100%</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-
-<span class="token atrule"><span class="token rule">@-webkit-keyframes</span> rainbow</span> <span class="token punctuation">{</span>
-   <span class="token comment" spellcheck="true">/* 动态切换背景颜色. */</span>
-<span class="token punctuation">}</span>
-
-<span class="token atrule"><span class="token rule">@keyframes</span> rainbow</span> <span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">/* 动态切换背景颜色. */</span>
-<span class="token punctuation">}</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight css"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 整体背景颜色，包括导航、移动端的导航、页尾、标签页等的背景颜色. */</span></span><br><span class="line"><span class="selector-class">.bg-color</span> {</span><br><span class="line">    <span class="attribute">background-image</span>: <span class="built_in">linear-gradient</span>(to right, #4cbf30 0%, #0f9d58 100%);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line">@-<span class="keyword">webkit</span>-<span class="keyword">keyframes</span> rainbow {</span><br><span class="line">   <span class="comment">/* 动态切换背景颜色. */</span></span><br><span class="line">}</span><br><span class="line"></span><br><span class="line">@<span class="keyword">keyframes</span> rainbow {</span><br><span class="line">    <span class="comment">/* 动态切换背景颜色. */</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 <h3 id="修改-banner-图和文章特色图"><a href="#修改-banner-图和文章特色图" class="headerlink" title="修改 banner 图和文章特色图"></a>修改 banner 图和文章特色图</h3><p>你可以直接在 <code>/source/medias/banner</code> 文件夹中更换你喜欢的 <code>banner</code> 图片，主题代码中是每天动态切换一张，只需 <code>7</code> 张即可。如果你会 <code>JavaScript</code> 代码，可以修改成你自己喜欢切换逻辑，如：随机切换等，<code>banner</code> 切换的代码位置在 <code>/layout/_partial/bg-cover-content.ejs</code> 文件的 <code>&lt;script&gt;&lt;/script&gt;</code> 代码中：</p>
-<pre class="line-numbers language-javascript"><code class="language-javascript"><span class="token function">$</span><span class="token punctuation">(</span><span class="token string">'.bg-cover'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">css</span><span class="token punctuation">(</span><span class="token string">'background-image'</span><span class="token punctuation">,</span> <span class="token string">'url(/medias/banner/'</span> <span class="token operator">+</span> <span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getDay</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">'.jpg)'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$(<span class="string">'.bg-cover'</span>).css(<span class="string">'background-image'</span>, <span class="string">'url(/medias/banner/'</span> + <span class="keyword">new</span> <span class="built_in">Date</span>().getDay() + <span class="string">'.jpg)'</span>);</span><br></pre></td></tr></tbody></table></figure>
 <p>在 <code>/source/medias/featureimages</code> 文件夹中默认有 24 张特色图片，你可以再增加或者减少，并需要在 <code>_config.yml</code> 做同步修改。</p>
-
-            </div>
-            <hr/>
-
-            
-
-
-
-            <div class="tag_share" style="display: block;">
-                <div class="post-meta__tag-list" style="display: inline-block;">
-                    
-                        <div class="article-tag">
-                            
-                                <a href="/tags/hexo/">
-                                    <span class="chip bg-color">hexo</span>
-                                </a>
-                            
-                        </div>
-                    
-                </div>
-                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
-                    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/css/share.min.css">
-<div id="article-share">
-
-    
-    <div class="social-share" data-sites="wechat,weibo" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/js/social-share.min.js"></script>
-    
-
-    
-
-</div>
-
-                </div>
-            </div>
-            
-        </div>
-    </div>
-
-    
-        <link rel="stylesheet" href="/libs/gitalk/gitalk.css">
-<link rel="stylesheet" href="/libs/gitalk/gitalk.min.js">
-
-<div class="card gitalk-card" data-aos="fade-up">
-    <div class="comment_headling" style="font-size: 20px; font-weight: 700; position: relative; padding-left: 20px; top: 15px; padding-bottom: 5px;">
-        <i class="fas fa-comments fa-fw" aria-hidden="true"></i>
-        <span>评论</span>
-    </div>
-    <div id="gitalk-container" class="card-content"></div>
-</div>
-
-<script src="/libs/gitalk/gitalk.min.js"></script>
 <script>
-    let gitalk = new Gitalk({
-        clientID: 'a705189dfc18ec59a7d0',
-        clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
-        repo: 'qingwave.github.io',
-        owner: 'qingwave',
-        admin: "qingwave",
-        id: '2020-02-12T00-33-26',
-        distractionFreeMode: false  // Facebook-like distraction free mode
-    });
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return; }
+            const img = document.createElement('img');
+            img.style = 'display:none !important;';
+            img.src = el.dataset.src;
+            img.addEventListener('error', () => {
+              img.remove();
+              el.style.color = 'inherit';
+              el.style.backgroundImage = 'none';
+              el.style.background = 'none';
+            });
+            img.addEventListener('load', () => {
+              img.remove();
+            });
+            document.body.appendChild(img);
+          });
+      </script>
+    </div>
 
-    gitalk.render('gitalk-container');
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>qinng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://qingwave.github.io/hexo-matery-beauty/" title="Hexo-matery主题美化以及zeit部署">https://qingwave.github.io/hexo-matery-beauty/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/hexo/" rel="tag"># hexo</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pod-sandbox-recreated/" rel="prev" title="pod sandbox 创建失败">
+      <i class="fa fa-chevron-left"></i> pod sandbox 创建失败
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/wsl2-vscode/" rel="next" title="WSL2+VSCode+Zsh打造Windows下Linux开发环境">
+      WSL2+VSCode+Zsh打造Windows下Linux开发环境 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
 </script>
 
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-<article id="prenext-posts" class="prev-next articles">
-    <div class="row article-row">
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
-            <div class="card">
-                <a href="/pod-sandbox-recreated/">
-                    <div class="card-image">
-                        
-                        
-                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/23.jpg" class="responsive-img" alt="pod sandbox 创建失败">
-                        
-                        <span class="card-title">pod sandbox 创建失败</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            背景今天在k8s更新服务时,发现pod启动失败,报错failed to start sandbox container,如下所示:
-Events:
-  Type     Reason                  Age        
-                        
-                    </div>
-                    <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2020-03-18
-                        </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                            
-                            
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/k8s/">
-                        <span class="chip bg-color">k8s</span>
-                    </a>
-                    
-                    <a href="/tags/docker/">
-                        <span class="chip bg-color">docker</span>
-                    </a>
-                    
-                </div>
-                
-            </div>
         </div>
-        
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge right-badge text-color">
-                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
-            </div>
-            <div class="card">
-                <a href="/wsl2-vscode/">
-                    <div class="card-image">
-                        
-                        
-                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/3.jpg" class="responsive-img" alt="WSL2+VSCode+Zsh打造Windows下Linux开发环境">
-                        
-                        <span class="card-title">WSL2+VSCode+Zsh打造Windows下Linux开发环境</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            一直以来使用Ubuntu开发，前两天Ubuntu桌面环境崩了，一些工作软件在Ubuntu下很不好用，恰好WSL2(Windows Linux子系统)发布已经有一段日子，而且支持了Docker，上手看看可用性如何。
-配置WSL2必要条件
-Wi
-                        
-                    </div>
-                    <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-02-11
-                            </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/tool/" class="post-category">
-                                    tool
-                                </a>
-                            
-                            
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/linux/">
-                        <span class="chip bg-color">linux</span>
-                    </a>
-                    
-                    <a href="/tags/wsl/">
-                        <span class="chip bg-color">wsl</span>
-                    </a>
-                    
-                </div>
-                
-            </div>
-        </div>
-        
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#部署到Zeit-io"><span class="nav-number">2.</span> <span class="nav-text">部署到Zeit.io</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#特性"><span class="nav-number">3.</span> <span class="nav-text">特性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#下载"><span class="nav-number">4.</span> <span class="nav-text">下载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置"><span class="nav-number">5.</span> <span class="nav-text">配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#切换主题"><span class="nav-number">5.1.</span> <span class="nav-text">切换主题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#config-yml-文件的其它修改建议"><span class="nav-number">5.1.1.</span> <span class="nav-text">_config.yml 文件的其它修改建议:</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#新建分类-categories-页"><span class="nav-number">5.2.</span> <span class="nav-text">新建分类 categories 页</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#新建标签-tags-页"><span class="nav-number">5.3.</span> <span class="nav-text">新建标签 tags 页</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#新建关于我-about-页"><span class="nav-number">5.4.</span> <span class="nav-text">新建关于我 about 页</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#新建留言板-contact-页（可选的）"><span class="nav-number">5.5.</span> <span class="nav-text">新建留言板 contact 页（可选的）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#新建友情连接-friends-页（可选的）"><span class="nav-number">5.6.</span> <span class="nav-text">新建友情连接 friends 页（可选的）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#菜单导航配置"><span class="nav-number">5.7.</span> <span class="nav-text">菜单导航配置</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#配置基本菜单导航的名称、路径url和图标icon"><span class="nav-number">5.7.1.</span> <span class="nav-text">配置基本菜单导航的名称、路径url和图标icon.</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#二级菜单配置方法"><span class="nav-number">5.7.2.</span> <span class="nav-text">二级菜单配置方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代码高亮"><span class="nav-number">5.8.</span> <span class="nav-text">代码高亮</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#搜索"><span class="nav-number">5.9.</span> <span class="nav-text">搜索</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#中文链接转拼音（建议安装）"><span class="nav-number">5.10.</span> <span class="nav-text">中文链接转拼音（建议安装）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文章字数统计插件（建议安装）"><span class="nav-number">5.11.</span> <span class="nav-text">文章字数统计插件（建议安装）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#添加emoji表情支持（可选的）"><span class="nav-number">5.12.</span> <span class="nav-text">添加emoji表情支持（可选的）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#添加-RSS-订阅支持（可选的）"><span class="nav-number">5.13.</span> <span class="nav-text">添加 RSS 订阅支持（可选的）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#添加-DaoVoice-在线聊天功能（可选的）"><span class="nav-number">5.14.</span> <span class="nav-text">添加 DaoVoice 在线聊天功能（可选的）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#添加-Tidio-在线聊天功能（可选的）"><span class="nav-number">5.15.</span> <span class="nav-text">添加 Tidio 在线聊天功能（可选的）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#修改页脚"><span class="nav-number">5.16.</span> <span class="nav-text">修改页脚</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#修改社交链接"><span class="nav-number">5.17.</span> <span class="nav-text">修改社交链接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#修改打赏的二维码图片"><span class="nav-number">5.18.</span> <span class="nav-text">修改打赏的二维码图片</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置音乐播放器（可选的）"><span class="nav-number">5.19.</span> <span class="nav-text">配置音乐播放器（可选的）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#文章-Front-matter-介绍"><span class="nav-number">6.</span> <span class="nav-text">文章 Front-matter 介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Front-matter-选项详解"><span class="nav-number">6.1.</span> <span class="nav-text">Front-matter 选项详解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#最简示例"><span class="nav-number">6.2.</span> <span class="nav-text">最简示例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#最全示例"><span class="nav-number">6.3.</span> <span class="nav-text">最全示例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#诗词样式"><span class="nav-number">6.4.</span> <span class="nav-text">诗词样式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#效果截图"><span class="nav-number">7.</span> <span class="nav-text">效果截图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自定制修改"><span class="nav-number">8.</span> <span class="nav-text">自定制修改</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#修改主题颜色"><span class="nav-number">8.1.</span> <span class="nav-text">修改主题颜色</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#修改-banner-图和文章特色图"><span class="nav-number">8.2.</span> <span class="nav-text">修改 banner 图和文章特色图</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Qinng</p>
+  <div class="site-description" itemprop="description">Coding, Reading and Daydreaming</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/qingwave" title="GitHub → https://github.com/qingwave" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:isguory@gmail.com" title="E-Mail → mailto:isguory@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
     </div>
-</article>
+  </aside>
+  <div id="sidebar-dimmer"></div>
 
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2018 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-terminal"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Qinng</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
 
 
 
-<!-- 代码块功能依赖 -->
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeBlockFuction.js"></script>
-
-<!-- 代码语言 -->
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeLang.js"></script>
-
-
-<!-- 代码块复制 -->
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeCopy.js"></script>
-
-
-<!-- 代码块收缩 -->
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeShrink.js"></script>
-
-
-<!-- 代码块折行 -->
-
-<style type="text/css">
-code[class*="language-"], pre[class*="language-"] { white-space: pre !important; }
-</style>
-
-
-    </div>
-    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
-        <div class="toc-widget">
-            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
-            <div id="toc-content"></div>
-        </div>
-    </div>
-</div>
-
-<!-- TOC 悬浮按钮. -->
-
-<div id="floating-toc-btn" class="hide-on-med-and-down">
-    <a class="btn-floating btn-mini waves-effect bnt-color">
-        <i class="fas fa-list-ul"></i>
-    </a>
-</div>
-
-
-<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.min.js"></script>
-<script>
-    $(function () {
-        tocbot.init({
-            tocSelector: '#toc-content',
-            contentSelector: '#articleContent',
-            headingsOffset: -($(window).height() * 0.4 - 45),
-            collapseDepth: Number('0'),
-            headingSelector: 'h2, h3, h4'
-        });
-
-        // modify the toc link href to support Chinese.
-        let i = 0;
-        let tocHeading = 'toc-heading-';
-        $('#toc-content a').each(function () {
-            $(this).attr('href', '#' + tocHeading + (++i));
-        });
-
-        // modify the heading title id to support Chinese.
-        i = 0;
-        $('#articleContent').children('h2, h3, h4').each(function () {
-            $(this).attr('id', tocHeading + (++i));
-        });
-
-        // Set scroll toc fixed.
-        let tocHeight = parseInt($(window).height() * 0.4 - 64);
-        let $tocWidget = $('.toc-widget');
-        $(window).scroll(function () {
-            let scroll = $(window).scrollTop();
-            /* add post toc fixed. */
-            if (scroll > tocHeight) {
-                $tocWidget.addClass('toc-fixed');
-            } else {
-                $tocWidget.removeClass('toc-fixed');
-            }
-        });
-
-        
-        /* 修复文章卡片 div 的宽度. */
-        let fixPostCardWidth = function (srcId, targetId) {
-            let srcDiv = $('#' + srcId);
-            if (srcDiv.length === 0) {
-                return;
-            }
-
-            let w = srcDiv.width();
-            if (w >= 450) {
-                w = w + 21;
-            } else if (w >= 350 && w < 450) {
-                w = w + 18;
-            } else if (w >= 300 && w < 350) {
-                w = w + 16;
-            } else {
-                w = w + 14;
-            }
-            $('#' + targetId).width(w);
-        };
-
-        // 切换TOC目录展开收缩的相关操作.
-        const expandedClass = 'expanded';
-        let $tocAside = $('#toc-aside');
-        let $mainContent = $('#main-content');
-        $('#floating-toc-btn .btn-floating').click(function () {
-            if ($tocAside.hasClass(expandedClass)) {
-                $tocAside.removeClass(expandedClass).hide();
-                $mainContent.removeClass('l9');
-            } else {
-                $tocAside.addClass(expandedClass).show();
-                $mainContent.addClass('l9');
-            }
-            fixPostCardWidth('artDetail', 'prenext-posts');
-        });
-        
-    });
-</script>
-
-    
-
-</main>
-
-
-
-
-    <footer class="page-footer bg-color">
-    
-    <div class="container row center-align" style="margin-bottom: 0px !important;">
-        <div class="center-align">
-            Copyright&nbsp;&copy;
-            <span id="year">2018</span>
-            <a href="https://qinng.now.sh" target="_blank">Qinng</a>
-            <br>
-            
-            &nbsp;<i class="fas fa-chart-area"></i>&nbsp;&nbsp;<span
-                >49.9k</span>&nbsp;
-            
-            
-            
-            
-            
-            
-            <span id="busuanzi_container_site_pv">
-                |&nbsp;<i class="far fa-eye"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_pv"
-                    ></span>&nbsp;
-            </span>
-            
-            
-            <span id="busuanzi_container_site_uv">
-                |&nbsp;<i class="fas fa-users"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_uv"
-                    ></span>&nbsp;
-            </span>
-            
-            <br>
-            
-            <br>
-            
-        </div>
-        <!-- <div class="col s12 m4 l4 social-link social-statis">
-    <a href="https://github.com/qingwave" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
-        <i class="fab fa-github"></i>
-    </a>
-
-
-
-    <a href="mailto:isguory@gmail.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
-        <i class="fas fa-envelope-open"></i>
-    </a>
 
 
 
 
 
+      </div>
+    </footer>
+  </div>
 
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/pjax/pjax.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/muse.js"></script>
+<script src="/js/next-boot.js"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '.languages',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
 
-
-
-
-
-
-
-
-
-
-
-    <a href="https://www.douban.com/people/69458430"
-       target="_blank" data-tooltip="关注我的豆瓣: 69458430" data-position="top"
-       data-delay="50">
-        <i class="fa fa-inverse">豆</i>
-    </a>
-
-
-
-    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
-        <i class="fas fa-rss"></i>
-    </a>
-
-</div> -->
-    </div>
-</footer>
-
-<div class="progress-bar"></div>
-
-
-    <!-- 搜索遮罩框 -->
-<div id="searchModal" class="modal">
-    <div class="modal-content">
-        <div class="search-header">
-            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
-            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
-                   class="search-input">
-        </div>
-        <div id="searchResult"></div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/search.js"></script>
-<script type="text/javascript">
-$(function () {
-    searchFunc("https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/search.xml", 'searchInput', 'searchResult');
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[data-pjax], script#page-configurations, #pjax script').forEach(element => {
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (element.id) {
+      script.id = element.id;
+    }
+    if (element.className) {
+      script.className = element.className;
+    }
+    if (element.type) {
+      script.type = element.type;
+    }
+    if (element.src) {
+      script.src = element.src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (element.dataset.pjax !== undefined) {
+      script.dataset.pjax = '';
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.subMenu)
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
 });
 </script>
 
-    <!-- 回到顶部按钮 -->
-<div id="backTop" class="top-scroll">
-    <a class="btn-floating btn-mini waves-effect" href="#!">
-        <!-- <i class="fas fa-caret-up"></i> -->
-        <!-- <i class="fas fa-chevron-up"></i> -->
-        <i class="fas fa-angle-double-up"></i>
-    </a>
-</div>
 
 
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/masonry/masonry.pkgd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/scrollprogress/scrollProgress.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/js/lightgallery-all.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/matery.js"></script>
 
-    <!-- Baidu Analytics -->
+  
+  <script data-pjax>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
 
-    <!-- Baidu Push -->
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
 
 <script>
-    (function () {
-        var bp = document.createElement('script');
-        var curProtocol = window.location.protocol.split(':')[0];
-        if (curProtocol === 'https') {
-            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
-        } else {
-            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
-        }
-        var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(bp, s);
-    })();
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'a705189dfc18ec59a7d0',
+      clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
+      repo        : 'qingwave.github.io',
+      owner       : 'qingwave',
+      admin       : [''],
+      id          : 'dad142dcff05071a679e83b4f341f17e',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
 </script>
 
-    
-    
-    <script async src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/others/busuanzi.pure.mini.js"></script>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/instantpage/instantpage.js" type="module"></script>
-    
-
+    </div>
 </body>
-
 </html>

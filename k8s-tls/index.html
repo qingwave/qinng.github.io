@@ -1,421 +1,244 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/medias/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/medias/favicon.png">
+  <meta name="google-site-verification" content="googledbe9fc5bea9bf603.html">
+  <meta name="baidu-site-verification" content="muFp3xopwC">
+
+<link rel="stylesheet" href="/css/main.css">
 
 
-<head><meta name="generator" content="Hexo 3.9.0">
-    <meta charset="utf-8">
-    <meta name="keywords" content="可能是史上最全的Kubernetes证书解析, Qinng">
-    <meta name="description" content="Coding, Reading and Daydreaming">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="renderer" content="webkit|ie-stand|ie-comp">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- Global site tag (gtag.js) - Google Analytics -->
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"qingwave.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="为了避免广告法，题目还是加个可能吧。">
+<meta name="keywords" content="k8s,apiserver,tls">
+<meta property="og:type" content="article">
+<meta property="og:title" content="可能是史上最全的Kubernetes证书解析">
+<meta property="og:url" content="https://qingwave.github.io/k8s-tls/index.html">
+<meta property="og:site_name" content="Qinng">
+<meta property="og:description" content="为了避免广告法，题目还是加个可能吧。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://d33wubrfki0l68.cloudfront.net/3c5428678a95c3715894011d8dd4812d2cf229b9/e745c/images/docs/aggregation-api-auth-flow.png">
+<meta property="og:updated_time" content="2020-06-05T10:49:19.967Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="可能是史上最全的Kubernetes证书解析">
+<meta name="twitter:description" content="为了避免广告法，题目还是加个可能吧。">
+<meta name="twitter:image" content="https://d33wubrfki0l68.cloudfront.net/3c5428678a95c3715894011d8dd4812d2cf229b9/e745c/images/docs/aggregation-api-auth-flow.png">
+
+<link rel="canonical" href="https://qingwave.github.io/k8s-tls/">
 
 
-    <title>可能是史上最全的Kubernetes证书解析 | Qinng</title>
-    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png">
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
 
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/awesome/css/all.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/animate/animate.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/css/lightgallery.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/matery.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/my.css">
+  <title>可能是史上最全的Kubernetes证书解析 | Qinng</title>
+  
 
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/jquery/jquery.min.js"></script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
 
 <link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
 <link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
 
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
 
-<body>
-    <header class="navbar-fixed">
-    <nav id="headNav" class="bg-color nav-transparent">
-        <div id="navContainer" class="nav-wrapper container">
-            <div class="brand-logo">
-                <a href="/" class="waves-effect waves-light">
-                    
-                    <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img" alt="LOGO">
-                    
-                    <span class="logo-span">Qinng</span>
-                </a>
-            </div>
-            
-
-<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
-<ul class="right nav-menu">
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/" class="waves-effect waves-light">
-      
-      <i class="fas fa-home" style="zoom: 0.6;"></i>
-      
-      <span>首页</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/tags" class="waves-effect waves-light">
-      
-      <i class="fas fa-tags" style="zoom: 0.6;"></i>
-      
-      <span>标签</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/categories" class="waves-effect waves-light">
-      
-      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
-      
-      <span>分类</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/archives" class="waves-effect waves-light">
-      
-      <i class="fas fa-archive" style="zoom: 0.6;"></i>
-      
-      <span>归档</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/contact" class="waves-effect waves-light">
-      
-      <i class="fas fa-comments" style="zoom: 0.6;"></i>
-      
-      <span>留言</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/about" class="waves-effect waves-light">
-      
-      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
-      
-      <span>关于</span>
-    </a>
-    
-  </li>
-  
-  <li>
-    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
-      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
-    </a>
-  </li>
-</ul>
-
-
-<div id="mobile-nav" class="side-nav sidenav">
-
-    <div class="mobile-head bg-color">
-        
-        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img circle responsive-img">
-        
-        <div class="logo-name">Qinng</div>
-        <div class="logo-desc">
-            
-            Coding, Reading and Daydreaming
-            
-        </div>
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
     </div>
+  </div>
 
-    
+  <div class="site-meta">
 
-    <ul class="menu-list mobile-menu-list">
-        
-        <li class="m-nav-item">
-	  
-		<a href="/" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-home"></i>
-			
-			首页
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/tags" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-tags"></i>
-			
-			标签
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/categories" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-bookmark"></i>
-			
-			分类
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/archives" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-archive"></i>
-			
-			归档
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/contact" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-comments"></i>
-			
-			留言
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/about" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-user-circle"></i>
-			
-			关于
-		</a>
-          
-        </li>
-        
-        
-    </ul>
-</div>
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Qinng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Qinng</p>
+  </div>
 
-
-        </div>
-
-        
-    </nav>
-
-</header>
-
-    
-
-
-
-<div class="bg-cover pd-header post-cover" style="background-image: url('https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/5.jpg')">
-    <div class="container" style="right: 0px;left: 0px;">
-        <div class="row">
-            <div class="col s12 m12 l12">
-                <div class="brand">
-                    <h1 class="description center-align post-title">可能是史上最全的Kubernetes证书解析</h1>
-                </div>
-            </div>
-        </div>
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
     </div>
+  </div>
 </div>
 
 
 
 
-<main class="post-container content">
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
 
     
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.css">
-<style>
-    #articleContent h1::before,
-    #articleContent h2::before,
-    #articleContent h3::before,
-    #articleContent h4::before,
-    #articleContent h5::before,
-    #articleContent h6::before {
-        display: block;
-        content: " ";
-        height: 100px;
-        margin-top: -100px;
-        visibility: hidden;
-    }
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
 
-    #articleContent :focus {
-        outline: none;
-    }
 
-    .toc-fixed {
-        position: fixed;
-        top: 64px;
-    }
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
 
-    .toc-widget {
-        width: 345px;
-        padding-left: 20px;
-    }
+          <div class="content post posts-expand">
+            
 
-    .toc-widget .toc-title {
-        margin: 35px 0 15px 0;
-        padding-left: 17px;
-        font-size: 1.5rem;
-        font-weight: bold;
-        line-height: 1.5rem;
-    }
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/k8s-tls/">
 
-    .toc-widget ol {
-        padding: 0;
-        list-style: none;
-    }
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Qinng">
+      <meta itemprop="description" content="Coding, Reading and Daydreaming">
+    </span>
 
-    #toc-content {
-        height: calc(100vh - 250px);
-        overflow: auto;
-    }
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qinng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          可能是史上最全的Kubernetes证书解析
+        </h1>
 
-    #toc-content ol {
-        padding-left: 10px;
-    }
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
 
-    #toc-content ol li {
-        padding-left: 10px;
-    }
+              <time title="创建时间：2020-04-25 08:53:03" itemprop="dateCreated datePublished" datetime="2020-04-25T08:53:03+08:00">2020-04-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-06-05 18:49:19" itemprop="dateModified" datetime="2020-06-05T18:49:19+08:00">2020-06-05</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/cloud/" itemprop="url" rel="index"><span itemprop="name">cloud</span></a>
+                </span>
+            </span>
 
-    #toc-content .toc-link:hover {
-        color: #42b983;
-        font-weight: 700;
-        text-decoration: underline;
-    }
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
 
-    #toc-content .toc-link::before {
-        background-color: transparent;
-        max-height: 25px;
-
-        position: absolute;
-        right: 23.5vw;
-        display: block;
-    }
-
-    #toc-content .is-active-link {
-        color: #42b983;
-    }
-
-    #floating-toc-btn {
-        position: fixed;
-        right: 15px;
-        bottom: 76px;
-        padding-top: 15px;
-        margin-bottom: 0;
-        z-index: 998;
-    }
-
-    #floating-toc-btn .btn-floating {
-        background: #fff !important;
-        opacity: 0.8;
-    }
-
-    #floating-toc-btn .btn-floating i {
-        color: #1f4d71;
-        font-size: 1rem;
-    }
-
-    #floating-toc-btn .after {
-        color: #000;
-        font-size: 1rem;
-    }
-</style>
-<div class="row">
-    <div id="main-content" class="col s12 m12 l9">
-        <!-- 文章内容详情 -->
-<div id="artDetail">
-    <div class="card">
-        <div class="card-content article-info">
-            <div class="row tag-cate">
-                <div class="col s7">
-                    
-                    <div class="article-tag">
-                        
-                            <a href="/tags/k8s/">
-                                <span class="chip bg-color">k8s</span>
-                            </a>
-                        
-                            <a href="/tags/apiserver/">
-                                <span class="chip bg-color">apiserver</span>
-                            </a>
-                        
-                            <a href="/tags/tls/">
-                                <span class="chip bg-color">tls</span>
-                            </a>
-                        
-                    </div>
-                    
-                </div>
-                <div class="col s5 right-align">
-                    
-                    <div class="post-cate">
-                        <i class="fas fa-bookmark fa-fw icon-category"></i>
-                        
-                            <a href="/categories/cloud/" class="post-category">
-                                cloud
-                            </a>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-
-            <div class="post-info">
-                
-                <div class="post-date info-break-policy">
-                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2020-04-25
-                </div>
-                
-
-                
-
-                
-                <div class="info-break-policy">
-                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    2.6k
-                </div>
-                
-
-                
-                <div class="info-break-policy">
-                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    13 分
-                </div>
-                
-
-                
-                    <div id="busuanzi_container_page_pv" class="info-break-policy">
-                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
-                        <span id="busuanzi_value_page_pv"></span>
-                    </div>
-				
-            </div>
         </div>
-        <hr class="clearfix">
-        <div class="card-content article-card-content">
-            <div id="articleContent">
-                <p>为了避免广告法，题目还是加个可能吧。</p>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>为了避免广告法，题目还是加个可能吧。</p>
 <p>想要安全就必须复杂起来，证书是少不了的。在Kubernetes中提供了非常丰富的证书类型，满足各种不同场景的需求，今天我们就来看一看Kubernetes中的证书。</p>
 <h2 id="k8s证书分类"><a href="#k8s证书分类" class="headerlink" title="k8s证书分类"></a>k8s证书分类</h2><p>在说证书之前，先想想作为集群的入口apiserver需要提供那些服务，与那些组件通信，通信的两方可能需要配置证书。<br>与apiserver通信的组件大体可以分为以下几类：</p>
 <ul>
@@ -428,116 +251,30 @@
 </ul>
 <p>居然有这么多种，除了在pod中通过serviceacount认证（当然pod需要认证apiserver的证书），其他几种都需要配置证书。</p>
 <p>其他集群内组件与apiserver通信的，kubelet/etcd/kube-proxy对应的也可以配置证书。</p>
-<h2 id="apiserver证书"><a href="#apiserver证书" class="headerlink" title="apiserver证书"></a>apiserver证书</h2><p>简单列举下apiserver证书相关的启动参数</p>
-<pre><code>--cert-dir string                           The directory where the TLS certs are located. If --tls-cert-file and --tls-private-key-file are provided, this flag will be ignored. (default &quot;/var/run/kubernetes&quot;)
---client-ca-file string                     If set, any request presenting a client certificate signed by one of the authorities in the client-ca-file is authenticated with an identity corresponding to the CommonName of the client certificate.
---etcd-certfile string                      SSL certification file used to secure etcd communication.
---etcd-keyfile string                       SSL key file used to secure etcd communication.
---kubelet-certificate-authority string      Path to a cert file for the certificate authority.
---kubelet-client-certificate string         Path to a client cert file for TLS.
---kubelet-client-key string                 Path to a client key file for TLS.
---proxy-client-cert-file string             Client certificate used to prove the identity of the aggregator or kube-apiserver when it must call out during a request. This includes proxying requests to a user api-server and calling out to webhook admission plugins. It is expected that this cert includes a signature from the CA in the --requestheader-client-ca-file flag. That CA is published in the &#39;extension-apiserver-authentication&#39; configmap in the kube-system namespace. Components recieving calls from kube-aggregator should use that CA to perform their half of the mutual TLS verification.
---proxy-client-key-file string              Private key for the client certificate used to prove the identity of the aggregator or kube-apiserver when it must call out during a request. This includes proxying requests to a user api-server and calling out to webhook admission plugins.
---requestheader-allowed-names stringSlice   List of client certificate common names to allow to provide usernames in headers specified by --requestheader-username-headers. If empty, any client certificate validated by the authorities in --requestheader-client-ca-file is allowed.
---requestheader-client-ca-file string       Root certificate bundle to use to verify client certificates on incoming requests before trusting usernames in headers specified by --requestheader-username-headers
---service-account-key-file stringArray      File containing PEM-encoded x509 RSA or ECDSA private or public keys, used to verify ServiceAccount tokens. If unspecified, --tls-private-key-file is used. The specified file can contain multiple keys, and the flag can be specified multiple times with different files.
---ssh-keyfile string                        If non-empty, use secure SSH proxy to the nodes, using this user keyfile
---tls-ca-file string                        If set, this certificate authority will used for secure access from Admission Controllers. This must be a valid PEM-encoded CA bundle. Alternatively, the certificate authority can be appended to the certificate provided by --tls-cert-file.
---tls-cert-file string                      File containing the default x509 Certificate for HTTPS. (CA cert, if any, concatenated after server cert). If HTTPS serving is enabled, and --tls-cert-file and --tls-private-key-file are not provided, a self-signed certificate and key are generated for the public address and saved to /var/run/kubernetes.
---tls-private-key-file string               File containing the default x509 private key matching --tls-cert-file.
---tls-sni-cert-key namedCertKey             A pair of x509 certificate and private key file paths, optionally suffixed with a list of domain patterns which are fully qualified domain names, possibly with prefixed wildcard segments. If no domain patterns are provided, the names of the certificate are extracted. Non-wildcard matches trump over wildcard matches, explicit domain patterns trump over extracted names. For multiple key/certificate pairs, use the --tls-sni-cert-key multiple times. Examples: &quot;example.crt,example.key&quot; or &quot;foo.crt,foo.key:*.foo.com,foo.com&quot;. (default [])
---oidc-ca-file string                       If set, the OpenID server&#39;s certificate will be verified by one of the authorities in the oidc-ca-file, otherwise the host&#39;s root CA set will be used.
---tls-sni-cert-key namedCertKey             A pair of x509 certificate and private key file paths, optionally suffixed with a list of domain patterns which are fully qualified domain names, possibly with prefixed wildcard segments. If no domain patterns are provided, the names of the certificate are extracted. Non-wildcard matches trump over wildcard matches, explicit domain patterns trump over extracted names. For multiple key/certificate pairs, use the --tls-sni-cert-key multiple times. Examples: &quot;example.crt,example.key&quot; or &quot;foo.crt,foo.key:*.foo.com,foo.com&quot;. (default [])
-</code></pre><p>不要害怕，咱们一个个看。</p>
-<h3 id="tls证书"><a href="#tls证书" class="headerlink" title="tls证书"></a>tls证书</h3><p>首先，apiserver本身是一个http服务器，需要tls证书</p>
-<pre><code>--tls-cert-file string
-    File containing the default x509 Certificate for HTTPS. (CA cert, if any, concatenated after server cert). If HTTPS serving is enabled, and --tls-cert-file and --tls-private-key-file are not provided, a self-signed certificate and key are generated for the public address and saved to the directory specified by --cert-dir.
-
---tls-private-key-file string
-    File containing the default x509 private key matching --tls-cert-file.
-其他client验证apiserver时可以通过签署这两个证书的CA，我们称为`tls-ca`
-</code></pre><h3 id="client证书"><a href="#client证书" class="headerlink" title="client证书"></a>client证书</h3><p>apiserver提供了tls证书，同样也需要验证client的配置，但是client太多了(kubectl,各种restapi调用的), 这些client需要统一用一个CA签发，我们称为<code>client-ca</code>。</p>
-<pre><code>--client-ca-file string
-    If set, any request presenting a client certificate signed by one of the authorities in the client-ca-file is authenticated with an identity corresponding to the CommonName of the client certificate.
-</code></pre><p>需要注意的是，在apiserver认证中，通过<code>CN</code>和<code>O</code>来识别用户，开启RBAC的用户要配置<code>CN</code>和<code>O</code>做一些授权：</p>
+<h2 id="apiserver证书"><a href="#apiserver证书" class="headerlink" title="apiserver证书"></a>apiserver证书</h2><p>简单列举下apiserver证书相关的启动参数<br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">--cert-dir string                           The directory where the TLS certs are located. If --tls-cert-file and --tls-private-key-file are provided, this flag will be ignored. (default "/var/run/kubernetes")</span><br><span class="line">--client-ca-file string                     If set, any request presenting a client certificate signed by one of the authorities in the client-ca-file is authenticated with an identity corresponding to the CommonName of the client certificate.</span><br><span class="line">--etcd-certfile string                      SSL certification file used to secure etcd communication.</span><br><span class="line">--etcd-keyfile string                       SSL key file used to secure etcd communication.</span><br><span class="line">--kubelet-certificate-authority string      Path to a cert file for the certificate authority.</span><br><span class="line">--kubelet-client-certificate string         Path to a client cert file for TLS.</span><br><span class="line">--kubelet-client-key string                 Path to a client key file for TLS.</span><br><span class="line">--proxy-client-cert-file string             Client certificate used to prove the identity of the aggregator or kube-apiserver when it must call out during a request. This includes proxying requests to a user api-server and calling out to webhook admission plugins. It is expected that this cert includes a signature from the CA in the --requestheader-client-ca-file flag. That CA is published in the 'extension-apiserver-authentication' configmap in the kube-system namespace. Components recieving calls from kube-aggregator should use that CA to perform their half of the mutual TLS verification.</span><br><span class="line">--proxy-client-key-file string              Private key for the client certificate used to prove the identity of the aggregator or kube-apiserver when it must call out during a request. This includes proxying requests to a user api-server and calling out to webhook admission plugins.</span><br><span class="line">--requestheader-allowed-names stringSlice   List of client certificate common names to allow to provide usernames in headers specified by --requestheader-username-headers. If empty, any client certificate validated by the authorities in --requestheader-client-ca-file is allowed.</span><br><span class="line">--requestheader-client-ca-file string       Root certificate bundle to use to verify client certificates on incoming requests before trusting usernames in headers specified by --requestheader-username-headers</span><br><span class="line">--service-account-key-file stringArray      File containing PEM-encoded x509 RSA or ECDSA private or public keys, used to verify ServiceAccount tokens. If unspecified, --tls-private-key-file is used. The specified file can contain multiple keys, and the flag can be specified multiple times with different files.</span><br><span class="line">--ssh-keyfile string                        If non-empty, use secure SSH proxy to the nodes, using this user keyfile</span><br><span class="line">--tls-ca-file string                        If set, this certificate authority will used for secure access from Admission Controllers. This must be a valid PEM-encoded CA bundle. Alternatively, the certificate authority can be appended to the certificate provided by --tls-cert-file.</span><br><span class="line">--tls-cert-file string                      File containing the default x509 Certificate for HTTPS. (CA cert, if any, concatenated after server cert). If HTTPS serving is enabled, and --tls-cert-file and --tls-private-key-file are not provided, a self-signed certificate and key are generated for the public address and saved to /var/run/kubernetes.</span><br><span class="line">--tls-private-key-file string               File containing the default x509 private key matching --tls-cert-file.</span><br><span class="line">--tls-sni-cert-key namedCertKey             A pair of x509 certificate and private key file paths, optionally suffixed with a list of domain patterns which are fully qualified domain names, possibly with prefixed wildcard segments. If no domain patterns are provided, the names of the certificate are extracted. Non-wildcard matches trump over wildcard matches, explicit domain patterns trump over extracted names. For multiple key/certificate pairs, use the --tls-sni-cert-key multiple times. Examples: "example.crt,example.key" or "foo.crt,foo.key:*.foo.com,foo.com". (default [])</span><br><span class="line">--oidc-ca-file string                       If set, the OpenID server's certificate will be verified by one of the authorities in the oidc-ca-file, otherwise the host's root CA set will be used.</span><br><span class="line">--tls-sni-cert-key namedCertKey             A pair of x509 certificate and private key file paths, optionally suffixed with a list of domain patterns which are fully qualified domain names, possibly with prefixed wildcard segments. If no domain patterns are provided, the names of the certificate are extracted. Non-wildcard matches trump over wildcard matches, explicit domain patterns trump over extracted names. For multiple key/certificate pairs, use the --tls-sni-cert-key multiple times. Examples: "example.crt,example.key" or "foo.crt,foo.key:*.foo.com,foo.com". (default [])</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>不要害怕，咱们一个个看。</p>
+<h3 id="tls证书"><a href="#tls证书" class="headerlink" title="tls证书"></a>tls证书</h3><p>首先，apiserver本身是一个http服务器，需要tls证书<br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">--tls-cert-file string</span><br><span class="line">    File containing the default x509 Certificate for HTTPS. (CA cert, if any, concatenated after server cert). If HTTPS serving is enabled, and --tls-cert-file and --tls-private-key-file are not provided, a self-signed certificate and key are generated for the public address and saved to the directory specified by --cert-dir.</span><br><span class="line"></span><br><span class="line">--tls-private-key-file string</span><br><span class="line">    File containing the default x509 private key matching --tls-cert-file.</span><br><span class="line">其他client验证apiserver时可以通过签署这两个证书的CA，我们称为`tls-ca`</span><br></pre></td></tr></tbody></table></figure><p></p>
+<h3 id="client证书"><a href="#client证书" class="headerlink" title="client证书"></a>client证书</h3><p>apiserver提供了tls证书，同样也需要验证client的配置，但是client太多了(kubectl,各种restapi调用的), 这些client需要统一用一个CA签发，我们称为<code>client-ca</code>。<br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">--client-ca-file string</span><br><span class="line">    If set, any request presenting a client certificate signed by one of the authorities in the client-ca-file is authenticated with an identity corresponding to the CommonName of the client certificate.</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>需要注意的是，在apiserver认证中，通过<code>CN</code>和<code>O</code>来识别用户，开启RBAC的用户要配置<code>CN</code>和<code>O</code>做一些授权：</p>
 <ul>
 <li>CN：Common Name，kube-apiserver 从证书中提取作为请求的用户名 (User Name)；浏览器使用该字段验证网站是否合法；</li>
 <li>O：Organization，kube-apiserver 从证书中提取该字段作为请求用户所属的组 (Group)</li>
 </ul>
-<p>如kube-proxy的证书申请, User为<code>system:kube-proxy</code>, Group为<code>k8s</code></p>
-<pre class="line-numbers language-json"><code class="language-json"><span class="token punctuation">{</span>
-  <span class="token property">"CN"</span><span class="token operator">:</span> <span class="token string">"system:kube-proxy"</span><span class="token punctuation">,</span>
-  <span class="token property">"hosts"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
-  <span class="token property">"key"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
-    <span class="token property">"algo"</span><span class="token operator">:</span> <span class="token string">"rsa"</span><span class="token punctuation">,</span>
-    <span class="token property">"size"</span><span class="token operator">:</span> <span class="token number">2048</span>
-  <span class="token punctuation">}</span><span class="token punctuation">,</span>
-  <span class="token property">"names"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
-    <span class="token punctuation">{</span>
-      <span class="token property">"C"</span><span class="token operator">:</span> <span class="token string">"CN"</span><span class="token punctuation">,</span>
-      <span class="token property">"ST"</span><span class="token operator">:</span> <span class="token string">"BeiJing"</span><span class="token punctuation">,</span>
-      <span class="token property">"L"</span><span class="token operator">:</span> <span class="token string">"BeiJing"</span><span class="token punctuation">,</span>
-      <span class="token property">"O"</span><span class="token operator">:</span> <span class="token string">"k8s"</span><span class="token punctuation">,</span>
-      <span class="token property">"OU"</span><span class="token operator">:</span> <span class="token string">"System"</span>
-    <span class="token punctuation">}</span>
-  <span class="token punctuation">]</span>
-<span class="token punctuation">}</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="requestheader证书"><a href="#requestheader证书" class="headerlink" title="requestheader证书"></a>requestheader证书</h3><p>apiserver可以使用HTTP请求头中的指定字段来进行认证，相关配置如下:</p>
-<pre><code>--requestheader-allowed-names stringSlice
-    List of client certificate common names to allow to provide usernames in headers specified by --requestheader-username-headers. If empty, any client certificate validated by the authorities in --requestheader-client-ca-file is allowed.
---requestheader-client-ca-file string
-    Root certificate bundle to use to verify client certificates on incoming requests before trusting usernames in headers specified by --requestheader-username-headers. WARNING: generally do not depend on authorization being already done for incoming requests.
---requestheader-extra-headers-prefix strings        
-    List of request header prefixes to inspect. X-Remote-Extra- is suggested.
---requestheader-group-headers strings               
-    List of request headers to inspect for groups. X-Remote-Group is suggested.
---requestheader-username-headers strings            
-    List of request headers to inspect for usernames. X-Remote-User is common.
-</code></pre><p>收到请求时，apiserver会首先认证<code>requsetheader-ca</code>，验证成功并且<code>CN</code>在<code>requestheader-allowed-names</code>（默认全部需求）中，然后通过Http header中的<code>X-Remote-User, X-Remote-Group</code>去得到用户；如果匹配不成功回去验证<code>client-ca</code>。</p>
+<p>如kube-proxy的证书申请, User为<code>system:kube-proxy</code>, Group为<code>k8s</code><br></p><figure class="highlight json"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">{</span><br><span class="line">  <span class="attr">"CN"</span>: <span class="string">"system:kube-proxy"</span>,</span><br><span class="line">  <span class="attr">"hosts"</span>: [],</span><br><span class="line">  <span class="attr">"key"</span>: {</span><br><span class="line">    <span class="attr">"algo"</span>: <span class="string">"rsa"</span>,</span><br><span class="line">    <span class="attr">"size"</span>: <span class="number">2048</span></span><br><span class="line">  },</span><br><span class="line">  <span class="attr">"names"</span>: [</span><br><span class="line">    {</span><br><span class="line">      <span class="attr">"C"</span>: <span class="string">"CN"</span>,</span><br><span class="line">      <span class="attr">"ST"</span>: <span class="string">"BeiJing"</span>,</span><br><span class="line">      <span class="attr">"L"</span>: <span class="string">"BeiJing"</span>,</span><br><span class="line">      <span class="attr">"O"</span>: <span class="string">"k8s"</span>,</span><br><span class="line">      <span class="attr">"OU"</span>: <span class="string">"System"</span></span><br><span class="line">    }</span><br><span class="line">  ]</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><p></p>
+<h3 id="requestheader证书"><a href="#requestheader证书" class="headerlink" title="requestheader证书"></a>requestheader证书</h3><p>apiserver可以使用HTTP请求头中的指定字段来进行认证，相关配置如下:<br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">--requestheader-allowed-names stringSlice</span><br><span class="line">    List of client certificate common names to allow to provide usernames in headers specified by --requestheader-username-headers. If empty, any client certificate validated by the authorities in --requestheader-client-ca-file is allowed.</span><br><span class="line">--requestheader-client-ca-file string</span><br><span class="line">    Root certificate bundle to use to verify client certificates on incoming requests before trusting usernames in headers specified by --requestheader-username-headers. WARNING: generally do not depend on authorization being already done for incoming requests.</span><br><span class="line">--requestheader-extra-headers-prefix strings        </span><br><span class="line">    List of request header prefixes to inspect. X-Remote-Extra- is suggested.</span><br><span class="line">--requestheader-group-headers strings               </span><br><span class="line">    List of request headers to inspect for groups. X-Remote-Group is suggested.</span><br><span class="line">--requestheader-username-headers strings            </span><br><span class="line">    List of request headers to inspect for usernames. X-Remote-User is common.</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>收到请求时，apiserver会首先认证<code>requsetheader-ca</code>，验证成功并且<code>CN</code>在<code>requestheader-allowed-names</code>（默认全部需求）中，然后通过Http header中的<code>X-Remote-User, X-Remote-Group</code>去得到用户；如果匹配不成功回去验证<code>client-ca</code>。</p>
 <p>如上，<code>requestheader</code>证书与<code>client-ca</code>不能是同一个。</p>
-<h3 id="proxy证书"><a href="#proxy证书" class="headerlink" title="proxy证书"></a>proxy证书</h3><p>k8s提供了丰富的扩展机制，CRD与[API Aggregation][<a href="https://kubernetes.io/zh/docs/tasks/access-kubernetes-api/configure-aggregation-layer/]。" target="_blank" rel="noopener">https://kubernetes.io/zh/docs/tasks/access-kubernetes-api/configure-aggregation-layer/]。</a><br>对于API Aggregation(例如metrics-server提供了metrics.k8s.io api), apiserver接受到请求后经过一系列验证过滤，会将请求转发到扩展API，这里apisever作为代理服务器，需要配置配置证书。</p>
-<pre><code>--proxy-client-cert-file string             
-    Client certificate used to prove the identity of the aggregator or kube-apiserver when it must call out during a request. This includes proxying requests to a user api-server and calling out to webhook admission plugins. It is expected that this cert includes a signature from the CA in the --requestheader-client-ca-file flag. That CA is published in the &#39;extension-apiserver-authentication&#39; configmap in the kube-system namespace. Components recieving calls from kube-aggregator should use that CA to perform their half of the mutual TLS verification.
---proxy-client-key-file string              
-    Private key for the client certificate used to prove the identity of the aggregator or kube-apiserver when it must call out during a request. This includes proxying requests to a user api-server and calling out to webhook admission plugins.
-</code></pre><p>需要注意的是对证书需要通过<code>requestheader-ca</code>签发，扩展api会通过requestheader证书去验证，具体流程后面会写一篇，下图为官方提供的流程<br><img src="https://d33wubrfki0l68.cloudfront.net/3c5428678a95c3715894011d8dd4812d2cf229b9/e745c/images/docs/aggregation-api-auth-flow.png" alt="aggregation-api"></p>
-<h3 id="kubelet证书"><a href="#kubelet证书" class="headerlink" title="kubelet证书"></a>kubelet证书</h3><p>对于kubelet，apiserver单独提供了证书配置选项，同时kubelet组件也提供了反向设置的相关选项:</p>
-<pre><code># API Server
---kubelet-certificate-authority string
-    Path to a cert file for the certificate authority.
---kubelet-client-certificate string
-    Path to a client cert file for TLS.
---kubelet-client-key string
-    Path to a client key file for TLS.
-
-# kubelet
---client-ca-file string
-    If set, any request presenting a client certificate signed by one of the authorities in the client-ca-file is authenticated with an identity corresponding to the CommonName of the client certificate.
---tls-cert-file string 
-    File containing x509 Certificate used for serving HTTPS (with intermediate certs, if any, concatenated after server cert). If --tls-cert-file and --tls-private-key-file are not provided, a self-signed certificate and key are generated for the public address and saved to the directory passed to --cert-dir.
---tls-private-key-file string
-    File containing x509 private key matching --tls-cert-file.
-</code></pre><p>kubelet也是即作为server也作为client, 需要提供tls证书和client-ca, 我们称这个CA为<code>kubelet-ca</code>, 可以是单独的CA。</p>
-<h3 id="etcd证书"><a href="#etcd证书" class="headerlink" title="etcd证书"></a>etcd证书</h3><p>这个也不用多说，用来连接etcd，由<code>etcd-ca</code>签发</p>
-<pre><code>--etcd-certfile string                      SSL certification file used to secure etcd communication.
---etcd-keyfile string                       SSL key file used to secure etcd communication.
-</code></pre><h3 id="serviceaccount证书"><a href="#serviceaccount证书" class="headerlink" title="serviceaccount证书"></a>serviceaccount证书</h3><p>在k8s中，通过<code>JWT</code>认证<code>serviecaccount</code>，同样有两个证书配置:</p>
-<pre><code># apiserver
---service-account-key-file stringArray # 用于验证sa
-    File containing PEM-encoded x509 RSA or ECDSA private or public keys, used to verify ServiceAccount tokens. The specified file can contain multiple keys, and the flag can be specified multiple times with different files. If unspecified, --tls-private-key-file is used. Must be specified when --service-account-signing-key is provided
---service-account-signing-key-file string
-    Path to the file that contains the current private key of the service account token issuer. The issuer will sign issued ID tokens with this private key. (Requires the &#39;TokenRequest&#39; feature gate.)
-
-# controller-manager
-–service-account-private-key-file #用于签署sa
-</code></pre><p>这两个配置描述了对<code>serviceaccount</code>进行签名验证时所使用的证书；可以是单独的生成，我们称为<code>sa-key</code>。</p>
+<h3 id="proxy证书"><a href="#proxy证书" class="headerlink" title="proxy证书"></a>proxy证书</h3><p>k8s提供了丰富的扩展机制，CRD与[API Aggregation][<a href="https://kubernetes.io/zh/docs/tasks/access-kubernetes-api/configure-aggregation-layer/]。" target="_blank" rel="noopener">https://kubernetes.io/zh/docs/tasks/access-kubernetes-api/configure-aggregation-layer/]。</a><br>对于API Aggregation(例如metrics-server提供了metrics.k8s.io api), apiserver接受到请求后经过一系列验证过滤，会将请求转发到扩展API，这里apisever作为代理服务器，需要配置配置证书。<br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">--proxy-client-cert-file string             </span><br><span class="line">    Client certificate used to prove the identity of the aggregator or kube-apiserver when it must call out during a request. This includes proxying requests to a user api-server and calling out to webhook admission plugins. It is expected that this cert includes a signature from the CA in the --requestheader-client-ca-file flag. That CA is published in the 'extension-apiserver-authentication' configmap in the kube-system namespace. Components recieving calls from kube-aggregator should use that CA to perform their half of the mutual TLS verification.</span><br><span class="line">--proxy-client-key-file string              </span><br><span class="line">    Private key for the client certificate used to prove the identity of the aggregator or kube-apiserver when it must call out during a request. This includes proxying requests to a user api-server and calling out to webhook admission plugins.</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>需要注意的是对证书需要通过<code>requestheader-ca</code>签发，扩展api会通过requestheader证书去验证，具体流程后面会写一篇，下图为官方提供的流程<br><img src="https://d33wubrfki0l68.cloudfront.net/3c5428678a95c3715894011d8dd4812d2cf229b9/e745c/images/docs/aggregation-api-auth-flow.png" alt="aggregation-api"></p>
+<h3 id="kubelet证书"><a href="#kubelet证书" class="headerlink" title="kubelet证书"></a>kubelet证书</h3><p>对于kubelet，apiserver单独提供了证书配置选项，同时kubelet组件也提供了反向设置的相关选项:<br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># API Server</span><br><span class="line">--kubelet-certificate-authority string</span><br><span class="line">    Path to a cert file for the certificate authority.</span><br><span class="line">--kubelet-client-certificate string</span><br><span class="line">    Path to a client cert file for TLS.</span><br><span class="line">--kubelet-client-key string</span><br><span class="line">    Path to a client key file for TLS.</span><br><span class="line"></span><br><span class="line"># kubelet</span><br><span class="line">--client-ca-file string</span><br><span class="line">    If set, any request presenting a client certificate signed by one of the authorities in the client-ca-file is authenticated with an identity corresponding to the CommonName of the client certificate.</span><br><span class="line">--tls-cert-file string </span><br><span class="line">    File containing x509 Certificate used for serving HTTPS (with intermediate certs, if any, concatenated after server cert). If --tls-cert-file and --tls-private-key-file are not provided, a self-signed certificate and key are generated for the public address and saved to the directory passed to --cert-dir.</span><br><span class="line">--tls-private-key-file string</span><br><span class="line">    File containing x509 private key matching --tls-cert-file.</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>kubelet也是即作为server也作为client, 需要提供tls证书和client-ca, 我们称这个CA为<code>kubelet-ca</code>, 可以是单独的CA。</p>
+<h3 id="etcd证书"><a href="#etcd证书" class="headerlink" title="etcd证书"></a>etcd证书</h3><p>这个也不用多说，用来连接etcd，由<code>etcd-ca</code>签发<br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">--etcd-certfile string                      SSL certification file used to secure etcd communication.</span><br><span class="line">--etcd-keyfile string                       SSL key file used to secure etcd communication.</span><br></pre></td></tr></tbody></table></figure><p></p>
+<h3 id="serviceaccount证书"><a href="#serviceaccount证书" class="headerlink" title="serviceaccount证书"></a>serviceaccount证书</h3><p>在k8s中，通过<code>JWT</code>认证<code>serviecaccount</code>，同样有两个证书配置:<br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># apiserver</span><br><span class="line">--service-account-key-file stringArray # 用于验证sa</span><br><span class="line">    File containing PEM-encoded x509 RSA or ECDSA private or public keys, used to verify ServiceAccount tokens. The specified file can contain multiple keys, and the flag can be specified multiple times with different files. If unspecified, --tls-private-key-file is used. Must be specified when --service-account-signing-key is provided</span><br><span class="line">--service-account-signing-key-file string</span><br><span class="line">    Path to the file that contains the current private key of the service account token issuer. The issuer will sign issued ID tokens with this private key. (Requires the 'TokenRequest' feature gate.)</span><br><span class="line"></span><br><span class="line"># controller-manager</span><br><span class="line">–service-account-private-key-file #用于签署sa</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>这两个配置描述了对<code>serviceaccount</code>进行签名验证时所使用的证书；可以是单独的生成，我们称为<code>sa-key</code>。</p>
 <h2 id="其他证书"><a href="#其他证书" class="headerlink" title="其他证书"></a>其他证书</h2><p>其他还有<code>oidc</code>证书，用于OpenID认证；<code>ssh</code>证书，用来连接node，目前以及废弃。</p>
 <p>etcd与kubelet证书上面已经提过了，需要双方都配置。</p>
-<p>k8s中也支持证书申请，用户可以创建<code>CertificateSigningRequest</code>来申请证书，需要在controller-manager配置下面的证书，用于签发证书称为<code>sing-ca</code>，多用于webhook的证书配置。</p>
-<pre><code>--cluster-signing-cert-file string          Filename containing a PEM-encoded X509 CA certificate used to issue cluster-scoped certificates (default &quot;/etc/kubernetes/ca/ca.pem&quot;)
---cluster-signing-key-file string           Filename containing a PEM-encoded RSA or ECDSA private key used to sign cluster-scoped certificates (default &quot;/etc/kubernetes/ca/ca.key&quot;)
-</code></pre><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>k8s提供了强大的功能，需要考虑到各个场景的安全问题，上面我们梳理了遍目前常用的证书</p>
+<p>k8s中也支持证书申请，用户可以创建<code>CertificateSigningRequest</code>来申请证书，需要在controller-manager配置下面的证书，用于签发证书称为<code>sing-ca</code>，多用于webhook的证书配置。<br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">--cluster-signing-cert-file string          Filename containing a PEM-encoded X509 CA certificate used to issue cluster-scoped certificates (default "/etc/kubernetes/ca/ca.pem")</span><br><span class="line">--cluster-signing-key-file string           Filename containing a PEM-encoded RSA or ECDSA private key used to sign cluster-scoped certificates (default "/etc/kubernetes/ca/ca.key")</span><br></pre></td></tr></tbody></table></figure><p></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>k8s提供了强大的功能，需要考虑到各个场景的安全问题，上面我们梳理了遍目前常用的证书</p>
 <ul>
 <li>tls-ca</li>
 <li>client-ca</li>
@@ -557,493 +294,364 @@
 <li>sign-ca</li>
 </ul>
 <p>终于理完了，可以起床啦。</p>
-
-            </div>
-            <hr/>
-
-            
-
-
-
-            <div class="tag_share" style="display: block;">
-                <div class="post-meta__tag-list" style="display: inline-block;">
-                    
-                        <div class="article-tag">
-                            
-                                <a href="/tags/k8s/">
-                                    <span class="chip bg-color">k8s</span>
-                                </a>
-                            
-                                <a href="/tags/apiserver/">
-                                    <span class="chip bg-color">apiserver</span>
-                                </a>
-                            
-                                <a href="/tags/tls/">
-                                    <span class="chip bg-color">tls</span>
-                                </a>
-                            
-                        </div>
-                    
-                </div>
-                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
-                    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/css/share.min.css">
-<div id="article-share">
-
-    
-    <div class="social-share" data-sites="wechat,weibo" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/js/social-share.min.js"></script>
-    
-
-    
-
-</div>
-
-                </div>
-            </div>
-            
-        </div>
-    </div>
-
-    
-        <link rel="stylesheet" href="/libs/gitalk/gitalk.css">
-<link rel="stylesheet" href="/libs/gitalk/gitalk.min.js">
-
-<div class="card gitalk-card" data-aos="fade-up">
-    <div class="comment_headling" style="font-size: 20px; font-weight: 700; position: relative; padding-left: 20px; top: 15px; padding-bottom: 5px;">
-        <i class="fas fa-comments fa-fw" aria-hidden="true"></i>
-        <span>评论</span>
-    </div>
-    <div id="gitalk-container" class="card-content"></div>
-</div>
-
-<script src="/libs/gitalk/gitalk.min.js"></script>
 <script>
-    let gitalk = new Gitalk({
-        clientID: 'a705189dfc18ec59a7d0',
-        clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
-        repo: 'qingwave.github.io',
-        owner: 'qingwave',
-        admin: "qingwave",
-        id: '2020-04-25T08-53-03',
-        distractionFreeMode: false  // Facebook-like distraction free mode
-    });
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return; }
+            const img = document.createElement('img');
+            img.style = 'display:none !important;';
+            img.src = el.dataset.src;
+            img.addEventListener('error', () => {
+              img.remove();
+              el.style.color = 'inherit';
+              el.style.backgroundImage = 'none';
+              el.style.background = 'none';
+            });
+            img.addEventListener('load', () => {
+              img.remove();
+            });
+            document.body.appendChild(img);
+          });
+      </script>
+    </div>
 
-    gitalk.render('gitalk-container');
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>qinng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://qingwave.github.io/k8s-tls/" title="可能是史上最全的Kubernetes证书解析">https://qingwave.github.io/k8s-tls/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/k8s/" rel="tag"># k8s</a>
+              <a href="/tags/apiserver/" rel="tag"># apiserver</a>
+              <a href="/tags/tls/" rel="tag"># tls</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/ingress-benchmark/" rel="prev" title="ingress nginx benchmark">
+      <i class="fa fa-chevron-left"></i> ingress nginx benchmark
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/kube-apiserver-aggretation-api/" rel="next" title="kubernetes扩展apiserver实现分析">
+      kubernetes扩展apiserver实现分析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
 </script>
 
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-<article id="prenext-posts" class="prev-next articles">
-    <div class="row article-row">
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
-            <div class="card">
-                <a href="/ingress-benchmark/">
-                    <div class="card-image">
-                        
-                        
-                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/4.jpg" class="responsive-img" alt="ingress nginx benchmark">
-                        
-                        <span class="card-title">ingress nginx benchmark</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            Ingress是目前Kubernetes集群流量接入的重要入口，了解其性能指标有助于用户选用合适的网络方案。
-测试方案通过wrk压测后端nginx服务，对比ingress-nginx, 原生nginx，以及直连后端性能的差异，如下图:
-
-方
-                        
-                    </div>
-                    <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2020-05-21
-                        </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                            
-                            
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/k8s/">
-                        <span class="chip bg-color">k8s</span>
-                    </a>
-                    
-                    <a href="/tags/ingress/">
-                        <span class="chip bg-color">ingress</span>
-                    </a>
-                    
-                    <a href="/tags/nginx/">
-                        <span class="chip bg-color">nginx</span>
-                    </a>
-                    
-                </div>
-                
-            </div>
         </div>
-        
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge right-badge text-color">
-                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
-            </div>
-            <div class="card">
-                <a href="/kube-apiserver-aggretation-api/">
-                    <div class="card-image">
-                        
-                        
-                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/9.jpg" class="responsive-img" alt="kubernetes扩展apiserver实现分析">
-                        
-                        <span class="card-title">kubernetes扩展apiserver实现分析</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            Kubernetes提供了丰富的扩展功能，实现自定义资源有两种方式CRD与Aggregation API。相对于CRD，扩展API功能更丰富，可以实现单独的存储。今天来聊一聊，k8s是如是实现扩展api的，它与apiserver之间又是如何
-                        
-                    </div>
-                    <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-04-24
-                            </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                            
-                            
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/k8s/">
-                        <span class="chip bg-color">k8s</span>
-                    </a>
-                    
-                    <a href="/tags/apiserver/">
-                        <span class="chip bg-color">apiserver</span>
-                    </a>
-                    
-                </div>
-                
-            </div>
-        </div>
-        
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#k8s证书分类"><span class="nav-number">1.</span> <span class="nav-text">k8s证书分类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#apiserver证书"><span class="nav-number">2.</span> <span class="nav-text">apiserver证书</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#tls证书"><span class="nav-number">2.1.</span> <span class="nav-text">tls证书</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#client证书"><span class="nav-number">2.2.</span> <span class="nav-text">client证书</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#requestheader证书"><span class="nav-number">2.3.</span> <span class="nav-text">requestheader证书</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#proxy证书"><span class="nav-number">2.4.</span> <span class="nav-text">proxy证书</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#kubelet证书"><span class="nav-number">2.5.</span> <span class="nav-text">kubelet证书</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#etcd证书"><span class="nav-number">2.6.</span> <span class="nav-text">etcd证书</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#serviceaccount证书"><span class="nav-number">2.7.</span> <span class="nav-text">serviceaccount证书</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他证书"><span class="nav-number">3.</span> <span class="nav-text">其他证书</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Qinng</p>
+  <div class="site-description" itemprop="description">Coding, Reading and Daydreaming</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/qingwave" title="GitHub → https://github.com/qingwave" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:isguory@gmail.com" title="E-Mail → mailto:isguory@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
     </div>
-</article>
+  </aside>
+  <div id="sidebar-dimmer"></div>
 
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2018 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-terminal"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Qinng</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
 
 
 
-<!-- 代码块功能依赖 -->
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeBlockFuction.js"></script>
-
-<!-- 代码语言 -->
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeLang.js"></script>
-
-
-<!-- 代码块复制 -->
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeCopy.js"></script>
-
-
-<!-- 代码块收缩 -->
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeShrink.js"></script>
-
-
-<!-- 代码块折行 -->
-
-<style type="text/css">
-code[class*="language-"], pre[class*="language-"] { white-space: pre !important; }
-</style>
-
-
-    </div>
-    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
-        <div class="toc-widget">
-            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
-            <div id="toc-content"></div>
-        </div>
-    </div>
-</div>
-
-<!-- TOC 悬浮按钮. -->
-
-<div id="floating-toc-btn" class="hide-on-med-and-down">
-    <a class="btn-floating btn-mini waves-effect bnt-color">
-        <i class="fas fa-list-ul"></i>
-    </a>
-</div>
-
-
-<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.min.js"></script>
-<script>
-    $(function () {
-        tocbot.init({
-            tocSelector: '#toc-content',
-            contentSelector: '#articleContent',
-            headingsOffset: -($(window).height() * 0.4 - 45),
-            collapseDepth: Number('0'),
-            headingSelector: 'h2, h3, h4'
-        });
-
-        // modify the toc link href to support Chinese.
-        let i = 0;
-        let tocHeading = 'toc-heading-';
-        $('#toc-content a').each(function () {
-            $(this).attr('href', '#' + tocHeading + (++i));
-        });
-
-        // modify the heading title id to support Chinese.
-        i = 0;
-        $('#articleContent').children('h2, h3, h4').each(function () {
-            $(this).attr('id', tocHeading + (++i));
-        });
-
-        // Set scroll toc fixed.
-        let tocHeight = parseInt($(window).height() * 0.4 - 64);
-        let $tocWidget = $('.toc-widget');
-        $(window).scroll(function () {
-            let scroll = $(window).scrollTop();
-            /* add post toc fixed. */
-            if (scroll > tocHeight) {
-                $tocWidget.addClass('toc-fixed');
-            } else {
-                $tocWidget.removeClass('toc-fixed');
-            }
-        });
-
-        
-        /* 修复文章卡片 div 的宽度. */
-        let fixPostCardWidth = function (srcId, targetId) {
-            let srcDiv = $('#' + srcId);
-            if (srcDiv.length === 0) {
-                return;
-            }
-
-            let w = srcDiv.width();
-            if (w >= 450) {
-                w = w + 21;
-            } else if (w >= 350 && w < 450) {
-                w = w + 18;
-            } else if (w >= 300 && w < 350) {
-                w = w + 16;
-            } else {
-                w = w + 14;
-            }
-            $('#' + targetId).width(w);
-        };
-
-        // 切换TOC目录展开收缩的相关操作.
-        const expandedClass = 'expanded';
-        let $tocAside = $('#toc-aside');
-        let $mainContent = $('#main-content');
-        $('#floating-toc-btn .btn-floating').click(function () {
-            if ($tocAside.hasClass(expandedClass)) {
-                $tocAside.removeClass(expandedClass).hide();
-                $mainContent.removeClass('l9');
-            } else {
-                $tocAside.addClass(expandedClass).show();
-                $mainContent.addClass('l9');
-            }
-            fixPostCardWidth('artDetail', 'prenext-posts');
-        });
-        
-    });
-</script>
-
-    
-
-</main>
-
-
-
-
-    <footer class="page-footer bg-color">
-    
-    <div class="container row center-align" style="margin-bottom: 0px !important;">
-        <div class="center-align">
-            Copyright&nbsp;&copy;
-            <span id="year">2018</span>
-            <a href="https://qinng.now.sh" target="_blank">Qinng</a>
-            <br>
-            
-            &nbsp;<i class="fas fa-chart-area"></i>&nbsp;&nbsp;<span
-                >49.9k</span>&nbsp;
-            
-            
-            
-            
-            
-            
-            <span id="busuanzi_container_site_pv">
-                |&nbsp;<i class="far fa-eye"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_pv"
-                    ></span>&nbsp;
-            </span>
-            
-            
-            <span id="busuanzi_container_site_uv">
-                |&nbsp;<i class="fas fa-users"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_uv"
-                    ></span>&nbsp;
-            </span>
-            
-            <br>
-            
-            <br>
-            
-        </div>
-        <!-- <div class="col s12 m4 l4 social-link social-statis">
-    <a href="https://github.com/qingwave" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
-        <i class="fab fa-github"></i>
-    </a>
-
-
-
-    <a href="mailto:isguory@gmail.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
-        <i class="fas fa-envelope-open"></i>
-    </a>
 
 
 
 
 
+      </div>
+    </footer>
+  </div>
 
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/pjax/pjax.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/muse.js"></script>
+<script src="/js/next-boot.js"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '.languages',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
 
-
-
-
-
-
-
-
-
-
-
-    <a href="https://www.douban.com/people/69458430"
-       target="_blank" data-tooltip="关注我的豆瓣: 69458430" data-position="top"
-       data-delay="50">
-        <i class="fa fa-inverse">豆</i>
-    </a>
-
-
-
-    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
-        <i class="fas fa-rss"></i>
-    </a>
-
-</div> -->
-    </div>
-</footer>
-
-<div class="progress-bar"></div>
-
-
-    <!-- 搜索遮罩框 -->
-<div id="searchModal" class="modal">
-    <div class="modal-content">
-        <div class="search-header">
-            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
-            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
-                   class="search-input">
-        </div>
-        <div id="searchResult"></div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/search.js"></script>
-<script type="text/javascript">
-$(function () {
-    searchFunc("https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/search.xml", 'searchInput', 'searchResult');
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[data-pjax], script#page-configurations, #pjax script').forEach(element => {
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (element.id) {
+      script.id = element.id;
+    }
+    if (element.className) {
+      script.className = element.className;
+    }
+    if (element.type) {
+      script.type = element.type;
+    }
+    if (element.src) {
+      script.src = element.src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (element.dataset.pjax !== undefined) {
+      script.dataset.pjax = '';
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.subMenu)
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
 });
 </script>
 
-    <!-- 回到顶部按钮 -->
-<div id="backTop" class="top-scroll">
-    <a class="btn-floating btn-mini waves-effect" href="#!">
-        <!-- <i class="fas fa-caret-up"></i> -->
-        <!-- <i class="fas fa-chevron-up"></i> -->
-        <i class="fas fa-angle-double-up"></i>
-    </a>
-</div>
 
 
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/masonry/masonry.pkgd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/scrollprogress/scrollProgress.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/js/lightgallery-all.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/matery.js"></script>
 
-    <!-- Baidu Analytics -->
+  
+  <script data-pjax>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
 
-    <!-- Baidu Push -->
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
 
 <script>
-    (function () {
-        var bp = document.createElement('script');
-        var curProtocol = window.location.protocol.split(':')[0];
-        if (curProtocol === 'https') {
-            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
-        } else {
-            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
-        }
-        var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(bp, s);
-    })();
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'a705189dfc18ec59a7d0',
+      clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
+      repo        : 'qingwave.github.io',
+      owner       : 'qingwave',
+      admin       : [''],
+      id          : '2aa4319cb8811043f36efc9d8a6df686',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
 </script>
 
-    
-    
-    <script async src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/others/busuanzi.pure.mini.js"></script>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/instantpage/instantpage.js" type="module"></script>
-    
-
+    </div>
 </body>
-
 </html>

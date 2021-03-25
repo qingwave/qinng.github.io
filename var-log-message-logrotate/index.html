@@ -1,413 +1,242 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/medias/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/medias/favicon.png">
+  <meta name="google-site-verification" content="googledbe9fc5bea9bf603.html">
+  <meta name="baidu-site-verification" content="muFp3xopwC">
+
+<link rel="stylesheet" href="/css/main.css">
 
 
-<head><meta name="generator" content="Hexo 3.9.0">
-    <meta charset="utf-8">
-    <meta name="keywords" content="/var/log/message 归档探究, Qinng">
-    <meta name="description" content="Coding, Reading and Daydreaming">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="renderer" content="webkit|ie-stand|ie-comp">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- Global site tag (gtag.js) - Google Analytics -->
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"qingwave.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="由于项目要收集/var/log/messages的日志到es中，发现messages日志按天切割，但归档的时间却不一直，于是乎查了点资料探究下">
+<meta name="keywords" content="linux">
+<meta property="og:type" content="article">
+<meta property="og:title" content="&#x2F;var&#x2F;log&#x2F;message 归档探究">
+<meta property="og:url" content="https://qingwave.github.io/var-log-message-logrotate/index.html">
+<meta property="og:site_name" content="Qinng">
+<meta property="og:description" content="由于项目要收集/var/log/messages的日志到es中，发现messages日志按天切割，但归档的时间却不一直，于是乎查了点资料探究下">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2020-03-19T03:22:04.361Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="&#x2F;var&#x2F;log&#x2F;message 归档探究">
+<meta name="twitter:description" content="由于项目要收集/var/log/messages的日志到es中，发现messages日志按天切割，但归档的时间却不一直，于是乎查了点资料探究下">
+
+<link rel="canonical" href="https://qingwave.github.io/var-log-message-logrotate/">
 
 
-    <title>/var/log/message 归档探究 | Qinng</title>
-    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png">
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
 
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/awesome/css/all.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/animate/animate.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/css/lightgallery.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/matery.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/my.css">
+  <title>/var/log/message 归档探究 | Qinng</title>
+  
 
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/jquery/jquery.min.js"></script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
 
 <link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
 <link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
 
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
 
-<body>
-    <header class="navbar-fixed">
-    <nav id="headNav" class="bg-color nav-transparent">
-        <div id="navContainer" class="nav-wrapper container">
-            <div class="brand-logo">
-                <a href="/" class="waves-effect waves-light">
-                    
-                    <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img" alt="LOGO">
-                    
-                    <span class="logo-span">Qinng</span>
-                </a>
-            </div>
-            
-
-<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
-<ul class="right nav-menu">
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/" class="waves-effect waves-light">
-      
-      <i class="fas fa-home" style="zoom: 0.6;"></i>
-      
-      <span>首页</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/tags" class="waves-effect waves-light">
-      
-      <i class="fas fa-tags" style="zoom: 0.6;"></i>
-      
-      <span>标签</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/categories" class="waves-effect waves-light">
-      
-      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
-      
-      <span>分类</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/archives" class="waves-effect waves-light">
-      
-      <i class="fas fa-archive" style="zoom: 0.6;"></i>
-      
-      <span>归档</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/contact" class="waves-effect waves-light">
-      
-      <i class="fas fa-comments" style="zoom: 0.6;"></i>
-      
-      <span>留言</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/about" class="waves-effect waves-light">
-      
-      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
-      
-      <span>关于</span>
-    </a>
-    
-  </li>
-  
-  <li>
-    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
-      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
-    </a>
-  </li>
-</ul>
-
-
-<div id="mobile-nav" class="side-nav sidenav">
-
-    <div class="mobile-head bg-color">
-        
-        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img circle responsive-img">
-        
-        <div class="logo-name">Qinng</div>
-        <div class="logo-desc">
-            
-            Coding, Reading and Daydreaming
-            
-        </div>
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
     </div>
+  </div>
 
-    
+  <div class="site-meta">
 
-    <ul class="menu-list mobile-menu-list">
-        
-        <li class="m-nav-item">
-	  
-		<a href="/" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-home"></i>
-			
-			首页
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/tags" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-tags"></i>
-			
-			标签
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/categories" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-bookmark"></i>
-			
-			分类
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/archives" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-archive"></i>
-			
-			归档
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/contact" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-comments"></i>
-			
-			留言
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/about" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-user-circle"></i>
-			
-			关于
-		</a>
-          
-        </li>
-        
-        
-    </ul>
-</div>
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Qinng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Qinng</p>
+  </div>
 
-
-        </div>
-
-        
-    </nav>
-
-</header>
-
-    
-
-
-
-<div class="bg-cover pd-header post-cover" style="background-image: url('https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/0.jpg')">
-    <div class="container" style="right: 0px;left: 0px;">
-        <div class="row">
-            <div class="col s12 m12 l12">
-                <div class="brand">
-                    <h1 class="description center-align post-title">/var/log/message 归档探究</h1>
-                </div>
-            </div>
-        </div>
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
     </div>
+  </div>
 </div>
 
 
 
 
-<main class="post-container content">
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
 
     
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.css">
-<style>
-    #articleContent h1::before,
-    #articleContent h2::before,
-    #articleContent h3::before,
-    #articleContent h4::before,
-    #articleContent h5::before,
-    #articleContent h6::before {
-        display: block;
-        content: " ";
-        height: 100px;
-        margin-top: -100px;
-        visibility: hidden;
-    }
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
 
-    #articleContent :focus {
-        outline: none;
-    }
 
-    .toc-fixed {
-        position: fixed;
-        top: 64px;
-    }
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
 
-    .toc-widget {
-        width: 345px;
-        padding-left: 20px;
-    }
+          <div class="content post posts-expand">
+            
 
-    .toc-widget .toc-title {
-        margin: 35px 0 15px 0;
-        padding-left: 17px;
-        font-size: 1.5rem;
-        font-weight: bold;
-        line-height: 1.5rem;
-    }
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/var-log-message-logrotate/">
 
-    .toc-widget ol {
-        padding: 0;
-        list-style: none;
-    }
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Qinng">
+      <meta itemprop="description" content="Coding, Reading and Daydreaming">
+    </span>
 
-    #toc-content {
-        height: calc(100vh - 250px);
-        overflow: auto;
-    }
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qinng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          /var/log/message 归档探究
+        </h1>
 
-    #toc-content ol {
-        padding-left: 10px;
-    }
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
 
-    #toc-content ol li {
-        padding-left: 10px;
-    }
+              <time title="创建时间：2018-09-27 13:51:52" itemprop="dateCreated datePublished" datetime="2018-09-27T13:51:52+08:00">2018-09-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-19 11:22:04" itemprop="dateModified" datetime="2020-03-19T11:22:04+08:00">2020-03-19</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+                </span>
+            </span>
 
-    #toc-content .toc-link:hover {
-        color: #42b983;
-        font-weight: 700;
-        text-decoration: underline;
-    }
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
 
-    #toc-content .toc-link::before {
-        background-color: transparent;
-        max-height: 25px;
-
-        position: absolute;
-        right: 23.5vw;
-        display: block;
-    }
-
-    #toc-content .is-active-link {
-        color: #42b983;
-    }
-
-    #floating-toc-btn {
-        position: fixed;
-        right: 15px;
-        bottom: 76px;
-        padding-top: 15px;
-        margin-bottom: 0;
-        z-index: 998;
-    }
-
-    #floating-toc-btn .btn-floating {
-        background: #fff !important;
-        opacity: 0.8;
-    }
-
-    #floating-toc-btn .btn-floating i {
-        color: #1f4d71;
-        font-size: 1rem;
-    }
-
-    #floating-toc-btn .after {
-        color: #000;
-        font-size: 1rem;
-    }
-</style>
-<div class="row">
-    <div id="main-content" class="col s12 m12 l9">
-        <!-- 文章内容详情 -->
-<div id="artDetail">
-    <div class="card">
-        <div class="card-content article-info">
-            <div class="row tag-cate">
-                <div class="col s7">
-                    
-                    <div class="article-tag">
-                        
-                            <a href="/tags/linux/">
-                                <span class="chip bg-color">linux</span>
-                            </a>
-                        
-                    </div>
-                    
-                </div>
-                <div class="col s5 right-align">
-                    
-                    <div class="post-cate">
-                        <i class="fas fa-bookmark fa-fw icon-category"></i>
-                        
-                            <a href="/categories/linux/" class="post-category">
-                                linux
-                            </a>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-
-            <div class="post-info">
-                
-                <div class="post-date info-break-policy">
-                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2018-09-27
-                </div>
-                
-
-                
-
-                
-                <div class="info-break-policy">
-                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    1.1k
-                </div>
-                
-
-                
-                <div class="info-break-policy">
-                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    5 分
-                </div>
-                
-
-                
-                    <div id="busuanzi_container_page_pv" class="info-break-policy">
-                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
-                        <span id="busuanzi_value_page_pv"></span>
-                    </div>
-				
-            </div>
         </div>
-        <hr class="clearfix">
-        <div class="card-content article-card-content">
-            <div id="articleContent">
-                <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>由于项目要收集/var/log/messages的日志到es中，发现messages日志按天切割，但归档的时间却不一直，于是乎查了点资料探究下</p>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>由于项目要收集/var/log/messages的日志到es中，发现messages日志按天切割，但归档的时间却不一直，于是乎查了点资料探究下</p>
 <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>/var/log/messages是由journald生成的，流程如下<br><code>systemd --&gt; systemd-journald --&gt; ram DB --&gt; rsyslog -&gt; /var/log</code><br>当 systemd 启动后，systemd-journald 也会立即启动。将日志存入RAM中，当rsyslog 启动后会读取该RAM并完成筛选分类写入目录 /var/log 。所以牵扯到DB，操作就会很舒服。</p>
 <h3 id="相关服务"><a href="#相关服务" class="headerlink" title="相关服务"></a>相关服务</h3><p>针对日志文件所需的功能，我们需要的服务于进程有：</p>
 <ul>
@@ -416,617 +245,371 @@
 <li>logrotate：主要在进行日志的轮替功能</li>
 </ul>
 <p>Centos7.x使用systemd提供的journalctl日志管理，基本上，系统由systemd所管理，那所有经由systemd启动的服务（）如果在启动或结束的过程中发生了一些问题或是正常的信息），就会将该信息由systemd-journald.service以二进制的方式记录下来，之后再将信息发个rsyslog.service作进一步的记载。<br>systemd-journald.service的记录主要都放置与内存中，因此在存取方面效能比较好。也能透过journalctl以及systemctl status unit.service 来查看各个不同服务的日志。</p>
-<h3 id="相关配置"><a href="#相关配置" class="headerlink" title="相关配置"></a>相关配置</h3><p>journald配置文件<br><code>cat /etc/systemd/journald.conf</code></p>
-<pre><code># This file is part of systemd.
-#
-# systemd is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation; either version 2.1 of the License, or
-# (at your option) any later version.
-#
-# Entries in this file show the compile time defaults.
-# You can change settings by editing this file.
-# Defaults can be restored by simply deleting this file.
-#
-# See journald.conf(5) for details.
-
-[Journal]
-#Storage=auto
-#Compress=yes
-#Seal=yes
-#SplitMode=uid
-#SyncIntervalSec=5m
-#RateLimitInterval=30s
-#RateLimitBurst=1000
-#SystemMaxUse=
-#SystemKeepFree=
-#SystemMaxFileSize=
-#RuntimeMaxUse=
-#RuntimeKeepFree=
-#RuntimeMaxFileSize=
-#MaxRetentionSec=
-#MaxFileSec=1month
-#ForwardToSyslog=yes #默认转向syslog
-#ForwardToKMsg=no
-#ForwardToConsole=no
-#ForwardToWall=yes
-#TTYPath=/dev/console
-#MaxLevelStore=debug
-#MaxLevelSyslog=debug
-#MaxLevelKMsg=notice
-#MaxLevelConsole=info
-#MaxLevelWall=emerg
-</code></pre><ol>
+<h3 id="相关配置"><a href="#相关配置" class="headerlink" title="相关配置"></a>相关配置</h3><p>journald配置文件<br><code>cat /etc/systemd/journald.conf</code><br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"># This file is part of systemd.</span><br><span class="line">#</span><br><span class="line"># systemd is free software; you can redistribute it and/or modify it</span><br><span class="line"># under the terms of the GNU Lesser General Public License as published by</span><br><span class="line"># the Free Software Foundation; either version 2.1 of the License, or</span><br><span class="line"># (at your option) any later version.</span><br><span class="line">#</span><br><span class="line"># Entries in this file show the compile time defaults.</span><br><span class="line"># You can change settings by editing this file.</span><br><span class="line"># Defaults can be restored by simply deleting this file.</span><br><span class="line">#</span><br><span class="line"># See journald.conf(5) for details.</span><br><span class="line"></span><br><span class="line">[Journal]</span><br><span class="line">#Storage=auto</span><br><span class="line">#Compress=yes</span><br><span class="line">#Seal=yes</span><br><span class="line">#SplitMode=uid</span><br><span class="line">#SyncIntervalSec=5m</span><br><span class="line">#RateLimitInterval=30s</span><br><span class="line">#RateLimitBurst=1000</span><br><span class="line">#SystemMaxUse=</span><br><span class="line">#SystemKeepFree=</span><br><span class="line">#SystemMaxFileSize=</span><br><span class="line">#RuntimeMaxUse=</span><br><span class="line">#RuntimeKeepFree=</span><br><span class="line">#RuntimeMaxFileSize=</span><br><span class="line">#MaxRetentionSec=</span><br><span class="line">#MaxFileSec=1month</span><br><span class="line">#ForwardToSyslog=yes #默认转向syslog</span><br><span class="line">#ForwardToKMsg=no</span><br><span class="line">#ForwardToConsole=no</span><br><span class="line">#ForwardToWall=yes</span><br><span class="line">#TTYPath=/dev/console</span><br><span class="line">#MaxLevelStore=debug</span><br><span class="line">#MaxLevelSyslog=debug</span><br><span class="line">#MaxLevelKMsg=notice</span><br><span class="line">#MaxLevelConsole=info</span><br><span class="line">#MaxLevelWall=emerg</span><br></pre></td></tr></tbody></table></figure><p></p>
+<ol>
 <li>目前，centos log 由 rsyslog 管理，设置文件  /var/lib/rsyslog 并兼容syslog的配置文件</li>
 <li>其中messages文件记录系统日志，包括mail、定时任务、系统异常等（*.info;mail.none;authpriv.none;cron.none /var/log/messages）</li>
 <li>Logrotate 实现日志切割，具体由 CRON 实现</li>
 </ol>
-<p>logrotate配置文件<br><code>cat /etc/cron.daily/logrotate</code></p>
-<pre><code>#!/bin/sh
-
-
-/usr/sbin/logrotate -s /var/lib/logrotate/logrotate.status /etc/logrotate.conf
-EXITVALUE=$?
-if [ $EXITVALUE != 0 ]; then
-/usr/bin/logger -t logrotate &quot;ALERT exited abnormally with [$EXITVALUE]&quot;
-fi
-exit 0
-
-实际运行时，Logrotate会调用配置文件「/etc/logrotate.conf」
-# see &quot;man logrotate&quot; for details
-# rotate log files weekly
-weekly # 每月归档一次
-
-
-# keep 4 weeks worth of backlogs
-rotate 4 # 归档4个周期
-
-
-# create new (empty) log files after rotating old ones
-create
-
-
-# use date as a suffix of the rotated file
-dateext 
-
-
-# uncomment this if you want your log files compressed
-#compress # 默认不压缩
-
-
-# RPM packages drop log rotation information into this directory
-include /etc/logrotate.d #包含其下配置文件
-
-
-# no packages own wtmp and btmp -- we&#39;ll rotate them here
-/var/log/wtmp {
-monthly
-create 0664 root utmp
-minsize 1M
-rotate 1
-}
-
-
-/var/log/btmp {
-missingok
-monthly
-create 0600 root utmp
-rotate 1
-}
-
-
-# system-specific logs may be also be configured here.
-</code></pre><p>设置特殊文件的归档方式<br><code>cat /etc/logrotate.d/syslog</code> </p>
-<pre><code>/var/log/cron
-/var/log/maillog
-/var/log/messages
-/var/log/secure
-/var/log/spooler
-{
-daily
-rotate 4
-compress
-delaycompress # 延迟一个周期压缩
-missingok # 日志丢失不报错
-sharedscripts # 运行postrotate脚本，作用是在所有日志都轮转后统一执行一次脚本。如果没有配置这个，那么每个日志轮转后都会执行一次脚本
-postrotate # 在logrotate转储之后需要执行的指令，例如重新启动 (kill -HUP) 某个服务！必须独立成行
-/bin/kill -HUP `cat /var/run/syslogd.pid 2&gt; /dev/null` 2&gt; /dev/null || true
-endscript
-}
-</code></pre><p>messages中日志生成时间大多是晚上3点多，这是由cron控制的<br><code>cat /etc/anacrontab</code></p>
-<pre><code># /etc/anacrontab: configuration file for anacron
-
-
-# See anacron(8) and anacrontab(5) for details.
-
-
-SHELL=/bin/sh
-PATH=/sbin:/bin:/usr/sbin:/usr/bin
-MAILTO=root
-# the maximal random delay added to the base delay of the jobs
-RANDOM_DELAY=45 # 随机延迟最大时间
-# the jobs will be started during the following hours only
-START_HOURS_RANGE=3-22 # 3点到22点执行
-
-
-#period in days delay in minutes job-identifier command
-1 5 cron.daily nice run-parts /etc/cron.daily # 第一天执行，延迟5分钟
-7 25 cron.weekly nice run-parts /etc/cron.weekly
-@monthly 45 cron.monthly nice run-parts /etc/cron.monthly
-日志生成时间在03:05~03:50 随机延迟时间 5~5+45
-</code></pre>
-            </div>
-            <hr/>
-
-            
-
-
-
-            <div class="tag_share" style="display: block;">
-                <div class="post-meta__tag-list" style="display: inline-block;">
-                    
-                        <div class="article-tag">
-                            
-                                <a href="/tags/linux/">
-                                    <span class="chip bg-color">linux</span>
-                                </a>
-                            
-                        </div>
-                    
-                </div>
-                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
-                    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/css/share.min.css">
-<div id="article-share">
-
-    
-    <div class="social-share" data-sites="wechat,weibo" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/js/social-share.min.js"></script>
-    
-
-    
-
-</div>
-
-                </div>
-            </div>
-            
-        </div>
-    </div>
-
-    
-        <link rel="stylesheet" href="/libs/gitalk/gitalk.css">
-<link rel="stylesheet" href="/libs/gitalk/gitalk.min.js">
-
-<div class="card gitalk-card" data-aos="fade-up">
-    <div class="comment_headling" style="font-size: 20px; font-weight: 700; position: relative; padding-left: 20px; top: 15px; padding-bottom: 5px;">
-        <i class="fas fa-comments fa-fw" aria-hidden="true"></i>
-        <span>评论</span>
-    </div>
-    <div id="gitalk-container" class="card-content"></div>
-</div>
-
-<script src="/libs/gitalk/gitalk.min.js"></script>
+<p>logrotate配置文件<br><code>cat /etc/cron.daily/logrotate</code><br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/sh</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">/usr/sbin/logrotate -s /var/lib/logrotate/logrotate.status /etc/logrotate.conf</span><br><span class="line">EXITVALUE=$?</span><br><span class="line">if [ $EXITVALUE != 0 ]; then</span><br><span class="line">/usr/bin/logger -t logrotate "ALERT exited abnormally with [$EXITVALUE]"</span><br><span class="line">fi</span><br><span class="line">exit 0</span><br><span class="line"></span><br><span class="line">实际运行时，Logrotate会调用配置文件「/etc/logrotate.conf」</span><br><span class="line"># see "man logrotate" for details</span><br><span class="line"># rotate log files weekly</span><br><span class="line">weekly # 每月归档一次</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># keep 4 weeks worth of backlogs</span><br><span class="line">rotate 4 # 归档4个周期</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># create new (empty) log files after rotating old ones</span><br><span class="line">create</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># use date as a suffix of the rotated file</span><br><span class="line">dateext </span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># uncomment this if you want your log files compressed</span><br><span class="line">#compress # 默认不压缩</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># RPM packages drop log rotation information into this directory</span><br><span class="line">include /etc/logrotate.d #包含其下配置文件</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># no packages own wtmp and btmp -- we'll rotate them here</span><br><span class="line">/var/log/wtmp {</span><br><span class="line">monthly</span><br><span class="line">create 0664 root utmp</span><br><span class="line">minsize 1M</span><br><span class="line">rotate 1</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">/var/log/btmp {</span><br><span class="line">missingok</span><br><span class="line">monthly</span><br><span class="line">create 0600 root utmp</span><br><span class="line">rotate 1</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># system-specific logs may be also be configured here.</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>设置特殊文件的归档方式<br><code>cat /etc/logrotate.d/syslog</code><br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">/var/log/cron</span><br><span class="line">/var/log/maillog</span><br><span class="line">/var/log/messages</span><br><span class="line">/var/log/secure</span><br><span class="line">/var/log/spooler</span><br><span class="line">{</span><br><span class="line">daily</span><br><span class="line">rotate 4</span><br><span class="line">compress</span><br><span class="line">delaycompress # 延迟一个周期压缩</span><br><span class="line">missingok # 日志丢失不报错</span><br><span class="line">sharedscripts # 运行postrotate脚本，作用是在所有日志都轮转后统一执行一次脚本。如果没有配置这个，那么每个日志轮转后都会执行一次脚本</span><br><span class="line">postrotate # 在logrotate转储之后需要执行的指令，例如重新启动 (kill -HUP) 某个服务！必须独立成行</span><br><span class="line">/bin/kill -HUP `cat /var/run/syslogd.pid 2&gt; /dev/null` 2&gt; /dev/null || true</span><br><span class="line">endscript</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>messages中日志生成时间大多是晚上3点多，这是由cron控制的<br><code>cat /etc/anacrontab</code><br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"># /etc/anacrontab: configuration file for anacron</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># See anacron(8) and anacrontab(5) for details.</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">SHELL=/bin/sh</span><br><span class="line">PATH=/sbin:/bin:/usr/sbin:/usr/bin</span><br><span class="line">MAILTO=root</span><br><span class="line"># the maximal random delay added to the base delay of the jobs</span><br><span class="line">RANDOM_DELAY=45 # 随机延迟最大时间</span><br><span class="line"># the jobs will be started during the following hours only</span><br><span class="line">START_HOURS_RANGE=3-22 # 3点到22点执行</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">#period in days delay in minutes job-identifier command</span><br><span class="line">1 5 cron.daily nice run-parts /etc/cron.daily # 第一天执行，延迟5分钟</span><br><span class="line">7 25 cron.weekly nice run-parts /etc/cron.weekly</span><br><span class="line">@monthly 45 cron.monthly nice run-parts /etc/cron.monthly</span><br><span class="line">日志生成时间在03:05~03:50 随机延迟时间 5~5+45</span><br></pre></td></tr></tbody></table></figure><p></p>
 <script>
-    let gitalk = new Gitalk({
-        clientID: 'a705189dfc18ec59a7d0',
-        clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
-        repo: 'qingwave.github.io',
-        owner: 'qingwave',
-        admin: "qingwave",
-        id: '2018-09-27T13-51-52',
-        distractionFreeMode: false  // Facebook-like distraction free mode
-    });
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return; }
+            const img = document.createElement('img');
+            img.style = 'display:none !important;';
+            img.src = el.dataset.src;
+            img.addEventListener('error', () => {
+              img.remove();
+              el.style.color = 'inherit';
+              el.style.backgroundImage = 'none';
+              el.style.background = 'none';
+            });
+            img.addEventListener('load', () => {
+              img.remove();
+            });
+            document.body.appendChild(img);
+          });
+      </script>
+    </div>
 
-    gitalk.render('gitalk-container');
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Qinng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://qingwave.github.io/var-log-message-logrotate/" title="/var/log/message 归档探究">https://qingwave.github.io/var-log-message-logrotate/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/linux/" rel="tag"># linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pod-timezone/" rel="prev" title="Pod中时区设置">
+      <i class="fa fa-chevron-left"></i> Pod中时区设置
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/k8s-serviceaccount-mount-failed/" rel="next" title="k8s serviceaccount挂载pod问题">
+      k8s serviceaccount挂载pod问题 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
 </script>
 
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-<article id="prenext-posts" class="prev-next articles">
-    <div class="row article-row">
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
-            <div class="card">
-                <a href="/pod-timezone/">
-                    <div class="card-image">
-                        
-                        
-                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/12.jpg" class="responsive-img" alt="Pod中时区设置">
-                        
-                        <span class="card-title">Pod中时区设置</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            Pod设置本地时区的两种方法我们下载的很多容器内的时区都是格林尼治时间，与北京时间差8小时，这将导致容器内的日志和文件创建时间与实际时区不符，有两种方式解决这个问题：
-
-修改镜像中的时区配置文件
-将宿主机的时区配置文件/etc/localt
-                        
-                    </div>
-                    <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2018-10-13
-                        </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                            
-                            
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/k8s/">
-                        <span class="chip bg-color">k8s</span>
-                    </a>
-                    
-                    <a href="/tags/docker/">
-                        <span class="chip bg-color">docker</span>
-                    </a>
-                    
-                </div>
-                
-            </div>
         </div>
-        
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge right-badge text-color">
-                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
-            </div>
-            <div class="card">
-                <a href="/k8s-serviceaccount-mount-failed/">
-                    <div class="card-image">
-                        
-                        
-                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/6.jpg" class="responsive-img" alt="k8s serviceaccount挂载pod问题">
-                        
-                        <span class="card-title">k8s serviceaccount挂载pod问题</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            问题1用户创建role失败，报错:
-$ kubectl create -f role.yml 
-Error from server (Forbidden): error when creating "role.yml": roles.rba
-                        
-                    </div>
-                    <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2018-09-26
-                            </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                            
-                            
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/k8s/">
-                        <span class="chip bg-color">k8s</span>
-                    </a>
-                    
-                </div>
-                
-            </div>
-        </div>
-        
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#介绍"><span class="nav-number">2.</span> <span class="nav-text">介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#相关服务"><span class="nav-number">2.1.</span> <span class="nav-text">相关服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#相关配置"><span class="nav-number">2.2.</span> <span class="nav-text">相关配置</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Qinng</p>
+  <div class="site-description" itemprop="description">Coding, Reading and Daydreaming</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/qingwave" title="GitHub → https://github.com/qingwave" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:isguory@gmail.com" title="E-Mail → mailto:isguory@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
     </div>
-</article>
+  </aside>
+  <div id="sidebar-dimmer"></div>
 
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2018 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-terminal"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Qinng</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
 
 
 
-<!-- 代码块功能依赖 -->
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeBlockFuction.js"></script>
-
-<!-- 代码语言 -->
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeLang.js"></script>
-
-
-<!-- 代码块复制 -->
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeCopy.js"></script>
-
-
-<!-- 代码块收缩 -->
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeShrink.js"></script>
-
-
-<!-- 代码块折行 -->
-
-<style type="text/css">
-code[class*="language-"], pre[class*="language-"] { white-space: pre !important; }
-</style>
-
-
-    </div>
-    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
-        <div class="toc-widget">
-            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
-            <div id="toc-content"></div>
-        </div>
-    </div>
-</div>
-
-<!-- TOC 悬浮按钮. -->
-
-<div id="floating-toc-btn" class="hide-on-med-and-down">
-    <a class="btn-floating btn-mini waves-effect bnt-color">
-        <i class="fas fa-list-ul"></i>
-    </a>
-</div>
-
-
-<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.min.js"></script>
-<script>
-    $(function () {
-        tocbot.init({
-            tocSelector: '#toc-content',
-            contentSelector: '#articleContent',
-            headingsOffset: -($(window).height() * 0.4 - 45),
-            collapseDepth: Number('0'),
-            headingSelector: 'h2, h3, h4'
-        });
-
-        // modify the toc link href to support Chinese.
-        let i = 0;
-        let tocHeading = 'toc-heading-';
-        $('#toc-content a').each(function () {
-            $(this).attr('href', '#' + tocHeading + (++i));
-        });
-
-        // modify the heading title id to support Chinese.
-        i = 0;
-        $('#articleContent').children('h2, h3, h4').each(function () {
-            $(this).attr('id', tocHeading + (++i));
-        });
-
-        // Set scroll toc fixed.
-        let tocHeight = parseInt($(window).height() * 0.4 - 64);
-        let $tocWidget = $('.toc-widget');
-        $(window).scroll(function () {
-            let scroll = $(window).scrollTop();
-            /* add post toc fixed. */
-            if (scroll > tocHeight) {
-                $tocWidget.addClass('toc-fixed');
-            } else {
-                $tocWidget.removeClass('toc-fixed');
-            }
-        });
-
-        
-        /* 修复文章卡片 div 的宽度. */
-        let fixPostCardWidth = function (srcId, targetId) {
-            let srcDiv = $('#' + srcId);
-            if (srcDiv.length === 0) {
-                return;
-            }
-
-            let w = srcDiv.width();
-            if (w >= 450) {
-                w = w + 21;
-            } else if (w >= 350 && w < 450) {
-                w = w + 18;
-            } else if (w >= 300 && w < 350) {
-                w = w + 16;
-            } else {
-                w = w + 14;
-            }
-            $('#' + targetId).width(w);
-        };
-
-        // 切换TOC目录展开收缩的相关操作.
-        const expandedClass = 'expanded';
-        let $tocAside = $('#toc-aside');
-        let $mainContent = $('#main-content');
-        $('#floating-toc-btn .btn-floating').click(function () {
-            if ($tocAside.hasClass(expandedClass)) {
-                $tocAside.removeClass(expandedClass).hide();
-                $mainContent.removeClass('l9');
-            } else {
-                $tocAside.addClass(expandedClass).show();
-                $mainContent.addClass('l9');
-            }
-            fixPostCardWidth('artDetail', 'prenext-posts');
-        });
-        
-    });
-</script>
-
-    
-
-</main>
-
-
-
-
-    <footer class="page-footer bg-color">
-    
-    <div class="container row center-align" style="margin-bottom: 0px !important;">
-        <div class="center-align">
-            Copyright&nbsp;&copy;
-            <span id="year">2018</span>
-            <a href="https://qinng.now.sh" target="_blank">Qinng</a>
-            <br>
-            
-            &nbsp;<i class="fas fa-chart-area"></i>&nbsp;&nbsp;<span
-                >49.9k</span>&nbsp;
-            
-            
-            
-            
-            
-            
-            <span id="busuanzi_container_site_pv">
-                |&nbsp;<i class="far fa-eye"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_pv"
-                    ></span>&nbsp;
-            </span>
-            
-            
-            <span id="busuanzi_container_site_uv">
-                |&nbsp;<i class="fas fa-users"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_uv"
-                    ></span>&nbsp;
-            </span>
-            
-            <br>
-            
-            <br>
-            
-        </div>
-        <!-- <div class="col s12 m4 l4 social-link social-statis">
-    <a href="https://github.com/qingwave" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
-        <i class="fab fa-github"></i>
-    </a>
-
-
-
-    <a href="mailto:isguory@gmail.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
-        <i class="fas fa-envelope-open"></i>
-    </a>
 
 
 
 
 
+      </div>
+    </footer>
+  </div>
 
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/pjax/pjax.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/muse.js"></script>
+<script src="/js/next-boot.js"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '.languages',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
 
-
-
-
-
-
-
-
-
-
-
-    <a href="https://www.douban.com/people/69458430"
-       target="_blank" data-tooltip="关注我的豆瓣: 69458430" data-position="top"
-       data-delay="50">
-        <i class="fa fa-inverse">豆</i>
-    </a>
-
-
-
-    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
-        <i class="fas fa-rss"></i>
-    </a>
-
-</div> -->
-    </div>
-</footer>
-
-<div class="progress-bar"></div>
-
-
-    <!-- 搜索遮罩框 -->
-<div id="searchModal" class="modal">
-    <div class="modal-content">
-        <div class="search-header">
-            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
-            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
-                   class="search-input">
-        </div>
-        <div id="searchResult"></div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/search.js"></script>
-<script type="text/javascript">
-$(function () {
-    searchFunc("https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/search.xml", 'searchInput', 'searchResult');
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[data-pjax], script#page-configurations, #pjax script').forEach(element => {
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (element.id) {
+      script.id = element.id;
+    }
+    if (element.className) {
+      script.className = element.className;
+    }
+    if (element.type) {
+      script.type = element.type;
+    }
+    if (element.src) {
+      script.src = element.src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (element.dataset.pjax !== undefined) {
+      script.dataset.pjax = '';
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.subMenu)
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
 });
 </script>
 
-    <!-- 回到顶部按钮 -->
-<div id="backTop" class="top-scroll">
-    <a class="btn-floating btn-mini waves-effect" href="#!">
-        <!-- <i class="fas fa-caret-up"></i> -->
-        <!-- <i class="fas fa-chevron-up"></i> -->
-        <i class="fas fa-angle-double-up"></i>
-    </a>
-</div>
 
 
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/masonry/masonry.pkgd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/scrollprogress/scrollProgress.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/js/lightgallery-all.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/matery.js"></script>
 
-    <!-- Baidu Analytics -->
+  
+  <script data-pjax>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
 
-    <!-- Baidu Push -->
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
 
 <script>
-    (function () {
-        var bp = document.createElement('script');
-        var curProtocol = window.location.protocol.split(':')[0];
-        if (curProtocol === 'https') {
-            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
-        } else {
-            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
-        }
-        var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(bp, s);
-    })();
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'a705189dfc18ec59a7d0',
+      clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
+      repo        : 'qingwave.github.io',
+      owner       : 'qingwave',
+      admin       : [''],
+      id          : '4491986b973d62f9f9dd5416cee0be4e',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
 </script>
 
-    
-    
-    <script async src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/others/busuanzi.pure.mini.js"></script>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/instantpage/instantpage.js" type="module"></script>
-    
-
+    </div>
 </body>
-
 </html>

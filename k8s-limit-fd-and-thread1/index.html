@@ -1,417 +1,244 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/medias/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/medias/favicon.png">
+  <meta name="google-site-verification" content="googledbe9fc5bea9bf603.html">
+  <meta name="baidu-site-verification" content="muFp3xopwC">
+
+<link rel="stylesheet" href="/css/main.css">
 
 
-<head><meta name="generator" content="Hexo 3.9.0">
-    <meta charset="utf-8">
-    <meta name="keywords" content="k8s中fd与thread限制(一), Qinng">
-    <meta name="description" content="Coding, Reading and Daydreaming">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="renderer" content="webkit|ie-stand|ie-comp">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- Global site tag (gtag.js) - Google Analytics -->
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"qingwave.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="linux中为了防止进程恶意使用资源，系统使用ulimit来限制进程的资源使用情况（包括文件描述符，线程数，内存大小等）。同样地在容器化场景中，需要限制其系统资源的使用量。">
+<meta name="keywords" content="docker,k8s">
+<meta property="og:type" content="article">
+<meta property="og:title" content="k8s中fd与thread限制(一)">
+<meta property="og:url" content="https://qingwave.github.io/k8s-limit-fd-and-thread1/index.html">
+<meta property="og:site_name" content="Qinng">
+<meta property="og:description" content="linux中为了防止进程恶意使用资源，系统使用ulimit来限制进程的资源使用情况（包括文件描述符，线程数，内存大小等）。同样地在容器化场景中，需要限制其系统资源的使用量。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://qingwave.github.io/img/blogImg/pod-fd-limit.png">
+<meta property="og:updated_time" content="2020-04-07T08:11:44.650Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="k8s中fd与thread限制(一)">
+<meta name="twitter:description" content="linux中为了防止进程恶意使用资源，系统使用ulimit来限制进程的资源使用情况（包括文件描述符，线程数，内存大小等）。同样地在容器化场景中，需要限制其系统资源的使用量。">
+<meta name="twitter:image" content="https://qingwave.github.io/img/blogImg/pod-fd-limit.png">
+
+<link rel="canonical" href="https://qingwave.github.io/k8s-limit-fd-and-thread1/">
 
 
-    <title>k8s中fd与thread限制(一) | Qinng</title>
-    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png">
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
 
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/awesome/css/all.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/animate/animate.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/css/lightgallery.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/matery.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/my.css">
+  <title>k8s中fd与thread限制(一) | Qinng</title>
+  
 
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/jquery/jquery.min.js"></script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
 
 <link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
 <link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
 
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
 
-<body>
-    <header class="navbar-fixed">
-    <nav id="headNav" class="bg-color nav-transparent">
-        <div id="navContainer" class="nav-wrapper container">
-            <div class="brand-logo">
-                <a href="/" class="waves-effect waves-light">
-                    
-                    <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img" alt="LOGO">
-                    
-                    <span class="logo-span">Qinng</span>
-                </a>
-            </div>
-            
-
-<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
-<ul class="right nav-menu">
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/" class="waves-effect waves-light">
-      
-      <i class="fas fa-home" style="zoom: 0.6;"></i>
-      
-      <span>首页</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/tags" class="waves-effect waves-light">
-      
-      <i class="fas fa-tags" style="zoom: 0.6;"></i>
-      
-      <span>标签</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/categories" class="waves-effect waves-light">
-      
-      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
-      
-      <span>分类</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/archives" class="waves-effect waves-light">
-      
-      <i class="fas fa-archive" style="zoom: 0.6;"></i>
-      
-      <span>归档</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/contact" class="waves-effect waves-light">
-      
-      <i class="fas fa-comments" style="zoom: 0.6;"></i>
-      
-      <span>留言</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/about" class="waves-effect waves-light">
-      
-      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
-      
-      <span>关于</span>
-    </a>
-    
-  </li>
-  
-  <li>
-    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
-      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
-    </a>
-  </li>
-</ul>
-
-
-<div id="mobile-nav" class="side-nav sidenav">
-
-    <div class="mobile-head bg-color">
-        
-        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img circle responsive-img">
-        
-        <div class="logo-name">Qinng</div>
-        <div class="logo-desc">
-            
-            Coding, Reading and Daydreaming
-            
-        </div>
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
     </div>
+  </div>
 
-    
+  <div class="site-meta">
 
-    <ul class="menu-list mobile-menu-list">
-        
-        <li class="m-nav-item">
-	  
-		<a href="/" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-home"></i>
-			
-			首页
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/tags" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-tags"></i>
-			
-			标签
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/categories" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-bookmark"></i>
-			
-			分类
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/archives" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-archive"></i>
-			
-			归档
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/contact" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-comments"></i>
-			
-			留言
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/about" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-user-circle"></i>
-			
-			关于
-		</a>
-          
-        </li>
-        
-        
-    </ul>
-</div>
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Qinng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Qinng</p>
+  </div>
 
-
-        </div>
-
-        
-    </nav>
-
-</header>
-
-    
-
-
-
-<div class="bg-cover pd-header post-cover" style="background-image: url('https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/8.jpg')">
-    <div class="container" style="right: 0px;left: 0px;">
-        <div class="row">
-            <div class="col s12 m12 l12">
-                <div class="brand">
-                    <h1 class="description center-align post-title">k8s中fd与thread限制(一)</h1>
-                </div>
-            </div>
-        </div>
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
     </div>
+  </div>
 </div>
 
 
 
 
-<main class="post-container content">
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
 
     
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.css">
-<style>
-    #articleContent h1::before,
-    #articleContent h2::before,
-    #articleContent h3::before,
-    #articleContent h4::before,
-    #articleContent h5::before,
-    #articleContent h6::before {
-        display: block;
-        content: " ";
-        height: 100px;
-        margin-top: -100px;
-        visibility: hidden;
-    }
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
 
-    #articleContent :focus {
-        outline: none;
-    }
 
-    .toc-fixed {
-        position: fixed;
-        top: 64px;
-    }
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
 
-    .toc-widget {
-        width: 345px;
-        padding-left: 20px;
-    }
+          <div class="content post posts-expand">
+            
 
-    .toc-widget .toc-title {
-        margin: 35px 0 15px 0;
-        padding-left: 17px;
-        font-size: 1.5rem;
-        font-weight: bold;
-        line-height: 1.5rem;
-    }
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/k8s-limit-fd-and-thread1/">
 
-    .toc-widget ol {
-        padding: 0;
-        list-style: none;
-    }
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Qinng">
+      <meta itemprop="description" content="Coding, Reading and Daydreaming">
+    </span>
 
-    #toc-content {
-        height: calc(100vh - 250px);
-        overflow: auto;
-    }
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qinng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          k8s中fd与thread限制(一)
+        </h1>
 
-    #toc-content ol {
-        padding-left: 10px;
-    }
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
 
-    #toc-content ol li {
-        padding-left: 10px;
-    }
+              <time title="创建时间：2019-07-16 18:44:47" itemprop="dateCreated datePublished" datetime="2019-07-16T18:44:47+08:00">2019-07-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-07 16:11:44" itemprop="dateModified" datetime="2020-04-07T16:11:44+08:00">2020-04-07</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/cloud/" itemprop="url" rel="index"><span itemprop="name">cloud</span></a>
+                </span>
+            </span>
 
-    #toc-content .toc-link:hover {
-        color: #42b983;
-        font-weight: 700;
-        text-decoration: underline;
-    }
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
 
-    #toc-content .toc-link::before {
-        background-color: transparent;
-        max-height: 25px;
-
-        position: absolute;
-        right: 23.5vw;
-        display: block;
-    }
-
-    #toc-content .is-active-link {
-        color: #42b983;
-    }
-
-    #floating-toc-btn {
-        position: fixed;
-        right: 15px;
-        bottom: 76px;
-        padding-top: 15px;
-        margin-bottom: 0;
-        z-index: 998;
-    }
-
-    #floating-toc-btn .btn-floating {
-        background: #fff !important;
-        opacity: 0.8;
-    }
-
-    #floating-toc-btn .btn-floating i {
-        color: #1f4d71;
-        font-size: 1rem;
-    }
-
-    #floating-toc-btn .after {
-        color: #000;
-        font-size: 1rem;
-    }
-</style>
-<div class="row">
-    <div id="main-content" class="col s12 m12 l9">
-        <!-- 文章内容详情 -->
-<div id="artDetail">
-    <div class="card">
-        <div class="card-content article-info">
-            <div class="row tag-cate">
-                <div class="col s7">
-                    
-                    <div class="article-tag">
-                        
-                            <a href="/tags/k8s/">
-                                <span class="chip bg-color">k8s</span>
-                            </a>
-                        
-                            <a href="/tags/docker/">
-                                <span class="chip bg-color">docker</span>
-                            </a>
-                        
-                    </div>
-                    
-                </div>
-                <div class="col s5 right-align">
-                    
-                    <div class="post-cate">
-                        <i class="fas fa-bookmark fa-fw icon-category"></i>
-                        
-                            <a href="/categories/cloud/" class="post-category">
-                                cloud
-                            </a>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-
-            <div class="post-info">
-                
-                <div class="post-date info-break-policy">
-                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2019-07-16
-                </div>
-                
-
-                
-
-                
-                <div class="info-break-policy">
-                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    2.6k
-                </div>
-                
-
-                
-                <div class="info-break-policy">
-                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    13 分
-                </div>
-                
-
-                
-                    <div id="busuanzi_container_page_pv" class="info-break-policy">
-                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
-                        <span id="busuanzi_value_page_pv"></span>
-                    </div>
-				
-            </div>
         </div>
-        <hr class="clearfix">
-        <div class="card-content article-card-content">
-            <div id="articleContent">
-                <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>linux中为了防止进程恶意使用资源，系统使用ulimit来限制进程的资源使用情况（包括文件描述符，线程数，内存大小等）。同样地在容器化场景中，需要限制其系统资源的使用量。</p>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>linux中为了防止进程恶意使用资源，系统使用ulimit来限制进程的资源使用情况（包括文件描述符，线程数，内存大小等）。同样地在容器化场景中，需要限制其系统资源的使用量。</p>
 <h2 id="限制方法"><a href="#限制方法" class="headerlink" title="限制方法"></a>限制方法</h2><ul>
 <li><strong>ulimit</strong>: docker 默认支持ulimit设置，可以在dockerd中配置 default-ulimits 可为宿主机所有容器配置默认的ulimit，docker启动时可添加 –ulimit 为每个容器配置ulimit会覆盖默认的设置；目前k8s暂不支持ulimit</li>
 <li><strong>cgroup</strong>: docker 默认支持cgroup中内存、cpu、pid等的限制，对于线程限制可通过 –pids-limit 可限制每个容器的pid总数，dockerd暂无默认的pid limit设置；k8s 限制线程数，可通过在kubelet中开启SupportPodPidsLimit特性，设置pod级别pid limit</li>
@@ -426,145 +253,37 @@
 </ul>
 <p><strong>修改方式</strong>： ulimit命令，临时修改；/etc/security/limits.conf，永久修改</p>
 <p><strong>工作原理</strong>： 根据 PAM （ Pluggable Authentication Modules 简称 PAM）机制，应用程序启动时，按 /etc/pam.d 配置加载 pam_xxxx.so 模块。 /etc/pam.d 下包含了 login 、sshd 、su 、sudo 等程序的 PAM 配置文件， 因此用户重新登录时，将调用 pam_limits.so 加载 limits.conf 配置文件</p>
-<h4 id="文件描述符限制"><a href="#文件描述符限制" class="headerlink" title="文件描述符限制"></a>文件描述符限制</h4><pre><code>RLIMIT_NOFILE
-              This specifies a value one greater than the maximum file
-              descriptor number that can be opened by this process.
-              Attempts (open(2), pipe(2), dup(2), etc.)  to exceed this
-              limit yield the error EMFILE.  (Historically, this limit was
-              named RLIMIT_OFILE on BSD.)
-
-              Since Linux 4.5, this limit also defines the maximum number of
-              file descriptors that an unprivileged process (one without the
-              CAP_SYS_RESOURCE capability) may have &quot;in flight&quot; to other
-              processes, by being passed across UNIX domain sockets.  This
-              limit applies to the sendmsg(2) system call.  For further
-              details, see unix(7).
-</code></pre><p>根据定义，nofile 限制进程所能最多打开的文件数量，作用范围进程。</p>
+<h4 id="文件描述符限制"><a href="#文件描述符限制" class="headerlink" title="文件描述符限制"></a>文件描述符限制</h4><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">RLIMIT_NOFILE</span><br><span class="line">              This specifies a value one greater than the maximum file</span><br><span class="line">              descriptor number that can be opened by this process.</span><br><span class="line">              Attempts (open(2), pipe(2), dup(2), etc.)  to exceed this</span><br><span class="line">              limit yield the error EMFILE.  (Historically, this limit was</span><br><span class="line">              named RLIMIT_OFILE on BSD.)</span><br><span class="line"></span><br><span class="line">              Since Linux 4.5, this limit also defines the maximum number of</span><br><span class="line">              file descriptors that an unprivileged process (one without the</span><br><span class="line">              CAP_SYS_RESOURCE capability) may have "in flight" to other</span><br><span class="line">              processes, by being passed across UNIX domain sockets.  This</span><br><span class="line">              limit applies to the sendmsg(2) system call.  For further</span><br><span class="line">              details, see unix(7).</span><br></pre></td></tr></tbody></table></figure>
+<p>根据定义，nofile 限制进程所能最多打开的文件数量，作用范围进程。</p>
 <ol>
-<li>设置 ulimit nofile限制soft 100/hard 200，默认启动为root用户<pre><code>$ docker run -d --ulimit nofile=100:200  cr.d.xiaomi.net/containercloud/alpine:webtool top
-</code></pre></li>
-<li>进入容器查看， fd soft限制为100个<pre><code>/ # ulimit -a
--f: file size (blocks)             unlimited
--t: cpu time (seconds)             unlimited
--d: data seg size (kb)             unlimited
--s: stack size (kb)                8192
--c: core file size (blocks)        unlimited
--m: resident set size (kb)         unlimited
--l: locked memory (kb)             64
--p: processes                      unlimited
--n: file descriptors               100
--v: address space (kb)             unlimited
--w: locks                          unlimited
--e: scheduling priority            0
--r: real-time priority             0
-</code></pre></li>
+<li><p>设置 ulimit nofile限制soft 100/hard 200，默认启动为root用户</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -d --ulimit nofile=100:200  cr.d.xiaomi.net/containercloud/alpine:webtool top</span><br></pre></td></tr></tbody></table></figure>
+</li>
+<li><p>进入容器查看， fd soft限制为100个</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">/ # ulimit -a</span><br><span class="line">-f: file size (blocks)             unlimited</span><br><span class="line">-t: cpu time (seconds)             unlimited</span><br><span class="line">-d: data seg size (kb)             unlimited</span><br><span class="line">-s: stack size (kb)                8192</span><br><span class="line">-c: core file size (blocks)        unlimited</span><br><span class="line">-m: resident set size (kb)         unlimited</span><br><span class="line">-l: locked memory (kb)             64</span><br><span class="line">-p: processes                      unlimited</span><br><span class="line">-n: file descriptors               100</span><br><span class="line">-v: address space (kb)             unlimited</span><br><span class="line">-w: locks                          unlimited</span><br><span class="line">-e: scheduling priority            0</span><br><span class="line">-r: real-time priority             0</span><br></pre></td></tr></tbody></table></figure>
+</li>
 <li><p>使用ab测试，并发90个http请求，创建90个socket，正常运行</p>
-<pre class="line-numbers language-bash"><code class="language-bash">/ <span class="token comment" spellcheck="true"># ab -n 1000000 -c 90 http://61.135.169.125:80/ &amp;</span>
-/ <span class="token comment" spellcheck="true"># lsof | wc -l </span>
-108
-/ <span class="token comment" spellcheck="true"># lsof | grep -c ab</span>
-94
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">/ <span class="comment"># ab -n 1000000 -c 90 http://61.135.169.125:80/ &amp;</span></span><br><span class="line">/ <span class="comment"># lsof | wc -l </span></span><br><span class="line">108</span><br><span class="line">/ <span class="comment"># lsof | grep -c ab</span></span><br><span class="line">94</span><br></pre></td></tr></tbody></table></figure>
 </li>
 <li><p>并发100个http请求，受到ulimit限制</p>
-<pre class="line-numbers language-bash"><code class="language-bash"> / <span class="token comment" spellcheck="true">#  ab -n 1000000 -c 100 http://61.135.169.125:80/</span>
- This is ApacheBench, Version 2.3 <span class="token operator">&lt;</span><span class="token variable">$Revision</span><span class="token keyword">:</span> 1843412 $<span class="token operator">></span>
- Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
- Licensed to The Apache Software Foundation, http://www.apache.org/
-
- Benchmarking 61.135.169.125 <span class="token punctuation">(</span>be patient<span class="token punctuation">)</span>
- socket: No <span class="token function">file</span> descriptors available <span class="token punctuation">(</span>24<span class="token punctuation">)</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+ <figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">/ <span class="comment">#  ab -n 1000000 -c 100 http://61.135.169.125:80/</span></span><br><span class="line">This is ApacheBench, Version 2.3 &lt;<span class="variable">$Revision</span>: 1843412 $&gt;</span><br><span class="line">Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/</span><br><span class="line">Licensed to The Apache Software Foundation, http://www.apache.org/</span><br><span class="line"></span><br><span class="line">Benchmarking 61.135.169.125 (be patient)</span><br><span class="line">socket: No file descriptors available (24)</span><br></pre></td></tr></tbody></table></figure>
 </li>
 </ol>
-<h4 id="线程限制"><a href="#线程限制" class="headerlink" title="线程限制"></a>线程限制</h4><pre><code>RLIMIT_NPROC
-              This is a limit on the number of extant process (or, more pre‐
-              cisely on Linux, threads) for the real user ID of the calling
-              process.  So long as the current number of processes belonging
-              to this process&#39;s real user ID is greater than or equal to
-              this limit, fork(2) fails with the error EAGAIN.
-
-              The RLIMIT_NPROC limit is not enforced for processes that have
-              either the CAP_SYS_ADMIN or the CAP_SYS_RESOURCE capability.
-</code></pre><p>由定义可知，nproc进程限制的范围是对于每个uid，并且对于root用户无效。</p>
+<h4 id="线程限制"><a href="#线程限制" class="headerlink" title="线程限制"></a>线程限制</h4><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">RLIMIT_NPROC</span><br><span class="line">              This is a limit on the number of extant process (or, more pre‐</span><br><span class="line">              cisely on Linux, threads) for the real user ID of the calling</span><br><span class="line">              process.  So long as the current number of processes belonging</span><br><span class="line">              to this process's real user ID is greater than or equal to</span><br><span class="line">              this limit, fork(2) fails with the error EAGAIN.</span><br><span class="line"></span><br><span class="line">              The RLIMIT_NPROC limit is not enforced for processes that have</span><br><span class="line">              either the CAP_SYS_ADMIN or the CAP_SYS_RESOURCE capability.</span><br></pre></td></tr></tbody></table></figure>
+<p>由定义可知，nproc进程限制的范围是对于每个uid，并且对于root用户无效。</p>
 <h5 id="容器uid"><a href="#容器uid" class="headerlink" title="容器uid"></a>容器uid</h5><p>同一主机上运行的所有容器共享同一个内核(主机的内核)，docker通过namspace对pid/utc/network等进行了隔离，虽然docker中已经实现了user namespace，但由于各种原因，默认没有开启，见<a href="https://docs.docker.com/engine/security/userns-remap/" target="_blank" rel="noopener">docker user namespace</a></p>
-<pre><code>$ docker run -d  cr.d.xiaomi.net/containercloud/alpine:webtool top
-</code></pre><p>宿主机中查看top进程，显示root用户</p>
-<pre><code>$ ps -ef |grep top
-root      4096  4080  0 15:01 ?        00:00:01 top
-</code></pre><p>容器中查看id，uid为0对应宿主机的root用户,虽然同为root用户，但Linux Capabilities不同，实际权限与宿主机root要少很多</p>
-<p>在容器中切换用户到operator(uid为11)，执行sleep命令，主机中查看对应进程用户为app，对应uid同样为11</p>
-<pre><code>/ # id
-uid=0(root) gid=0(root) groups=0(root),1(bin),2(daemon),3(sys),4(adm),6(disk),10(wheel),11(floppy),20(dialout),26(tape),27(video)
-/ # su operator
-/ $ id
-uid=11(operator) gid=0(root) groups=0(root)
-/ $ sleep 100
-$ ps -ef |grep &#39;sleep 100&#39;
-app      19302 19297  0 16:39 pts/0    00:00:00 sleep 100
-$ cat /etc/passwd | grep app
-app:x:11:0::/home/app:
-</code></pre><h5 id="验证不同用户下ulimit的限制"><a href="#验证不同用户下ulimit的限制" class="headerlink" title="验证不同用户下ulimit的限制"></a>验证不同用户下ulimit的限制</h5><p>设置 ulimit nproc限制soft 10/hard 20，默认启动为root用户</p>
-<pre><code>$ docker run -d --ulimit nproc=10:20  cr.d.xiaomi.net/containercloud/alpine:webtool top
-</code></pre><p>进入容器查看， fd soft限制为100个</p>
-<pre><code>/ # ulimit -a
--f: file size (blocks)             unlimited
--t: cpu time (seconds)             unlimited
--d: data seg size (kb)             unlimited
--s: stack size (kb)                8192
--c: core file size (blocks)        unlimited
--m: resident set size (kb)         unlimited
--l: locked memory (kb)             64
--p: processes                      10
--n: file descriptors               1048576
--v: address space (kb)             unlimited
--w: locks                          unlimited
--e: scheduling priority            0
--r: real-time priority             0
-</code></pre><p>启动30个进程</p>
-<pre><code>/ # for i in `seq 30`;do sleep 100 &amp;; done
-/ # ps | wc -l 
-36
-</code></pre><p>切换到operator用户</p>
-<pre><code>/ # su operator
-# 启动多个进程，到第11个进程无法进行fork
-/ $ for i in `seq 8`; do
-&gt; sleep 100 &amp;
-&gt; done
-/ $ sleep 100 &amp;
-/ $ sleep 100 &amp;
-sh: can&#39;t fork: Resource temporarily unavailable
-</code></pre><p>root下查看</p>
-<pre><code>/ # ps -ef | grep operator
-   79 operator  0:00 sh
-   99 operator  0:00 sleep 100
-  100 operator  0:00 sleep 100
-  101 operator  0:00 sleep 100
-  102 operator  0:00 sleep 100
-  103 operator  0:00 sleep 100
-  104 operator  0:00 sleep 100
-  105 operator  0:00 sleep 100
-  106 operator  0:00 sleep 100
-  107 operator  0:00 sleep 100
-  109 root      0:00 grep operator
-/ # ps -ef | grep operator| wc -l
-10
-</code></pre><h5 id="验证ulimit在不同容器相同uid下的限制"><a href="#验证ulimit在不同容器相同uid下的限制" class="headerlink" title="验证ulimit在不同容器相同uid下的限制"></a>验证ulimit在不同容器相同uid下的限制</h5><p>设置 ulimit nproc限制soft 3/hard 3，默认启动为operator用户,起4个容器，第四个启动失败</p>
-<pre><code>$ docker run -d --ulimit nproc=3:3 --name nproc1 -u operator  cr.d.xiaomi.net/containercloud/alpine:webtool top
-eeb1551bf757ad4f112c61cc48d7cbe959185f65109e4b44f28085f246043e65
-$ docker run -d --ulimit nproc=3:3 --name nproc2 -u operator  cr.d.xiaomi.net/containercloud/alpine:webtool top
-42ff29844565a9cb3af2c8dd560308b1f31306041d3dbd929011d65f1848a262
-$ docker run -d --ulimit nproc=3:3 --name nproc3 -u operator  cr.d.xiaomi.net/containercloud/alpine:webtool top
-b7c9b469e73f969d922841dd77265467959eda28ed06301af8bf83bcf18e8c23
-$ docker run -d --ulimit nproc=3:3 --name nproc4 -u operator  cr.d.xiaomi.net/containercloud/alpine:webtool top
-b49d8bb58757c88f69903059af2ee7e2a6cc2fa5774bc531941194c52edfd763
-$
-$ docker ps -a |grep nproc
-b49d8bb58757        cr.d.xiaomi.net/containercloud/alpine:webtool      &quot;top&quot;                    16 seconds ago      Exited (1) 15 seconds ago                               nproc4
-b7c9b469e73f        cr.d.xiaomi.net/containercloud/alpine:webtool      &quot;top&quot;                    23 seconds ago      Up 22 seconds                                           nproc3
-42ff29844565        cr.d.xiaomi.net/containercloud/alpine:webtool      &quot;top&quot;                    31 seconds ago      Up 29 seconds                                           nproc2
-eeb1551bf757        cr.d.xiaomi.net/containercloud/alpine:webtool      &quot;top&quot;                    38 seconds ago      Up 36 seconds                                           nproc1
-</code></pre><h5 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h5><ul>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -d  cr.d.xiaomi.net/containercloud/alpine:webtool top</span><br></pre></td></tr></tbody></table></figure>
+<p>宿主机中查看top进程，显示root用户</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ ps -ef |grep top</span><br><span class="line">root      4096  4080  0 15:01 ?        00:00:01 top</span><br></pre></td></tr></tbody></table></figure>
+<p>容器中查看id，uid为0对应宿主机的root用户,虽然同为root用户，但Linux Capabilities不同，实际权限与宿主机root要少很多</p>
+<p>在容器中切换用户到operator(uid为11)，执行sleep命令，主机中查看对应进程用户为app，对应uid同样为11<br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">/ # id</span><br><span class="line">uid=0(root) gid=0(root) groups=0(root),1(bin),2(daemon),3(sys),4(adm),6(disk),10(wheel),11(floppy),20(dialout),26(tape),27(video)</span><br><span class="line">/ # su operator</span><br><span class="line">/ $ id</span><br><span class="line">uid=11(operator) gid=0(root) groups=0(root)</span><br><span class="line">/ $ sleep 100</span><br><span class="line">$ ps -ef |grep 'sleep 100'</span><br><span class="line">app      19302 19297  0 16:39 pts/0    00:00:00 sleep 100</span><br><span class="line">$ cat /etc/passwd | grep app</span><br><span class="line">app:x:11:0::/home/app:</span><br></pre></td></tr></tbody></table></figure><p></p>
+<h5 id="验证不同用户下ulimit的限制"><a href="#验证不同用户下ulimit的限制" class="headerlink" title="验证不同用户下ulimit的限制"></a>验证不同用户下ulimit的限制</h5><p>设置 ulimit nproc限制soft 10/hard 20，默认启动为root用户<br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -d --ulimit nproc=10:20  cr.d.xiaomi.net/containercloud/alpine:webtool top</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>进入容器查看， fd soft限制为100个<br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">/ # ulimit -a</span><br><span class="line">-f: file size (blocks)             unlimited</span><br><span class="line">-t: cpu time (seconds)             unlimited</span><br><span class="line">-d: data seg size (kb)             unlimited</span><br><span class="line">-s: stack size (kb)                8192</span><br><span class="line">-c: core file size (blocks)        unlimited</span><br><span class="line">-m: resident set size (kb)         unlimited</span><br><span class="line">-l: locked memory (kb)             64</span><br><span class="line">-p: processes                      10</span><br><span class="line">-n: file descriptors               1048576</span><br><span class="line">-v: address space (kb)             unlimited</span><br><span class="line">-w: locks                          unlimited</span><br><span class="line">-e: scheduling priority            0</span><br><span class="line">-r: real-time priority             0</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>启动30个进程<br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/ # for i in `seq 30`;do sleep 100 &amp;; done</span><br><span class="line">/ # ps | wc -l </span><br><span class="line">36</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>切换到operator用户<br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">/ # su operator</span><br><span class="line"># 启动多个进程，到第11个进程无法进行fork</span><br><span class="line">/ $ for i in `seq 8`; do</span><br><span class="line">&gt; sleep 100 &amp;</span><br><span class="line">&gt; done</span><br><span class="line">/ $ sleep 100 &amp;</span><br><span class="line">/ $ sleep 100 &amp;</span><br><span class="line">sh: can't fork: Resource temporarily unavailable</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>root下查看<br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">/ # ps -ef | grep operator</span><br><span class="line">   79 operator  0:00 sh</span><br><span class="line">   99 operator  0:00 sleep 100</span><br><span class="line">  100 operator  0:00 sleep 100</span><br><span class="line">  101 operator  0:00 sleep 100</span><br><span class="line">  102 operator  0:00 sleep 100</span><br><span class="line">  103 operator  0:00 sleep 100</span><br><span class="line">  104 operator  0:00 sleep 100</span><br><span class="line">  105 operator  0:00 sleep 100</span><br><span class="line">  106 operator  0:00 sleep 100</span><br><span class="line">  107 operator  0:00 sleep 100</span><br><span class="line">  109 root      0:00 grep operator</span><br><span class="line">/ # ps -ef | grep operator| wc -l</span><br><span class="line">10</span><br></pre></td></tr></tbody></table></figure><p></p>
+<h5 id="验证ulimit在不同容器相同uid下的限制"><a href="#验证ulimit在不同容器相同uid下的限制" class="headerlink" title="验证ulimit在不同容器相同uid下的限制"></a>验证ulimit在不同容器相同uid下的限制</h5><p>设置 ulimit nproc限制soft 3/hard 3，默认启动为operator用户,起4个容器，第四个启动失败<br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -d --ulimit nproc=3:3 --name nproc1 -u operator  cr.d.xiaomi.net/containercloud/alpine:webtool top</span><br><span class="line">eeb1551bf757ad4f112c61cc48d7cbe959185f65109e4b44f28085f246043e65</span><br><span class="line">$ docker run -d --ulimit nproc=3:3 --name nproc2 -u operator  cr.d.xiaomi.net/containercloud/alpine:webtool top</span><br><span class="line">42ff29844565a9cb3af2c8dd560308b1f31306041d3dbd929011d65f1848a262</span><br><span class="line">$ docker run -d --ulimit nproc=3:3 --name nproc3 -u operator  cr.d.xiaomi.net/containercloud/alpine:webtool top</span><br><span class="line">b7c9b469e73f969d922841dd77265467959eda28ed06301af8bf83bcf18e8c23</span><br><span class="line">$ docker run -d --ulimit nproc=3:3 --name nproc4 -u operator  cr.d.xiaomi.net/containercloud/alpine:webtool top</span><br><span class="line">b49d8bb58757c88f69903059af2ee7e2a6cc2fa5774bc531941194c52edfd763</span><br><span class="line">$</span><br><span class="line">$ docker ps -a |grep nproc</span><br><span class="line">b49d8bb58757        cr.d.xiaomi.net/containercloud/alpine:webtool      "top"                    16 seconds ago      Exited (1) 15 seconds ago                               nproc4</span><br><span class="line">b7c9b469e73f        cr.d.xiaomi.net/containercloud/alpine:webtool      "top"                    23 seconds ago      Up 22 seconds                                           nproc3</span><br><span class="line">42ff29844565        cr.d.xiaomi.net/containercloud/alpine:webtool      "top"                    31 seconds ago      Up 29 seconds                                           nproc2</span><br><span class="line">eeb1551bf757        cr.d.xiaomi.net/containercloud/alpine:webtool      "top"                    38 seconds ago      Up 36 seconds                                           nproc1</span><br></pre></td></tr></tbody></table></figure><p></p>
+<h5 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h5><ul>
 <li>ulimit限制fd总数，限制级别进程，可对所有用户生效</li>
 <li>ulimit限制线程总数，限制级别用户（uid)，限制同一个uid下所有线程/进程数，对于root账号无效</li>
 <li>对于目前线上情况，有较小的概率因ulimit限制导致fork失败，如同一个宿主机中有多个work容器且基础镜像相同（即uid相同），若一个容器线程泄露，由于ulimit限制会影响其他容器正常运行</li>
@@ -577,33 +296,17 @@ eeb1551bf757        cr.d.xiaomi.net/containercloud/alpine:webtool      &quot;top
 <p>以kubelet为例，开启SupportPodPidsLimit，<code>--feature-gates=SupportPodPidsLimit=true</code></p>
 <ol>
 <li><p>配置kubelet，每个pod允许最大pid数目为150</p>
-<pre class="line-numbers language-bash"><code class="language-bash"><span class="token punctuation">[</span>root@node01 ~<span class="token punctuation">]</span><span class="token comment" spellcheck="true"># ps -ef |grep kubelet</span>
-root     18735     1 14 11:19 ?        00:53:28 ./kubelet --v<span class="token operator">=</span>1 --address<span class="token operator">=</span>0.0.0.0 --feature-gates<span class="token operator">=</span>SupportPodPidsLimit<span class="token operator">=</span>true --pod-max-pids<span class="token operator">=</span>150 --allow-privileged<span class="token operator">=</span>true --pod-infra-container-image<span class="token operator">=</span>cr.d.xiaomi.net/kubernetes/pause-amd64:3.1 --root-dir<span class="token operator">=</span>/home/kubelet --node-status-update-frequency<span class="token operator">=</span>5s --kubeconfig<span class="token operator">=</span>/home/xbox/kubelet/conf/kubelet-kubeconfig --fail-swap-on<span class="token operator">=</span>false --max-pods<span class="token operator">=</span>254 --runtime-cgroups<span class="token operator">=</span>/systemd/system.slice/frigga.service --kubelet-cgroups<span class="token operator">=</span>/systemd/system.slice/frigga.service --make-iptables-util-chains<span class="token operator">=</span>false
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 ~]<span class="comment"># ps -ef |grep kubelet</span></span><br><span class="line">root     18735     1 14 11:19 ?        00:53:28 ./kubelet --v=1 --address=0.0.0.0 --feature-gates=SupportPodPidsLimit=<span class="literal">true</span> --pod-max-pids=150 --allow-privileged=<span class="literal">true</span> --pod-infra-container-image=cr.d.xiaomi.net/kubernetes/pause-amd64:3.1 --root-dir=/home/kubelet --node-status-update-frequency=5s --kubeconfig=/home/xbox/kubelet/conf/kubelet-kubeconfig --fail-swap-on=<span class="literal">false</span> --max-pods=254 --runtime-cgroups=/systemd/system.slice/frigga.service --kubelet-cgroups=/systemd/system.slice/frigga.service --make-iptables-util-chains=<span class="literal">false</span></span><br></pre></td></tr></tbody></table></figure>
 </li>
 <li><p>在pod中起测试线程，root下起100个线程</p>
-<pre><code>/ # for i in `seq 100`; do
-&gt; sleep 1000 &amp;
-&gt; done
-/ # ps | wc -l
-106
-</code></pre></li>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">/ # for i in `seq 100`; do</span><br><span class="line">&gt; sleep 1000 &amp;</span><br><span class="line">&gt; done</span><br><span class="line">/ # ps | wc -l</span><br><span class="line">106</span><br></pre></td></tr></tbody></table></figure>
+</li>
 <li><p>operator 下，创建线程受到限制，系统最多只能创建150个</p>
-<pre><code>/ # su operator
-/ $ 
-/ $ for i in `seq 100`; do
-&gt; sleep 1000 &amp;
-&gt; done
-sh: can&#39;t fork: Resource temporarily unavailable
-/ $ ps | wc -l
-150
-</code></pre></li>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">/ # su operator</span><br><span class="line">/ $ </span><br><span class="line">/ $ for i in `seq 100`; do</span><br><span class="line">&gt; sleep 1000 &amp;</span><br><span class="line">&gt; done</span><br><span class="line">sh: can't fork: Resource temporarily unavailable</span><br><span class="line">/ $ ps | wc -l</span><br><span class="line">150</span><br></pre></td></tr></tbody></table></figure>
+</li>
 <li><p>在cgroup中查看，pids达到最大限制</p>
-<pre><code>[root@node01 ~]# cat /sys/fs/cgroup/pids/kubepods/besteffort/pod8b61d4de-a7ad-11e9-b5b9-246e96ad0900/pids.current 
-150
-[root@node01 ~]# cat /sys/fs/cgroup/pids/kubepods/besteffort/pod8b61d4de-a7ad-11e9-b5b9-246e96ad0900/pids.max 
-150
-</code></pre></li>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 ~]# cat /sys/fs/cgroup/pids/kubepods/besteffort/pod8b61d4de-a7ad-11e9-b5b9-246e96ad0900/pids.current </span><br><span class="line">150</span><br><span class="line">[root@node01 ~]# cat /sys/fs/cgroup/pids/kubepods/besteffort/pod8b61d4de-a7ad-11e9-b5b9-246e96ad0900/pids.max </span><br><span class="line">150</span><br></pre></td></tr></tbody></table></figure>
+</li>
 <li><p>总结<br>cgroup对于pid的限制能够达到限制线程数目的，目前docker只支持对每个容器的限制，不支持全局配置；kubelet只支持对于node所有pod的全局配置，不支持具体每个pod的配置</p>
 </li>
 </ol>
@@ -611,47 +314,11 @@ sh: can&#39;t fork: Resource temporarily unavailable
 <p>sysctl.conf为机器级别的资源限制，root用户可修改，目录项/etc/security/sysctl.d/中的配置会覆盖sysctl.conf，在/etc/sysctl.conf中添加对应配置（fd: fs.file-max = {}; pid: kernel.pid_max = {}）</p>
 <ol>
 <li><p>测试容器中修改sysctl.conf文件</p>
-<pre><code> $ docker run -d --ulimit nofile=100:200 cr.d.xiaomi.net/containercloud/alpine:webtool top
- cb1250c8fd217258da51c6818fa2ce2e2f6e35bf1d52648f1f432e6ce579cf0d
- $ docker exec -it cb1250c sh
-
- / # ulimit -a
- -f: file size (blocks)             unlimited
- -t: cpu time (seconds)             unlimited
- -d: data seg size (kb)             unlimited
- -s: stack size (kb)                8192
- -c: core file size (blocks)        unlimited
- -m: resident set size (kb)         unlimited
- -l: locked memory (kb)             64
- -p: processes                      unlimited
- -n: file descriptors               100
- -v: address space (kb)             unlimited
- -w: locks                          unlimited
- -e: scheduling priority            0
- -r: real-time priority             0
- / # 
- / # echo 10 &gt; /proc/sys/kernel/pid_max
- sh: can&#39;t create /proc/sys/kernel/pid_max: Read-only file system
- / # echo 10 &gt; /proc/sys/kernel/pid_max
- sh: can&#39;t create /proc/sys/kernel/pid_max: Read-only file system
- / # echo &quot;fs.file-max=5&quot; &gt;&gt; /etc/sysctl.conf
- / # sysctl -p
- sysctl: error setting key &#39;fs.file-max&#39;: Read-only file system
-</code></pre></li>
+ <figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -d --ulimit nofile=100:200 cr.d.xiaomi.net/containercloud/alpine:webtool top</span><br><span class="line">cb1250c8fd217258da51c6818fa2ce2e2f6e35bf1d52648f1f432e6ce579cf0d</span><br><span class="line">$ docker exec -it cb1250c sh</span><br><span class="line"></span><br><span class="line">/ # ulimit -a</span><br><span class="line">-f: file size (blocks)             unlimited</span><br><span class="line">-t: cpu time (seconds)             unlimited</span><br><span class="line">-d: data seg size (kb)             unlimited</span><br><span class="line">-s: stack size (kb)                8192</span><br><span class="line">-c: core file size (blocks)        unlimited</span><br><span class="line">-m: resident set size (kb)         unlimited</span><br><span class="line">-l: locked memory (kb)             64</span><br><span class="line">-p: processes                      unlimited</span><br><span class="line">-n: file descriptors               100</span><br><span class="line">-v: address space (kb)             unlimited</span><br><span class="line">-w: locks                          unlimited</span><br><span class="line">-e: scheduling priority            0</span><br><span class="line">-r: real-time priority             0</span><br><span class="line">/ # </span><br><span class="line">/ # echo 10 &gt; /proc/sys/kernel/pid_max</span><br><span class="line">sh: can't create /proc/sys/kernel/pid_max: Read-only file system</span><br><span class="line">/ # echo 10 &gt; /proc/sys/kernel/pid_max</span><br><span class="line">sh: can't create /proc/sys/kernel/pid_max: Read-only file system</span><br><span class="line">/ # echo "fs.file-max=5" &gt;&gt; /etc/sysctl.conf</span><br><span class="line">/ # sysctl -p</span><br><span class="line">sysctl: error setting key 'fs.file-max': Read-only file system</span><br></pre></td></tr></tbody></table></figure>
+</li>
 <li><p>以priviledged模式测试，谨慎测试</p>
-<pre><code> $ cat /proc/sys/kernel/pid_max
- 32768
- $ docker run -d -- --ulimit nofile=100:200 cr.d.xiaomi.net/containercloud/alpine:webtool top
- $ docker exec -it pedantic_vaughan sh
- / # cat /proc/sys/kernel/pid_max
- 32768
- / # echo 50000 &gt; /proc/sys/kernel/pid_max
- / # cat /proc/sys/kernel/pid_max
- 50000
- / # exit
- $ cat /proc/sys/kernel/pid_max
- 50000 # 宿主机的文件也变成50000
-</code></pre></li>
+ <figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ cat /proc/sys/kernel/pid_max</span><br><span class="line">32768</span><br><span class="line">$ docker run -d -- --ulimit nofile=100:200 cr.d.xiaomi.net/containercloud/alpine:webtool top</span><br><span class="line">$ docker exec -it pedantic_vaughan sh</span><br><span class="line">/ # cat /proc/sys/kernel/pid_max</span><br><span class="line">32768</span><br><span class="line">/ # echo 50000 &gt; /proc/sys/kernel/pid_max</span><br><span class="line">/ # cat /proc/sys/kernel/pid_max</span><br><span class="line">50000</span><br><span class="line">/ # exit</span><br><span class="line">$ cat /proc/sys/kernel/pid_max</span><br><span class="line">50000 # 宿主机的文件也变成50000</span><br></pre></td></tr></tbody></table></figure>
+</li>
 <li><p>总结<br>由于docker隔离的不彻底，在docker中修改sysctl会覆盖主机中的配置，不能用来实现容器级别资源限制<br>limits.conf可以在容器中设置，效果同ulimit</p>
 </li>
 </ol>
@@ -669,488 +336,363 @@ sh: can&#39;t fork: Resource temporarily unavailable
 <li><a href="https://medium.com/@mccode/understanding-how-uid-and-gid-work-in-docker-containers-c37a01d01cf" target="_blank" rel="noopener">https://medium.com/@mccode/understanding-how-uid-and-gid-work-in-docker-containers-c37a01d01cf</a></li>
 <li><a href="https://docs.docker.com/engine/security/userns-remap/" target="_blank" rel="noopener">https://docs.docker.com/engine/security/userns-remap/</a></li>
 </ul>
-
-            </div>
-            <hr/>
-
-            
-
-
-
-            <div class="tag_share" style="display: block;">
-                <div class="post-meta__tag-list" style="display: inline-block;">
-                    
-                        <div class="article-tag">
-                            
-                                <a href="/tags/k8s/">
-                                    <span class="chip bg-color">k8s</span>
-                                </a>
-                            
-                                <a href="/tags/docker/">
-                                    <span class="chip bg-color">docker</span>
-                                </a>
-                            
-                        </div>
-                    
-                </div>
-                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
-                    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/css/share.min.css">
-<div id="article-share">
-
-    
-    <div class="social-share" data-sites="wechat,weibo" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/js/social-share.min.js"></script>
-    
-
-    
-
-</div>
-
-                </div>
-            </div>
-            
-        </div>
-    </div>
-
-    
-        <link rel="stylesheet" href="/libs/gitalk/gitalk.css">
-<link rel="stylesheet" href="/libs/gitalk/gitalk.min.js">
-
-<div class="card gitalk-card" data-aos="fade-up">
-    <div class="comment_headling" style="font-size: 20px; font-weight: 700; position: relative; padding-left: 20px; top: 15px; padding-bottom: 5px;">
-        <i class="fas fa-comments fa-fw" aria-hidden="true"></i>
-        <span>评论</span>
-    </div>
-    <div id="gitalk-container" class="card-content"></div>
-</div>
-
-<script src="/libs/gitalk/gitalk.min.js"></script>
 <script>
-    let gitalk = new Gitalk({
-        clientID: 'a705189dfc18ec59a7d0',
-        clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
-        repo: 'qingwave.github.io',
-        owner: 'qingwave',
-        admin: "qingwave",
-        id: '2019-07-16T18-44-47',
-        distractionFreeMode: false  // Facebook-like distraction free mode
-    });
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return; }
+            const img = document.createElement('img');
+            img.style = 'display:none !important;';
+            img.src = el.dataset.src;
+            img.addEventListener('error', () => {
+              img.remove();
+              el.style.color = 'inherit';
+              el.style.backgroundImage = 'none';
+              el.style.background = 'none';
+            });
+            img.addEventListener('load', () => {
+              img.remove();
+            });
+            document.body.appendChild(img);
+          });
+      </script>
+    </div>
 
-    gitalk.render('gitalk-container');
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Qinng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://qingwave.github.io/k8s-limit-fd-and-thread1/" title="k8s中fd与thread限制(一)">https://qingwave.github.io/k8s-limit-fd-and-thread1/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/docker/" rel="tag"># docker</a>
+              <a href="/tags/k8s/" rel="tag"># k8s</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/k8s-limit-fd-and-thread2/" rel="prev" title="k8s中fd与thread限制(二)">
+      <i class="fa fa-chevron-left"></i> k8s中fd与thread限制(二)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/container-memory/" rel="next" title="容器内存分析">
+      容器内存分析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
 </script>
 
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-<article id="prenext-posts" class="prev-next articles">
-    <div class="row article-row">
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
-            <div class="card">
-                <a href="/k8s-limit-fd-and-thread2/">
-                    <div class="card-image">
-                        
-                        
-                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/4.jpg" class="responsive-img" alt="k8s中fd与thread限制(二)">
-                        
-                        <span class="card-title">k8s中fd与thread限制(二)</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            背景在上线fd隔离后，多个用户反馈部署有问题，日志显示 su could not open session，dolphin（主进程） 启动用户程序时如果用户部署账号为work，会通过su切换到work下启动用户程序，报错正是这时产生。
-探究
-                        
-                    </div>
-                    <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2019-07-16
-                        </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                            
-                            
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/k8s/">
-                        <span class="chip bg-color">k8s</span>
-                    </a>
-                    
-                    <a href="/tags/docker/">
-                        <span class="chip bg-color">docker</span>
-                    </a>
-                    
-                </div>
-                
-            </div>
         </div>
-        
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge right-badge text-color">
-                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
-            </div>
-            <div class="card">
-                <a href="/container-memory/">
-                    <div class="card-image">
-                        
-                        
-                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/4.jpg" class="responsive-img" alt="容器内存分析">
-                        
-                        <span class="card-title">容器内存分析</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            背景在容器化环境中，平台需要提供准确的业务监控指标，已方便业务查看。那么如何准确计算容器或Pod的内存使用率，k8s/docker又是如何计算，本文通过实验与源码阅读相结合来分析容器的内存实际使用量。
-预备知识不管docker还是k8s(通
-                        
-                    </div>
-                    <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2019-05-29
-                            </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                            
-                            
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/k8s/">
-                        <span class="chip bg-color">k8s</span>
-                    </a>
-                    
-                    <a href="/tags/docker/">
-                        <span class="chip bg-color">docker</span>
-                    </a>
-                    
-                    <a href="/tags/cgroup/">
-                        <span class="chip bg-color">cgroup</span>
-                    </a>
-                    
-                </div>
-                
-            </div>
-        </div>
-        
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#限制方法"><span class="nav-number">2.</span> <span class="nav-text">限制方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实验对比"><span class="nav-number">3.</span> <span class="nav-text">实验对比</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#环境"><span class="nav-number">3.1.</span> <span class="nav-text">环境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ulimit"><span class="nav-number">3.2.</span> <span class="nav-text">ulimit</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#文件描述符限制"><span class="nav-number">3.2.1.</span> <span class="nav-text">文件描述符限制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#线程限制"><span class="nav-number">3.2.2.</span> <span class="nav-text">线程限制</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#容器uid"><span class="nav-number">3.2.2.1.</span> <span class="nav-text">容器uid</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#验证不同用户下ulimit的限制"><span class="nav-number">3.2.2.2.</span> <span class="nav-text">验证不同用户下ulimit的限制</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#验证ulimit在不同容器相同uid下的限制"><span class="nav-number">3.2.2.3.</span> <span class="nav-text">验证ulimit在不同容器相同uid下的限制</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#总结"><span class="nav-number">3.2.2.4.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cgroup"><span class="nav-number">3.3.</span> <span class="nav-text">cgroup</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#limits-conf-sysctl-conf"><span class="nav-number">3.4.</span> <span class="nav-text">limits.conf/sysctl.conf</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结论"><span class="nav-number">4.</span> <span class="nav-text">结论</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#引用"><span class="nav-number">5.</span> <span class="nav-text">引用</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Qinng</p>
+  <div class="site-description" itemprop="description">Coding, Reading and Daydreaming</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/qingwave" title="GitHub → https://github.com/qingwave" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:isguory@gmail.com" title="E-Mail → mailto:isguory@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
     </div>
-</article>
+  </aside>
+  <div id="sidebar-dimmer"></div>
 
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2018 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-terminal"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Qinng</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
 
 
 
-<!-- 代码块功能依赖 -->
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeBlockFuction.js"></script>
-
-<!-- 代码语言 -->
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeLang.js"></script>
-
-
-<!-- 代码块复制 -->
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeCopy.js"></script>
-
-
-<!-- 代码块收缩 -->
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeShrink.js"></script>
-
-
-<!-- 代码块折行 -->
-
-<style type="text/css">
-code[class*="language-"], pre[class*="language-"] { white-space: pre !important; }
-</style>
-
-
-    </div>
-    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
-        <div class="toc-widget">
-            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
-            <div id="toc-content"></div>
-        </div>
-    </div>
-</div>
-
-<!-- TOC 悬浮按钮. -->
-
-<div id="floating-toc-btn" class="hide-on-med-and-down">
-    <a class="btn-floating btn-mini waves-effect bnt-color">
-        <i class="fas fa-list-ul"></i>
-    </a>
-</div>
-
-
-<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.min.js"></script>
-<script>
-    $(function () {
-        tocbot.init({
-            tocSelector: '#toc-content',
-            contentSelector: '#articleContent',
-            headingsOffset: -($(window).height() * 0.4 - 45),
-            collapseDepth: Number('0'),
-            headingSelector: 'h2, h3, h4'
-        });
-
-        // modify the toc link href to support Chinese.
-        let i = 0;
-        let tocHeading = 'toc-heading-';
-        $('#toc-content a').each(function () {
-            $(this).attr('href', '#' + tocHeading + (++i));
-        });
-
-        // modify the heading title id to support Chinese.
-        i = 0;
-        $('#articleContent').children('h2, h3, h4').each(function () {
-            $(this).attr('id', tocHeading + (++i));
-        });
-
-        // Set scroll toc fixed.
-        let tocHeight = parseInt($(window).height() * 0.4 - 64);
-        let $tocWidget = $('.toc-widget');
-        $(window).scroll(function () {
-            let scroll = $(window).scrollTop();
-            /* add post toc fixed. */
-            if (scroll > tocHeight) {
-                $tocWidget.addClass('toc-fixed');
-            } else {
-                $tocWidget.removeClass('toc-fixed');
-            }
-        });
-
-        
-        /* 修复文章卡片 div 的宽度. */
-        let fixPostCardWidth = function (srcId, targetId) {
-            let srcDiv = $('#' + srcId);
-            if (srcDiv.length === 0) {
-                return;
-            }
-
-            let w = srcDiv.width();
-            if (w >= 450) {
-                w = w + 21;
-            } else if (w >= 350 && w < 450) {
-                w = w + 18;
-            } else if (w >= 300 && w < 350) {
-                w = w + 16;
-            } else {
-                w = w + 14;
-            }
-            $('#' + targetId).width(w);
-        };
-
-        // 切换TOC目录展开收缩的相关操作.
-        const expandedClass = 'expanded';
-        let $tocAside = $('#toc-aside');
-        let $mainContent = $('#main-content');
-        $('#floating-toc-btn .btn-floating').click(function () {
-            if ($tocAside.hasClass(expandedClass)) {
-                $tocAside.removeClass(expandedClass).hide();
-                $mainContent.removeClass('l9');
-            } else {
-                $tocAside.addClass(expandedClass).show();
-                $mainContent.addClass('l9');
-            }
-            fixPostCardWidth('artDetail', 'prenext-posts');
-        });
-        
-    });
-</script>
-
-    
-
-</main>
-
-
-
-
-    <footer class="page-footer bg-color">
-    
-    <div class="container row center-align" style="margin-bottom: 0px !important;">
-        <div class="center-align">
-            Copyright&nbsp;&copy;
-            <span id="year">2018</span>
-            <a href="https://qinng.now.sh" target="_blank">Qinng</a>
-            <br>
-            
-            &nbsp;<i class="fas fa-chart-area"></i>&nbsp;&nbsp;<span
-                >49.9k</span>&nbsp;
-            
-            
-            
-            
-            
-            
-            <span id="busuanzi_container_site_pv">
-                |&nbsp;<i class="far fa-eye"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_pv"
-                    ></span>&nbsp;
-            </span>
-            
-            
-            <span id="busuanzi_container_site_uv">
-                |&nbsp;<i class="fas fa-users"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_uv"
-                    ></span>&nbsp;
-            </span>
-            
-            <br>
-            
-            <br>
-            
-        </div>
-        <!-- <div class="col s12 m4 l4 social-link social-statis">
-    <a href="https://github.com/qingwave" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
-        <i class="fab fa-github"></i>
-    </a>
-
-
-
-    <a href="mailto:isguory@gmail.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
-        <i class="fas fa-envelope-open"></i>
-    </a>
 
 
 
 
 
+      </div>
+    </footer>
+  </div>
 
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/pjax/pjax.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/muse.js"></script>
+<script src="/js/next-boot.js"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '.languages',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
 
-
-
-
-
-
-
-
-
-
-
-    <a href="https://www.douban.com/people/69458430"
-       target="_blank" data-tooltip="关注我的豆瓣: 69458430" data-position="top"
-       data-delay="50">
-        <i class="fa fa-inverse">豆</i>
-    </a>
-
-
-
-    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
-        <i class="fas fa-rss"></i>
-    </a>
-
-</div> -->
-    </div>
-</footer>
-
-<div class="progress-bar"></div>
-
-
-    <!-- 搜索遮罩框 -->
-<div id="searchModal" class="modal">
-    <div class="modal-content">
-        <div class="search-header">
-            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
-            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
-                   class="search-input">
-        </div>
-        <div id="searchResult"></div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/search.js"></script>
-<script type="text/javascript">
-$(function () {
-    searchFunc("https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/search.xml", 'searchInput', 'searchResult');
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[data-pjax], script#page-configurations, #pjax script').forEach(element => {
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (element.id) {
+      script.id = element.id;
+    }
+    if (element.className) {
+      script.className = element.className;
+    }
+    if (element.type) {
+      script.type = element.type;
+    }
+    if (element.src) {
+      script.src = element.src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (element.dataset.pjax !== undefined) {
+      script.dataset.pjax = '';
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.subMenu)
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
 });
 </script>
 
-    <!-- 回到顶部按钮 -->
-<div id="backTop" class="top-scroll">
-    <a class="btn-floating btn-mini waves-effect" href="#!">
-        <!-- <i class="fas fa-caret-up"></i> -->
-        <!-- <i class="fas fa-chevron-up"></i> -->
-        <i class="fas fa-angle-double-up"></i>
-    </a>
-</div>
 
 
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/masonry/masonry.pkgd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/scrollprogress/scrollProgress.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/js/lightgallery-all.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/matery.js"></script>
 
-    <!-- Baidu Analytics -->
+  
+  <script data-pjax>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
 
-    <!-- Baidu Push -->
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
 
 <script>
-    (function () {
-        var bp = document.createElement('script');
-        var curProtocol = window.location.protocol.split(':')[0];
-        if (curProtocol === 'https') {
-            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
-        } else {
-            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
-        }
-        var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(bp, s);
-    })();
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'a705189dfc18ec59a7d0',
+      clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
+      repo        : 'qingwave.github.io',
+      owner       : 'qingwave',
+      admin       : [''],
+      id          : '5e31d7c6eea4848ec4354843cc3ec78e',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
 </script>
 
-    
-    
-    <script async src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/others/busuanzi.pure.mini.js"></script>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/instantpage/instantpage.js" type="module"></script>
-    
-
+    </div>
 </body>
-
 </html>

@@ -1,482 +1,245 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/medias/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/medias/favicon.png">
+  <meta name="google-site-verification" content="googledbe9fc5bea9bf603.html">
+  <meta name="baidu-site-verification" content="muFp3xopwC">
+
+<link rel="stylesheet" href="/css/main.css">
 
 
-<head><meta name="generator" content="Hexo 3.9.0">
-    <meta charset="utf-8">
-    <meta name="keywords" content="Kubernetes中Sidecar生命周期管理, Qinng">
-    <meta name="description" content="Coding, Reading and Daydreaming">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="renderer" content="webkit|ie-stand|ie-comp">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- Global site tag (gtag.js) - Google Analytics -->
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"qingwave.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="在多个容器的Pod中，通常业务容器需要依赖sidecar。启动时sidecar需要先启动，退出时sidecar需要在业务容器退出后再退出。k8s目前对于sidecar的生命周期比较有争议，见issue、sidecarcontainers。">
+<meta name="keywords" content="k8s,container">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kubernetes中Sidecar生命周期管理">
+<meta property="og:url" content="https://qingwave.github.io/k8s-sideccar-lifecycle/index.html">
+<meta property="og:site_name" content="Qinng">
+<meta property="og:description" content="在多个容器的Pod中，通常业务容器需要依赖sidecar。启动时sidecar需要先启动，退出时sidecar需要在业务容器退出后再退出。k8s目前对于sidecar的生命周期比较有争议，见issue、sidecarcontainers。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://qingwave.github.io/img/blogImg/sidecar-lifecycle.png">
+<meta property="og:updated_time" content="2020-09-21T06:30:50.643Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kubernetes中Sidecar生命周期管理">
+<meta name="twitter:description" content="在多个容器的Pod中，通常业务容器需要依赖sidecar。启动时sidecar需要先启动，退出时sidecar需要在业务容器退出后再退出。k8s目前对于sidecar的生命周期比较有争议，见issue、sidecarcontainers。">
+<meta name="twitter:image" content="https://qingwave.github.io/img/blogImg/sidecar-lifecycle.png">
+
+<link rel="canonical" href="https://qingwave.github.io/k8s-sideccar-lifecycle/">
 
 
-    <title>Kubernetes中Sidecar生命周期管理 | Qinng</title>
-    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png">
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
 
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/awesome/css/all.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/animate/animate.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/css/lightgallery.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/matery.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/my.css">
+  <title>Kubernetes中Sidecar生命周期管理 | Qinng</title>
+  
 
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/jquery/jquery.min.js"></script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
 
 <link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
 <link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
 
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
 
-<body>
-    <header class="navbar-fixed">
-    <nav id="headNav" class="bg-color nav-transparent">
-        <div id="navContainer" class="nav-wrapper container">
-            <div class="brand-logo">
-                <a href="/" class="waves-effect waves-light">
-                    
-                    <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img" alt="LOGO">
-                    
-                    <span class="logo-span">Qinng</span>
-                </a>
-            </div>
-            
-
-<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
-<ul class="right nav-menu">
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/" class="waves-effect waves-light">
-      
-      <i class="fas fa-home" style="zoom: 0.6;"></i>
-      
-      <span>首页</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/tags" class="waves-effect waves-light">
-      
-      <i class="fas fa-tags" style="zoom: 0.6;"></i>
-      
-      <span>标签</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/categories" class="waves-effect waves-light">
-      
-      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
-      
-      <span>分类</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/archives" class="waves-effect waves-light">
-      
-      <i class="fas fa-archive" style="zoom: 0.6;"></i>
-      
-      <span>归档</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/contact" class="waves-effect waves-light">
-      
-      <i class="fas fa-comments" style="zoom: 0.6;"></i>
-      
-      <span>留言</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/about" class="waves-effect waves-light">
-      
-      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
-      
-      <span>关于</span>
-    </a>
-    
-  </li>
-  
-  <li>
-    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
-      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
-    </a>
-  </li>
-</ul>
-
-
-<div id="mobile-nav" class="side-nav sidenav">
-
-    <div class="mobile-head bg-color">
-        
-        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img circle responsive-img">
-        
-        <div class="logo-name">Qinng</div>
-        <div class="logo-desc">
-            
-            Coding, Reading and Daydreaming
-            
-        </div>
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
     </div>
+  </div>
 
-    
+  <div class="site-meta">
 
-    <ul class="menu-list mobile-menu-list">
-        
-        <li class="m-nav-item">
-	  
-		<a href="/" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-home"></i>
-			
-			首页
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/tags" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-tags"></i>
-			
-			标签
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/categories" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-bookmark"></i>
-			
-			分类
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/archives" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-archive"></i>
-			
-			归档
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/contact" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-comments"></i>
-			
-			留言
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/about" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-user-circle"></i>
-			
-			关于
-		</a>
-          
-        </li>
-        
-        
-    </ul>
-</div>
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Qinng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Qinng</p>
+  </div>
 
-
-        </div>
-
-        
-    </nav>
-
-</header>
-
-    
-
-
-
-<div class="bg-cover pd-header post-cover" style="background-image: url('https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/0.jpg')">
-    <div class="container" style="right: 0px;left: 0px;">
-        <div class="row">
-            <div class="col s12 m12 l12">
-                <div class="brand">
-                    <h1 class="description center-align post-title">Kubernetes中Sidecar生命周期管理</h1>
-                </div>
-            </div>
-        </div>
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
     </div>
+  </div>
 </div>
 
 
 
 
-<main class="post-container content">
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
 
     
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.css">
-<style>
-    #articleContent h1::before,
-    #articleContent h2::before,
-    #articleContent h3::before,
-    #articleContent h4::before,
-    #articleContent h5::before,
-    #articleContent h6::before {
-        display: block;
-        content: " ";
-        height: 100px;
-        margin-top: -100px;
-        visibility: hidden;
-    }
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
 
-    #articleContent :focus {
-        outline: none;
-    }
 
-    .toc-fixed {
-        position: fixed;
-        top: 64px;
-    }
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
 
-    .toc-widget {
-        width: 345px;
-        padding-left: 20px;
-    }
+          <div class="content post posts-expand">
+            
 
-    .toc-widget .toc-title {
-        margin: 35px 0 15px 0;
-        padding-left: 17px;
-        font-size: 1.5rem;
-        font-weight: bold;
-        line-height: 1.5rem;
-    }
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/k8s-sideccar-lifecycle/">
 
-    .toc-widget ol {
-        padding: 0;
-        list-style: none;
-    }
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Qinng">
+      <meta itemprop="description" content="Coding, Reading and Daydreaming">
+    </span>
 
-    #toc-content {
-        height: calc(100vh - 250px);
-        overflow: auto;
-    }
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qinng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Kubernetes中Sidecar生命周期管理
+        </h1>
 
-    #toc-content ol {
-        padding-left: 10px;
-    }
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
 
-    #toc-content ol li {
-        padding-left: 10px;
-    }
+              <time title="创建时间：2020-09-21 11:45:00 / 修改时间：14:30:50" itemprop="dateCreated datePublished" datetime="2020-09-21T11:45:00+08:00">2020-09-21</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/cloud/" itemprop="url" rel="index"><span itemprop="name">cloud</span></a>
+                </span>
+            </span>
 
-    #toc-content .toc-link:hover {
-        color: #42b983;
-        font-weight: 700;
-        text-decoration: underline;
-    }
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
 
-    #toc-content .toc-link::before {
-        background-color: transparent;
-        max-height: 25px;
-
-        position: absolute;
-        right: 23.5vw;
-        display: block;
-    }
-
-    #toc-content .is-active-link {
-        color: #42b983;
-    }
-
-    #floating-toc-btn {
-        position: fixed;
-        right: 15px;
-        bottom: 76px;
-        padding-top: 15px;
-        margin-bottom: 0;
-        z-index: 998;
-    }
-
-    #floating-toc-btn .btn-floating {
-        background: #fff !important;
-        opacity: 0.8;
-    }
-
-    #floating-toc-btn .btn-floating i {
-        color: #1f4d71;
-        font-size: 1rem;
-    }
-
-    #floating-toc-btn .after {
-        color: #000;
-        font-size: 1rem;
-    }
-</style>
-<div class="row">
-    <div id="main-content" class="col s12 m12 l9">
-        <!-- 文章内容详情 -->
-<div id="artDetail">
-    <div class="card">
-        <div class="card-content article-info">
-            <div class="row tag-cate">
-                <div class="col s7">
-                    
-                    <div class="article-tag">
-                        
-                            <a href="/tags/k8s/">
-                                <span class="chip bg-color">k8s</span>
-                            </a>
-                        
-                            <a href="/tags/container/">
-                                <span class="chip bg-color">container</span>
-                            </a>
-                        
-                    </div>
-                    
-                </div>
-                <div class="col s5 right-align">
-                    
-                    <div class="post-cate">
-                        <i class="fas fa-bookmark fa-fw icon-category"></i>
-                        
-                            <a href="/categories/cloud/" class="post-category">
-                                cloud
-                            </a>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-
-            <div class="post-info">
-                
-                <div class="post-date info-break-policy">
-                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2020-09-21
-                </div>
-                
-
-                
-
-                
-                <div class="info-break-policy">
-                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    1.7k
-                </div>
-                
-
-                
-                <div class="info-break-policy">
-                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    7 分
-                </div>
-                
-
-                
-                    <div id="busuanzi_container_page_pv" class="info-break-policy">
-                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
-                        <span id="busuanzi_value_page_pv"></span>
-                    </div>
-				
-            </div>
         </div>
-        <hr class="clearfix">
-        <div class="card-content article-card-content">
-            <div id="articleContent">
-                <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>在多个容器的Pod中，通常业务容器需要依赖sidecar。启动时sidecar需要先启动，退出时sidecar需要在业务容器退出后再退出。k8s目前对于sidecar的生命周期比较有争议，见<a href="https://github.com/kubernetes/enhancements/issues/753" target="_blank" rel="noopener">issue</a>、<a href="https://github.com/kubernetes/enhancements/blob/master/keps/sig-node/0753-sidecarcontainers.md" target="_blank" rel="noopener">sidecarcontainers</a>。</p>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>在多个容器的Pod中，通常业务容器需要依赖sidecar。启动时sidecar需要先启动，退出时sidecar需要在业务容器退出后再退出。k8s目前对于sidecar的生命周期比较有争议，见<a href="https://github.com/kubernetes/enhancements/issues/753" target="_blank" rel="noopener">issue</a>、<a href="https://github.com/kubernetes/enhancements/blob/master/keps/sig-node/0753-sidecarcontainers.md" target="_blank" rel="noopener">sidecarcontainers</a>。</p>
 <p>Kubernetes Pod 内有两种容器: 初始化容器(init container)和应用容器(app container)。</p>
-<p>其中初始化容器的执行先于应用容器，按顺序启动，执行成功启动下一个：</p>
-<pre class="line-numbers language-go"><code class="language-go">    <span class="token keyword">if</span> container <span class="token operator">:=</span> podContainerChanges<span class="token punctuation">.</span>NextInitContainerToStart<span class="token punctuation">;</span> container <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
-        <span class="token comment" spellcheck="true">// Start the next init container.</span>
-        <span class="token keyword">if</span> err <span class="token operator">:=</span> <span class="token function">start</span><span class="token punctuation">(</span><span class="token string">"init container"</span><span class="token punctuation">,</span> <span class="token function">containerStartSpec</span><span class="token punctuation">(</span>container<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
-            <span class="token keyword">return</span>
-        <span class="token punctuation">}</span>
-
-        <span class="token comment" spellcheck="true">// Successfully started the container; clear the entry in the failure</span>
-        klog<span class="token punctuation">.</span><span class="token function">V</span><span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Infof</span><span class="token punctuation">(</span><span class="token string">"Completed init container %q for pod %q"</span><span class="token punctuation">,</span> container<span class="token punctuation">.</span>Name<span class="token punctuation">,</span> format<span class="token punctuation">.</span><span class="token function">Pod</span><span class="token punctuation">(</span>pod<span class="token punctuation">)</span><span class="token punctuation">)</span>
-    <span class="token punctuation">}</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>而对于应用容器，无法保证容器ready顺序，启动代码如下:</p>
-<pre class="line-numbers language-go"><code class="language-go">    <span class="token comment" spellcheck="true">// Step 7: start containers in podContainerChanges.ContainersToStart.</span>
-    <span class="token keyword">for</span> <span class="token boolean">_</span><span class="token punctuation">,</span> idx <span class="token operator">:=</span> <span class="token keyword">range</span> podContainerChanges<span class="token punctuation">.</span>ContainersToStart <span class="token punctuation">{</span>
-        <span class="token comment" spellcheck="true">// start函数向docker发请求启动容器，这里没有检测函数返回而且不确定ENTRYPOINT是否成功</span>
-        <span class="token function">start</span><span class="token punctuation">(</span><span class="token string">"container"</span><span class="token punctuation">,</span> <span class="token function">containerStartSpec</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pod<span class="token punctuation">.</span>Spec<span class="token punctuation">.</span>Containers<span class="token punctuation">[</span>idx<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-    <span class="token punctuation">}</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>在删除时，同样无法保证删除顺序，代码如下</p>
-<pre class="line-numbers language-go"><code class="language-go">    <span class="token keyword">for</span> <span class="token boolean">_</span><span class="token punctuation">,</span> container <span class="token operator">:=</span> <span class="token keyword">range</span> runningPod<span class="token punctuation">.</span>Containers <span class="token punctuation">{</span>
-        <span class="token keyword">go</span> <span class="token keyword">func</span><span class="token punctuation">(</span>container <span class="token operator">*</span>kubecontainer<span class="token punctuation">.</span>Container<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-            killContainerResult <span class="token operator">:=</span> kubecontainer<span class="token punctuation">.</span><span class="token function">NewSyncResult</span><span class="token punctuation">(</span>kubecontainer<span class="token punctuation">.</span>KillContainer<span class="token punctuation">,</span> container<span class="token punctuation">.</span>Name<span class="token punctuation">)</span>
-            <span class="token comment" spellcheck="true">// 每一个容器起goroutine执行删除</span>
-            <span class="token keyword">if</span> err <span class="token operator">:=</span> m<span class="token punctuation">.</span><span class="token function">killContainer</span><span class="token punctuation">(</span>pod<span class="token punctuation">,</span> container<span class="token punctuation">.</span>ID<span class="token punctuation">,</span> container<span class="token punctuation">.</span>Name<span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">,</span> gracePeriodOverride<span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
-               <span class="token operator">...</span>
-            <span class="token punctuation">}</span>
-            containerResults <span class="token operator">&lt;-</span> killContainerResult
-        <span class="token punctuation">}</span><span class="token punctuation">(</span>container<span class="token punctuation">)</span>
-    <span class="token punctuation">}</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其中初始化容器的执行先于应用容器，按顺序启动，执行成功启动下一个：<br></p><figure class="highlight go"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> container := podContainerChanges.NextInitContainerToStart; container != <span class="literal">nil</span> {</span><br><span class="line">    <span class="comment">// Start the next init container.</span></span><br><span class="line">    <span class="keyword">if</span> err := start(<span class="string">"init container"</span>, containerStartSpec(container)); err != <span class="literal">nil</span> {</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Successfully started the container; clear the entry in the failure</span></span><br><span class="line">    klog.V(<span class="number">4</span>).Infof(<span class="string">"Completed init container %q for pod %q"</span>, container.Name, format.Pod(pod))</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>而对于应用容器，无法保证容器ready顺序，启动代码如下:<br></p><figure class="highlight go"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Step 7: start containers in podContainerChanges.ContainersToStart.</span></span><br><span class="line"><span class="keyword">for</span> _, idx := <span class="keyword">range</span> podContainerChanges.ContainersToStart {</span><br><span class="line">    <span class="comment">// start函数向docker发请求启动容器，这里没有检测函数返回而且不确定ENTRYPOINT是否成功</span></span><br><span class="line">    start(<span class="string">"container"</span>, containerStartSpec(&amp;pod.Spec.Containers[idx]))</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>在删除时，同样无法保证删除顺序，代码如下<br></p><figure class="highlight go"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> _, container := <span class="keyword">range</span> runningPod.Containers {</span><br><span class="line">    <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">(container *kubecontainer.Container)</span></span> {</span><br><span class="line">        killContainerResult := kubecontainer.NewSyncResult(kubecontainer.KillContainer, container.Name)</span><br><span class="line">        <span class="comment">// 每一个容器起goroutine执行删除</span></span><br><span class="line">        <span class="keyword">if</span> err := m.killContainer(pod, container.ID, container.Name, <span class="string">""</span>, gracePeriodOverride); err != <span class="literal">nil</span> {</span><br><span class="line">           ...</span><br><span class="line">        }</span><br><span class="line">        containerResults &lt;- killContainerResult</span><br><span class="line">    }(container)</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><p></p>
 <h2 id="启动顺序"><a href="#启动顺序" class="headerlink" title="启动顺序"></a>启动顺序</h2><p>k8s原生方式，对于pod中一个容器依赖另一个容器，目前需要业务进程判断依赖服务是否启动或者sleep 10s，这种方式可以工作，但不太优雅。需要业务更改启动脚本。</p>
 <p>那么，有没有其他的解决办法？</p>
-<h3 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h3><p>在启动时，start函数调用startContainer来创建容器，主要代码如下：</p>
-<pre class="line-numbers language-go"><code class="language-go"><span class="token keyword">func</span> <span class="token punctuation">(</span>m <span class="token operator">*</span>kubeGenericRuntimeManager<span class="token punctuation">)</span> <span class="token function">startContainer</span><span class="token punctuation">(</span>podSandboxID <span class="token builtin">string</span><span class="token punctuation">,</span> podSandboxConfig <span class="token operator">*</span>runtimeapi<span class="token punctuation">.</span>PodSandboxConfig<span class="token punctuation">,</span> spec <span class="token operator">*</span>startSpec<span class="token punctuation">,</span> pod <span class="token operator">*</span>v1<span class="token punctuation">.</span>Pod<span class="token punctuation">,</span> podStatus <span class="token operator">*</span>kubecontainer<span class="token punctuation">.</span>PodStatus<span class="token punctuation">,</span> pullSecrets <span class="token punctuation">[</span><span class="token punctuation">]</span>v1<span class="token punctuation">.</span>Secret<span class="token punctuation">,</span> podIP <span class="token builtin">string</span><span class="token punctuation">,</span> podIPs <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">error</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-    container <span class="token operator">:=</span> spec<span class="token punctuation">.</span>container
-
-    <span class="token comment" spellcheck="true">// Step 1: 拉镜像.</span>
-    imageRef<span class="token punctuation">,</span> msg<span class="token punctuation">,</span> err <span class="token operator">:=</span> m<span class="token punctuation">.</span>imagePuller<span class="token punctuation">.</span><span class="token function">EnsureImageExists</span><span class="token punctuation">(</span>pod<span class="token punctuation">,</span> container<span class="token punctuation">,</span> pullSecrets<span class="token punctuation">,</span> podSandboxConfig<span class="token punctuation">)</span>
-    <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
-        <span class="token operator">...</span>
-     <span class="token punctuation">}</span>
-
-    <span class="token comment" spellcheck="true">// Step 2: 调用cri创建容器</span>
-    <span class="token comment" spellcheck="true">// For a new container, the RestartCount should be 0</span>
-    containerID<span class="token punctuation">,</span> err <span class="token operator">:=</span> m<span class="token punctuation">.</span>runtimeService<span class="token punctuation">.</span><span class="token function">CreateContainer</span><span class="token punctuation">(</span>podSandboxID<span class="token punctuation">,</span> containerConfig<span class="token punctuation">,</span> podSandboxConfig<span class="token punctuation">)</span>
-   <span class="token operator">...</span>
-
-    <span class="token comment" spellcheck="true">// Step 3: 启动容器</span>
-    err <span class="token operator">=</span> m<span class="token punctuation">.</span>runtimeService<span class="token punctuation">.</span><span class="token function">StartContainer</span><span class="token punctuation">(</span>containerID<span class="token punctuation">)</span>
-
-    <span class="token comment" spellcheck="true">// Step 4: 执行 post start hook.</span>
-    <span class="token keyword">if</span> container<span class="token punctuation">.</span>Lifecycle <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token operator">&amp;&amp;</span> container<span class="token punctuation">.</span>Lifecycle<span class="token punctuation">.</span>PostStart <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
-        kubeContainerID <span class="token operator">:=</span> kubecontainer<span class="token punctuation">.</span>ContainerID<span class="token punctuation">{</span>
-            Type<span class="token punctuation">:</span> m<span class="token punctuation">.</span>runtimeName<span class="token punctuation">,</span>
-            ID<span class="token punctuation">:</span>   containerID<span class="token punctuation">,</span>
-        <span class="token punctuation">}</span>
-        <span class="token comment" spellcheck="true">// 调用Run来执行hook</span>
-        msg<span class="token punctuation">,</span> handlerErr <span class="token operator">:=</span> m<span class="token punctuation">.</span>runner<span class="token punctuation">.</span><span class="token function">Run</span><span class="token punctuation">(</span>kubeContainerID<span class="token punctuation">,</span> pod<span class="token punctuation">,</span> container<span class="token punctuation">,</span> container<span class="token punctuation">.</span>Lifecycle<span class="token punctuation">.</span>PostStart<span class="token punctuation">)</span>
-        <span class="token operator">...</span>
-    <span class="token punctuation">}</span>
-
-    <span class="token keyword">return</span> <span class="token string">""</span><span class="token punctuation">,</span> <span class="token boolean">nil</span>
-<span class="token punctuation">}</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h3><p>在启动时，start函数调用startContainer来创建容器，主要代码如下：<br></p><figure class="highlight go"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *kubeGenericRuntimeManager)</span> <span class="title">startContainer</span><span class="params">(podSandboxID <span class="keyword">string</span>, podSandboxConfig *runtimeapi.PodSandboxConfig, spec *startSpec, pod *v1.Pod, podStatus *kubecontainer.PodStatus, pullSecrets []v1.Secret, podIP <span class="keyword">string</span>, podIPs []<span class="keyword">string</span>)</span> <span class="params">(<span class="keyword">string</span>, error)</span></span> {</span><br><span class="line">    container := spec.container</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Step 1: 拉镜像.</span></span><br><span class="line">    imageRef, msg, err := m.imagePuller.EnsureImageExists(pod, container, pullSecrets, podSandboxConfig)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> {</span><br><span class="line">        ...</span><br><span class="line">     }</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Step 2: 调用cri创建容器</span></span><br><span class="line">    <span class="comment">// For a new container, the RestartCount should be 0</span></span><br><span class="line">    containerID, err := m.runtimeService.CreateContainer(podSandboxID, containerConfig, podSandboxConfig)</span><br><span class="line">   ...</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Step 3: 启动容器</span></span><br><span class="line">    err = m.runtimeService.StartContainer(containerID)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Step 4: 执行 post start hook.</span></span><br><span class="line">    <span class="keyword">if</span> container.Lifecycle != <span class="literal">nil</span> &amp;&amp; container.Lifecycle.PostStart != <span class="literal">nil</span> {</span><br><span class="line">        kubeContainerID := kubecontainer.ContainerID{</span><br><span class="line">            Type: m.runtimeName,</span><br><span class="line">            ID:   containerID,</span><br><span class="line">        }</span><br><span class="line">        <span class="comment">// 调用Run来执行hook</span></span><br><span class="line">        msg, handlerErr := m.runner.Run(kubeContainerID, pod, container, container.Lifecycle.PostStart)</span><br><span class="line">        ...</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="string">""</span>, <span class="literal">nil</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><p></p>
 <p>步骤如下：</p>
 <ol>
 <li>拉取镜像</li>
@@ -487,38 +250,8 @@
 <p>一个Pod中容器的启动是有顺序的，排在前面容器的先启动。同时第一个容器执行完ENTRYPOINT和PostStart之后（异步执行，无法确定顺序），k8s才会创建第二个容器（这样的话就可以保证第一个容器创建多长时间后再启动第二个容器）</p>
 <p>如果我们PostStart阶段去检测容器是否ready，那么只有在ready后才去执行下一个容器。</p>
 <p><img src="/img/blogImg/sidecar-lifecycle.png" alt="sidecar-lifecycle"></p>
-<h3 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h3><p>配置如下，sidecar模拟需要依赖的容器，main为业务容器</p>
-<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Pod
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> test<span class="token punctuation">-</span>start
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> sidecar
-    <span class="token key atrule">image</span><span class="token punctuation">:</span> busybox
-    <span class="token key atrule">command</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"/bin/sh"</span><span class="token punctuation">,</span> <span class="token string">"-c"</span><span class="token punctuation">,</span> <span class="token string">"sleep 3600"</span><span class="token punctuation">]</span>
-    <span class="token key atrule">lifecycle</span><span class="token punctuation">:</span>
-      <span class="token key atrule">postStart</span><span class="token punctuation">:</span>
-        <span class="token key atrule">exec</span><span class="token punctuation">:</span>
-          <span class="token key atrule">command</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"/bin/sh"</span><span class="token punctuation">,</span> <span class="token string">"-c"</span><span class="token punctuation">,</span> <span class="token string">"sleep 20"</span><span class="token punctuation">]</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> main
-    <span class="token key atrule">image</span><span class="token punctuation">:</span> busybox
-    <span class="token key atrule">command</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"/bin/sh"</span><span class="token punctuation">,</span> <span class="token string">"-c"</span><span class="token punctuation">,</span> <span class="token string">"sleep 3600"</span><span class="token punctuation">]</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>得到结果如下，可以看到sidecar启动21s后才开始启动main容器，满足需求</p>
-<pre class="line-numbers language-bash"><code class="language-bash">Events:
-  Type    Reason     Age   From                                          Message
-  ----    ------     ----  ----                                          -------
-  Normal  Scheduled  54s   default-scheduler                             Successfully assigned default/test-start to tj1-staging-k8s-slave95-202008.kscn
-  Normal  Pulling    53s   kubelet, tj1-staging-k8s-slave95-202008.kscn  Pulling image <span class="token string">"busybox"</span>
-  Normal  Pulled     44s   kubelet, tj1-staging-k8s-slave95-202008.kscn  Successfully pulled image <span class="token string">"busybox"</span>
-  Normal  Created    44s   kubelet, tj1-staging-k8s-slave95-202008.kscn  Created container sidecar
-  Normal  Started    44s   kubelet, tj1-staging-k8s-slave95-202008.kscn  Started container sidecar
-  Normal  Pulling    23s   kubelet, tj1-staging-k8s-slave95-202008.kscn  Pulling image <span class="token string">"busybox"</span>
-  Normal  Pulled     19s   kubelet, tj1-staging-k8s-slave95-202008.kscn  Successfully pulled image <span class="token string">"busybox"</span>
-  Normal  Created    18s   kubelet, tj1-staging-k8s-slave95-202008.kscn  Created container main
-  Normal  Started    18s   kubelet, tj1-staging-k8s-slave95-202008.kscn  Started container main
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h3><p>配置如下，sidecar模拟需要依赖的容器，main为业务容器<br></p><figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">test-start</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  containers:</span></span><br><span class="line"><span class="attr">  - name:</span> <span class="string">sidecar</span></span><br><span class="line"><span class="attr">    image:</span> <span class="string">busybox</span></span><br><span class="line"><span class="attr">    command:</span> <span class="string">["/bin/sh",</span> <span class="string">"-c"</span><span class="string">,</span> <span class="string">"sleep 3600"</span><span class="string">]</span></span><br><span class="line"><span class="attr">    lifecycle:</span></span><br><span class="line"><span class="attr">      postStart:</span></span><br><span class="line"><span class="attr">        exec:</span></span><br><span class="line"><span class="attr">          command:</span> <span class="string">["/bin/sh",</span> <span class="string">"-c"</span><span class="string">,</span> <span class="string">"sleep 20"</span><span class="string">]</span></span><br><span class="line"><span class="attr">  - name:</span> <span class="string">main</span></span><br><span class="line"><span class="attr">    image:</span> <span class="string">busybox</span></span><br><span class="line"><span class="attr">    command:</span> <span class="string">["/bin/sh",</span> <span class="string">"-c"</span><span class="string">,</span> <span class="string">"sleep 3600"</span><span class="string">]</span></span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>得到结果如下，可以看到sidecar启动21s后才开始启动main容器，满足需求<br></p><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Events:</span><br><span class="line">  Type    Reason     Age   From                                          Message</span><br><span class="line">  ----    ------     ----  ----                                          -------</span><br><span class="line">  Normal  Scheduled  54s   default-scheduler                             Successfully assigned default/<span class="built_in">test</span>-start to tj1-staging-k8s-slave95-202008.kscn</span><br><span class="line">  Normal  Pulling    53s   kubelet, tj1-staging-k8s-slave95-202008.kscn  Pulling image <span class="string">"busybox"</span></span><br><span class="line">  Normal  Pulled     44s   kubelet, tj1-staging-k8s-slave95-202008.kscn  Successfully pulled image <span class="string">"busybox"</span></span><br><span class="line">  Normal  Created    44s   kubelet, tj1-staging-k8s-slave95-202008.kscn  Created container sidecar</span><br><span class="line">  Normal  Started    44s   kubelet, tj1-staging-k8s-slave95-202008.kscn  Started container sidecar</span><br><span class="line">  Normal  Pulling    23s   kubelet, tj1-staging-k8s-slave95-202008.kscn  Pulling image <span class="string">"busybox"</span></span><br><span class="line">  Normal  Pulled     19s   kubelet, tj1-staging-k8s-slave95-202008.kscn  Successfully pulled image <span class="string">"busybox"</span></span><br><span class="line">  Normal  Created    18s   kubelet, tj1-staging-k8s-slave95-202008.kscn  Created container main</span><br><span class="line">  Normal  Started    18s   kubelet, tj1-staging-k8s-slave95-202008.kscn  Started container main</span><br></pre></td></tr></tbody></table></figure><p></p>
 <p>此方案可能存在的缺点：</p>
 <ol>
 <li>如果sidecar启动失败或者hook失败，其他容器会立即启动</li>
@@ -531,76 +264,8 @@
 <li>再调用cri删除接口m.runtimeService.StopContainer(containerID.ID, gracePeriod)</li>
 </ol>
 <p>如果在sidecar的pre stop hook检测业务容器状态，那么可以延迟退出。</p>
-<h3 id="测试-1"><a href="#测试-1" class="headerlink" title="测试"></a>测试</h3><p>业务容器main退出时，创建文件；sidecar通过post-stop检测到文件后，执行退出</p>
-<pre class="line-numbers language-yaml"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
-<span class="token key atrule">kind</span><span class="token punctuation">:</span> Pod
-<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
-  <span class="token key atrule">name</span><span class="token punctuation">:</span> test<span class="token punctuation">-</span>stop
-<span class="token key atrule">spec</span><span class="token punctuation">:</span>
-  <span class="token key atrule">containers</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> sidecar
-    <span class="token key atrule">image</span><span class="token punctuation">:</span> busybox
-    <span class="token key atrule">command</span><span class="token punctuation">:</span> 
-    <span class="token punctuation">-</span> <span class="token string">"/bin/sh"</span>
-    <span class="token punctuation">-</span> <span class="token string">"-c"</span>
-    <span class="token punctuation">-</span> <span class="token punctuation">|</span><span class="token scalar string">
-      trap "touch /lifecycle/sidecar-terminated" 15
-      until [ -f "/lifecycle/sidecar-terminated" ];do
-        date
-        sleep 1
-      done
-      sleep 5
-      cat /lifecycle/main-terminated
-      t=$(date)
-      echo "sidecar exit at $t"</span>
-    <span class="token key atrule">lifecycle</span><span class="token punctuation">:</span>
-      <span class="token key atrule">preStop</span><span class="token punctuation">:</span>
-        <span class="token key atrule">exec</span><span class="token punctuation">:</span>
-          <span class="token key atrule">command</span><span class="token punctuation">:</span>
-          <span class="token punctuation">-</span> <span class="token string">"/bin/sh"</span>
-          <span class="token punctuation">-</span> <span class="token string">"-c"</span>
-          <span class="token punctuation">-</span> <span class="token punctuation">|</span><span class="token scalar string">
-            until [ -f "/lifecycle/main-terminated" ];do
-              sleep 1
-            done
-            t=$(date)
-            echo "main exit at $t" > /lifecycle/main-terminated</span>
-    <span class="token key atrule">volumeMounts</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> lifecycle
-      <span class="token key atrule">mountPath</span><span class="token punctuation">:</span> /lifecycle
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> main
-    <span class="token key atrule">image</span><span class="token punctuation">:</span> busybox
-    <span class="token key atrule">command</span><span class="token punctuation">:</span> 
-    <span class="token punctuation">-</span> <span class="token string">"/bin/sh"</span>
-    <span class="token punctuation">-</span> <span class="token string">"-c"</span>
-    <span class="token punctuation">-</span> <span class="token punctuation">|</span><span class="token scalar string">
-      trap "touch /lifecycle/main-terminated" 15
-      until [ -f "/lifecycle/main-terminated" ];do
-        date
-        sleep 1
-      done</span>
-    <span class="token key atrule">volumeMounts</span><span class="token punctuation">:</span>
-    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> lifecycle
-      <span class="token key atrule">mountPath</span><span class="token punctuation">:</span> /lifecycle
-  <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
-  <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> lifecycle
-    <span class="token key atrule">emptyDir</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>在日志中看到，main容器先结束，sidecar检测到main-terminated文件后，执行完post-stop-hook，sidecar主进程开始退出</p>
-<pre class="line-numbers language-bash"><code class="language-bash">$ kubectl  logs -f test-stop main
-<span class="token punctuation">..</span>.
-Tue Sep  8 03:14:20 UTC 2020
-Tue Sep  8 03:14:21 UTC 2020
-Tue Sep  8 03:14:22 UTC 2020
-
-$ kubectl  logs -f test-stop sidecar
-Tue Sep  8 03:14:22 UTC 2020
-Tue Sep  8 03:14:23 UTC 2020
-<span class="token comment" spellcheck="true"># post stop hook 检测到main容器退出，记录日志</span>
-main <span class="token keyword">exit</span> at Tue Sep  8 03:14:23 UTC 2020
-<span class="token comment" spellcheck="true"># sidecar主进程退出</span>
-sidecar <span class="token keyword">exit</span> at Tue Sep  8 03:14:29 UTC 2020
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="测试-1"><a href="#测试-1" class="headerlink" title="测试"></a>测试</h3><p>业务容器main退出时，创建文件；sidecar通过post-stop检测到文件后，执行退出<br></p><figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">test-stop</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  containers:</span></span><br><span class="line"><span class="attr">  - name:</span> <span class="string">sidecar</span></span><br><span class="line"><span class="attr">    image:</span> <span class="string">busybox</span></span><br><span class="line"><span class="attr">    command:</span> </span><br><span class="line"><span class="bullet">    -</span> <span class="string">"/bin/sh"</span></span><br><span class="line"><span class="bullet">    -</span> <span class="string">"-c"</span></span><br><span class="line"><span class="bullet">    -</span> <span class="string">|</span></span><br><span class="line"><span class="string">      trap "touch /lifecycle/sidecar-terminated" 15</span></span><br><span class="line"><span class="string">      until [ -f "/lifecycle/sidecar-terminated" ];do</span></span><br><span class="line"><span class="string">        date</span></span><br><span class="line"><span class="string">        sleep 1</span></span><br><span class="line"><span class="string">      done</span></span><br><span class="line"><span class="string">      sleep 5</span></span><br><span class="line"><span class="string">      cat /lifecycle/main-terminated</span></span><br><span class="line"><span class="string">      t=$(date)</span></span><br><span class="line"><span class="string">      echo "sidecar exit at $t"</span></span><br><span class="line"><span class="string"></span><span class="attr">    lifecycle:</span></span><br><span class="line"><span class="attr">      preStop:</span></span><br><span class="line"><span class="attr">        exec:</span></span><br><span class="line"><span class="attr">          command:</span></span><br><span class="line"><span class="bullet">          -</span> <span class="string">"/bin/sh"</span></span><br><span class="line"><span class="bullet">          -</span> <span class="string">"-c"</span></span><br><span class="line"><span class="bullet">          -</span> <span class="string">|</span></span><br><span class="line"><span class="string">            until [ -f "/lifecycle/main-terminated" ];do</span></span><br><span class="line"><span class="string">              sleep 1</span></span><br><span class="line"><span class="string">            done</span></span><br><span class="line"><span class="string">            t=$(date)</span></span><br><span class="line"><span class="string">            echo "main exit at $t" &gt; /lifecycle/main-terminated</span></span><br><span class="line"><span class="string"></span><span class="attr">    volumeMounts:</span></span><br><span class="line"><span class="attr">    - name:</span> <span class="string">lifecycle</span></span><br><span class="line"><span class="attr">      mountPath:</span> <span class="string">/lifecycle</span></span><br><span class="line"><span class="attr">  - name:</span> <span class="string">main</span></span><br><span class="line"><span class="attr">    image:</span> <span class="string">busybox</span></span><br><span class="line"><span class="attr">    command:</span> </span><br><span class="line"><span class="bullet">    -</span> <span class="string">"/bin/sh"</span></span><br><span class="line"><span class="bullet">    -</span> <span class="string">"-c"</span></span><br><span class="line"><span class="bullet">    -</span> <span class="string">|</span></span><br><span class="line"><span class="string">      trap "touch /lifecycle/main-terminated" 15</span></span><br><span class="line"><span class="string">      until [ -f "/lifecycle/main-terminated" ];do</span></span><br><span class="line"><span class="string">        date</span></span><br><span class="line"><span class="string">        sleep 1</span></span><br><span class="line"><span class="string">      done</span></span><br><span class="line"><span class="string"></span><span class="attr">    volumeMounts:</span></span><br><span class="line"><span class="attr">    - name:</span> <span class="string">lifecycle</span></span><br><span class="line"><span class="attr">      mountPath:</span> <span class="string">/lifecycle</span></span><br><span class="line"><span class="attr">  volumes:</span></span><br><span class="line"><span class="attr">  - name:</span> <span class="string">lifecycle</span></span><br><span class="line"><span class="attr">    emptyDir:</span> <span class="string">{}</span></span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>在日志中看到，main容器先结束，sidecar检测到main-terminated文件后，执行完post-stop-hook，sidecar主进程开始退出<br></p><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl  logs -f <span class="built_in">test</span>-stop main</span><br><span class="line">...</span><br><span class="line">Tue Sep  8 03:14:20 UTC 2020</span><br><span class="line">Tue Sep  8 03:14:21 UTC 2020</span><br><span class="line">Tue Sep  8 03:14:22 UTC 2020</span><br><span class="line"></span><br><span class="line">$ kubectl  logs -f <span class="built_in">test</span>-stop sidecar</span><br><span class="line">Tue Sep  8 03:14:22 UTC 2020</span><br><span class="line">Tue Sep  8 03:14:23 UTC 2020</span><br><span class="line"><span class="comment"># post stop hook 检测到main容器退出，记录日志</span></span><br><span class="line">main <span class="built_in">exit</span> at Tue Sep  8 03:14:23 UTC 2020</span><br><span class="line"><span class="comment"># sidecar主进程退出</span></span><br><span class="line">sidecar <span class="built_in">exit</span> at Tue Sep  8 03:14:29 UTC 2020</span><br></pre></td></tr></tbody></table></figure><p></p>
 <p>通过测试，使用postStopHook可以达到sidecar延迟退出的目的，但这种方式也有一些缺点</p>
 <ol>
 <li>配置复杂，多个sidecar都需要配置postStop监听业务容器状态</li>
@@ -665,491 +330,363 @@ sidecar <span class="token keyword">exit</span> at Tue Sep  8 03:14:29 UTC 2020
 </tbody>
 </table>
 <p>在k8s提供此类功能前，目前没有完善的方案。Lifecycle Hooks不需要更改用户启动代码以及k8s相关代码，相对于其他方式不失为一种解决思路。</p>
-
-            </div>
-            <hr/>
-
-            
-
-
-
-            <div class="tag_share" style="display: block;">
-                <div class="post-meta__tag-list" style="display: inline-block;">
-                    
-                        <div class="article-tag">
-                            
-                                <a href="/tags/k8s/">
-                                    <span class="chip bg-color">k8s</span>
-                                </a>
-                            
-                                <a href="/tags/container/">
-                                    <span class="chip bg-color">container</span>
-                                </a>
-                            
-                        </div>
-                    
-                </div>
-                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
-                    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/css/share.min.css">
-<div id="article-share">
-
-    
-    <div class="social-share" data-sites="wechat,weibo" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/js/social-share.min.js"></script>
-    
-
-    
-
-</div>
-
-                </div>
-            </div>
-            
-        </div>
-    </div>
-
-    
-        <link rel="stylesheet" href="/libs/gitalk/gitalk.css">
-<link rel="stylesheet" href="/libs/gitalk/gitalk.min.js">
-
-<div class="card gitalk-card" data-aos="fade-up">
-    <div class="comment_headling" style="font-size: 20px; font-weight: 700; position: relative; padding-left: 20px; top: 15px; padding-bottom: 5px;">
-        <i class="fas fa-comments fa-fw" aria-hidden="true"></i>
-        <span>评论</span>
-    </div>
-    <div id="gitalk-container" class="card-content"></div>
-</div>
-
-<script src="/libs/gitalk/gitalk.min.js"></script>
 <script>
-    let gitalk = new Gitalk({
-        clientID: 'a705189dfc18ec59a7d0',
-        clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
-        repo: 'qingwave.github.io',
-        owner: 'qingwave',
-        admin: "qingwave",
-        id: '2020-09-21T11-45-00',
-        distractionFreeMode: false  // Facebook-like distraction free mode
-    });
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return; }
+            const img = document.createElement('img');
+            img.style = 'display:none !important;';
+            img.src = el.dataset.src;
+            img.addEventListener('error', () => {
+              img.remove();
+              el.style.color = 'inherit';
+              el.style.backgroundImage = 'none';
+              el.style.background = 'none';
+            });
+            img.addEventListener('load', () => {
+              img.remove();
+            });
+            document.body.appendChild(img);
+          });
+      </script>
+    </div>
 
-    gitalk.render('gitalk-container');
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>qinng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://qingwave.github.io/k8s-sideccar-lifecycle/" title="Kubernetes中Sidecar生命周期管理">https://qingwave.github.io/k8s-sideccar-lifecycle/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/k8s/" rel="tag"># k8s</a>
+              <a href="/tags/container/" rel="tag"># container</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/k8s-rate-limit/" rel="prev" title="kubernetes apiserver限流方案">
+      <i class="fa fa-chevron-left"></i> kubernetes apiserver限流方案
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/cotainer-init/" rel="next" title="开启shareProcessNamespace后容器异常">
+      开启shareProcessNamespace后容器异常 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
 </script>
 
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-<article id="prenext-posts" class="prev-next articles">
-    <div class="row article-row">
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
-            <div class="card">
-                <a href="/k8s-rate-limit/">
-                    <div class="card-image">
-                        
-                        
-                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/13.jpg" class="responsive-img" alt="kubernetes apiserver限流方案">
-                        
-                        <span class="card-title">kubernetes apiserver限流方案</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            背景为了防止突发流量影响apiserver可用性，k8s支持多种限流配置，包括：
-
-MaxInFlightLimit，server级别整体限流
-Client限流
-EventRateLimit, 限制event
-APF，更细力度的限制配置
-
-
-                        
-                    </div>
-                    <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2020-11-11
-                        </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                            
-                            
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/k8s/">
-                        <span class="chip bg-color">k8s</span>
-                    </a>
-                    
-                    <a href="/tags/apiserver/">
-                        <span class="chip bg-color">apiserver</span>
-                    </a>
-                    
-                </div>
-                
-            </div>
         </div>
-        
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge right-badge text-color">
-                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
-            </div>
-            <div class="card">
-                <a href="/cotainer-init/">
-                    <div class="card-image">
-                        
-                        
-                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/1.jpg" class="responsive-img" alt="开启shareProcessNamespace后容器异常">
-                        
-                        <span class="card-title">开启shareProcessNamespace后容器异常</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            背景目前k8s不支持容器启动顺序，部分业务通过开启shareProcessNamespace监控某些进程状态。当开启共享pid后，有用户反馈某个容器主进程退出，但是容器并没有重启，执行exec会卡住，现象参考issue
-复现
-创建deplo
-                        
-                    </div>
-                    <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-07-28
-                            </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                            
-                            
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/k8s/">
-                        <span class="chip bg-color">k8s</span>
-                    </a>
-                    
-                    <a href="/tags/docker/">
-                        <span class="chip bg-color">docker</span>
-                    </a>
-                    
-                </div>
-                
-            </div>
-        </div>
-        
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#启动顺序"><span class="nav-number">2.</span> <span class="nav-text">启动顺序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#源码分析"><span class="nav-number">2.1.</span> <span class="nav-text">源码分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#测试"><span class="nav-number">2.2.</span> <span class="nav-text">测试</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#退出顺序"><span class="nav-number">3.</span> <span class="nav-text">退出顺序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#测试-1"><span class="nav-number">3.1.</span> <span class="nav-text">测试</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Qinng</p>
+  <div class="site-description" itemprop="description">Coding, Reading and Daydreaming</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/qingwave" title="GitHub → https://github.com/qingwave" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:isguory@gmail.com" title="E-Mail → mailto:isguory@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
     </div>
-</article>
+  </aside>
+  <div id="sidebar-dimmer"></div>
 
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2018 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-terminal"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Qinng</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
 
 
 
-<!-- 代码块功能依赖 -->
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeBlockFuction.js"></script>
-
-<!-- 代码语言 -->
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeLang.js"></script>
-
-
-<!-- 代码块复制 -->
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeCopy.js"></script>
-
-
-<!-- 代码块收缩 -->
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeShrink.js"></script>
-
-
-<!-- 代码块折行 -->
-
-<style type="text/css">
-code[class*="language-"], pre[class*="language-"] { white-space: pre !important; }
-</style>
-
-
-    </div>
-    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
-        <div class="toc-widget">
-            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
-            <div id="toc-content"></div>
-        </div>
-    </div>
-</div>
-
-<!-- TOC 悬浮按钮. -->
-
-<div id="floating-toc-btn" class="hide-on-med-and-down">
-    <a class="btn-floating btn-mini waves-effect bnt-color">
-        <i class="fas fa-list-ul"></i>
-    </a>
-</div>
-
-
-<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.min.js"></script>
-<script>
-    $(function () {
-        tocbot.init({
-            tocSelector: '#toc-content',
-            contentSelector: '#articleContent',
-            headingsOffset: -($(window).height() * 0.4 - 45),
-            collapseDepth: Number('0'),
-            headingSelector: 'h2, h3, h4'
-        });
-
-        // modify the toc link href to support Chinese.
-        let i = 0;
-        let tocHeading = 'toc-heading-';
-        $('#toc-content a').each(function () {
-            $(this).attr('href', '#' + tocHeading + (++i));
-        });
-
-        // modify the heading title id to support Chinese.
-        i = 0;
-        $('#articleContent').children('h2, h3, h4').each(function () {
-            $(this).attr('id', tocHeading + (++i));
-        });
-
-        // Set scroll toc fixed.
-        let tocHeight = parseInt($(window).height() * 0.4 - 64);
-        let $tocWidget = $('.toc-widget');
-        $(window).scroll(function () {
-            let scroll = $(window).scrollTop();
-            /* add post toc fixed. */
-            if (scroll > tocHeight) {
-                $tocWidget.addClass('toc-fixed');
-            } else {
-                $tocWidget.removeClass('toc-fixed');
-            }
-        });
-
-        
-        /* 修复文章卡片 div 的宽度. */
-        let fixPostCardWidth = function (srcId, targetId) {
-            let srcDiv = $('#' + srcId);
-            if (srcDiv.length === 0) {
-                return;
-            }
-
-            let w = srcDiv.width();
-            if (w >= 450) {
-                w = w + 21;
-            } else if (w >= 350 && w < 450) {
-                w = w + 18;
-            } else if (w >= 300 && w < 350) {
-                w = w + 16;
-            } else {
-                w = w + 14;
-            }
-            $('#' + targetId).width(w);
-        };
-
-        // 切换TOC目录展开收缩的相关操作.
-        const expandedClass = 'expanded';
-        let $tocAside = $('#toc-aside');
-        let $mainContent = $('#main-content');
-        $('#floating-toc-btn .btn-floating').click(function () {
-            if ($tocAside.hasClass(expandedClass)) {
-                $tocAside.removeClass(expandedClass).hide();
-                $mainContent.removeClass('l9');
-            } else {
-                $tocAside.addClass(expandedClass).show();
-                $mainContent.addClass('l9');
-            }
-            fixPostCardWidth('artDetail', 'prenext-posts');
-        });
-        
-    });
-</script>
-
-    
-
-</main>
-
-
-
-
-    <footer class="page-footer bg-color">
-    
-    <div class="container row center-align" style="margin-bottom: 0px !important;">
-        <div class="center-align">
-            Copyright&nbsp;&copy;
-            <span id="year">2018</span>
-            <a href="https://qinng.now.sh" target="_blank">Qinng</a>
-            <br>
-            
-            &nbsp;<i class="fas fa-chart-area"></i>&nbsp;&nbsp;<span
-                >49.9k</span>&nbsp;
-            
-            
-            
-            
-            
-            
-            <span id="busuanzi_container_site_pv">
-                |&nbsp;<i class="far fa-eye"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_pv"
-                    ></span>&nbsp;
-            </span>
-            
-            
-            <span id="busuanzi_container_site_uv">
-                |&nbsp;<i class="fas fa-users"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_uv"
-                    ></span>&nbsp;
-            </span>
-            
-            <br>
-            
-            <br>
-            
-        </div>
-        <!-- <div class="col s12 m4 l4 social-link social-statis">
-    <a href="https://github.com/qingwave" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
-        <i class="fab fa-github"></i>
-    </a>
-
-
-
-    <a href="mailto:isguory@gmail.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
-        <i class="fas fa-envelope-open"></i>
-    </a>
 
 
 
 
 
+      </div>
+    </footer>
+  </div>
 
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/pjax/pjax.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/muse.js"></script>
+<script src="/js/next-boot.js"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '.languages',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
 
-
-
-
-
-
-
-
-
-
-
-    <a href="https://www.douban.com/people/69458430"
-       target="_blank" data-tooltip="关注我的豆瓣: 69458430" data-position="top"
-       data-delay="50">
-        <i class="fa fa-inverse">豆</i>
-    </a>
-
-
-
-    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
-        <i class="fas fa-rss"></i>
-    </a>
-
-</div> -->
-    </div>
-</footer>
-
-<div class="progress-bar"></div>
-
-
-    <!-- 搜索遮罩框 -->
-<div id="searchModal" class="modal">
-    <div class="modal-content">
-        <div class="search-header">
-            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
-            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
-                   class="search-input">
-        </div>
-        <div id="searchResult"></div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/search.js"></script>
-<script type="text/javascript">
-$(function () {
-    searchFunc("https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/search.xml", 'searchInput', 'searchResult');
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[data-pjax], script#page-configurations, #pjax script').forEach(element => {
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (element.id) {
+      script.id = element.id;
+    }
+    if (element.className) {
+      script.className = element.className;
+    }
+    if (element.type) {
+      script.type = element.type;
+    }
+    if (element.src) {
+      script.src = element.src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (element.dataset.pjax !== undefined) {
+      script.dataset.pjax = '';
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.subMenu)
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
 });
 </script>
 
-    <!-- 回到顶部按钮 -->
-<div id="backTop" class="top-scroll">
-    <a class="btn-floating btn-mini waves-effect" href="#!">
-        <!-- <i class="fas fa-caret-up"></i> -->
-        <!-- <i class="fas fa-chevron-up"></i> -->
-        <i class="fas fa-angle-double-up"></i>
-    </a>
-</div>
 
 
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/masonry/masonry.pkgd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/scrollprogress/scrollProgress.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/js/lightgallery-all.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/matery.js"></script>
 
-    <!-- Baidu Analytics -->
+  
+  <script data-pjax>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
 
-    <!-- Baidu Push -->
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
 
 <script>
-    (function () {
-        var bp = document.createElement('script');
-        var curProtocol = window.location.protocol.split(':')[0];
-        if (curProtocol === 'https') {
-            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
-        } else {
-            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
-        }
-        var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(bp, s);
-    })();
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'a705189dfc18ec59a7d0',
+      clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
+      repo        : 'qingwave.github.io',
+      owner       : 'qingwave',
+      admin       : [''],
+      id          : '1537ae9d3a8b66af9165efd6ebe0f036',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
 </script>
 
-    
-    
-    <script async src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/others/busuanzi.pure.mini.js"></script>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/instantpage/instantpage.js" type="module"></script>
-    
-
+    </div>
 </body>
-
 </html>

@@ -1,417 +1,242 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/medias/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/medias/favicon.png">
+  <meta name="google-site-verification" content="googledbe9fc5bea9bf603.html">
+  <meta name="baidu-site-verification" content="muFp3xopwC">
+
+<link rel="stylesheet" href="/css/main.css">
 
 
-<head><meta name="generator" content="Hexo 3.9.0">
-    <meta charset="utf-8">
-    <meta name="keywords" content="kubernetes扩展apiserver实现分析, Qinng">
-    <meta name="description" content="Coding, Reading and Daydreaming">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="renderer" content="webkit|ie-stand|ie-comp">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- Global site tag (gtag.js) - Google Analytics -->
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"qingwave.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Kubernetes提供了丰富的扩展功能，实现自定义资源有两种方式CRD与Aggregation API。相对于CRD，扩展API功能更丰富，可以实现单独的存储。今天来聊一聊，k8s是如是实现扩展api的，它与apiserver之间又是如何协作的">
+<meta name="keywords" content="k8s,apiserver">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kubernetes扩展apiserver实现分析">
+<meta property="og:url" content="https://qingwave.github.io/kube-apiserver-aggretation-api/index.html">
+<meta property="og:site_name" content="Qinng">
+<meta property="og:description" content="Kubernetes提供了丰富的扩展功能，实现自定义资源有两种方式CRD与Aggregation API。相对于CRD，扩展API功能更丰富，可以实现单独的存储。今天来聊一聊，k8s是如是实现扩展api的，它与apiserver之间又是如何协作的">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2020-04-28T02:13:33.259Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="kubernetes扩展apiserver实现分析">
+<meta name="twitter:description" content="Kubernetes提供了丰富的扩展功能，实现自定义资源有两种方式CRD与Aggregation API。相对于CRD，扩展API功能更丰富，可以实现单独的存储。今天来聊一聊，k8s是如是实现扩展api的，它与apiserver之间又是如何协作的">
+
+<link rel="canonical" href="https://qingwave.github.io/kube-apiserver-aggretation-api/">
 
 
-    <title>kubernetes扩展apiserver实现分析 | Qinng</title>
-    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png">
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
 
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/awesome/css/all.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/animate/animate.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/css/lightgallery.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/matery.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/my.css">
+  <title>kubernetes扩展apiserver实现分析 | Qinng</title>
+  
 
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/jquery/jquery.min.js"></script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
 
 <link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
 <link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
 
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
 
-<body>
-    <header class="navbar-fixed">
-    <nav id="headNav" class="bg-color nav-transparent">
-        <div id="navContainer" class="nav-wrapper container">
-            <div class="brand-logo">
-                <a href="/" class="waves-effect waves-light">
-                    
-                    <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img" alt="LOGO">
-                    
-                    <span class="logo-span">Qinng</span>
-                </a>
-            </div>
-            
-
-<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
-<ul class="right nav-menu">
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/" class="waves-effect waves-light">
-      
-      <i class="fas fa-home" style="zoom: 0.6;"></i>
-      
-      <span>首页</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/tags" class="waves-effect waves-light">
-      
-      <i class="fas fa-tags" style="zoom: 0.6;"></i>
-      
-      <span>标签</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/categories" class="waves-effect waves-light">
-      
-      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
-      
-      <span>分类</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/archives" class="waves-effect waves-light">
-      
-      <i class="fas fa-archive" style="zoom: 0.6;"></i>
-      
-      <span>归档</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/contact" class="waves-effect waves-light">
-      
-      <i class="fas fa-comments" style="zoom: 0.6;"></i>
-      
-      <span>留言</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/about" class="waves-effect waves-light">
-      
-      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
-      
-      <span>关于</span>
-    </a>
-    
-  </li>
-  
-  <li>
-    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
-      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
-    </a>
-  </li>
-</ul>
-
-
-<div id="mobile-nav" class="side-nav sidenav">
-
-    <div class="mobile-head bg-color">
-        
-        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img circle responsive-img">
-        
-        <div class="logo-name">Qinng</div>
-        <div class="logo-desc">
-            
-            Coding, Reading and Daydreaming
-            
-        </div>
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
     </div>
+  </div>
 
-    
+  <div class="site-meta">
 
-    <ul class="menu-list mobile-menu-list">
-        
-        <li class="m-nav-item">
-	  
-		<a href="/" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-home"></i>
-			
-			首页
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/tags" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-tags"></i>
-			
-			标签
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/categories" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-bookmark"></i>
-			
-			分类
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/archives" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-archive"></i>
-			
-			归档
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/contact" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-comments"></i>
-			
-			留言
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/about" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-user-circle"></i>
-			
-			关于
-		</a>
-          
-        </li>
-        
-        
-    </ul>
-</div>
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Qinng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Qinng</p>
+  </div>
 
-
-        </div>
-
-        
-    </nav>
-
-</header>
-
-    
-
-
-
-<div class="bg-cover pd-header post-cover" style="background-image: url('https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/9.jpg')">
-    <div class="container" style="right: 0px;left: 0px;">
-        <div class="row">
-            <div class="col s12 m12 l12">
-                <div class="brand">
-                    <h1 class="description center-align post-title">kubernetes扩展apiserver实现分析</h1>
-                </div>
-            </div>
-        </div>
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
     </div>
+  </div>
 </div>
 
 
 
 
-<main class="post-container content">
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
 
     
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.css">
-<style>
-    #articleContent h1::before,
-    #articleContent h2::before,
-    #articleContent h3::before,
-    #articleContent h4::before,
-    #articleContent h5::before,
-    #articleContent h6::before {
-        display: block;
-        content: " ";
-        height: 100px;
-        margin-top: -100px;
-        visibility: hidden;
-    }
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
 
-    #articleContent :focus {
-        outline: none;
-    }
 
-    .toc-fixed {
-        position: fixed;
-        top: 64px;
-    }
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
 
-    .toc-widget {
-        width: 345px;
-        padding-left: 20px;
-    }
+          <div class="content post posts-expand">
+            
 
-    .toc-widget .toc-title {
-        margin: 35px 0 15px 0;
-        padding-left: 17px;
-        font-size: 1.5rem;
-        font-weight: bold;
-        line-height: 1.5rem;
-    }
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/kube-apiserver-aggretation-api/">
 
-    .toc-widget ol {
-        padding: 0;
-        list-style: none;
-    }
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Qinng">
+      <meta itemprop="description" content="Coding, Reading and Daydreaming">
+    </span>
 
-    #toc-content {
-        height: calc(100vh - 250px);
-        overflow: auto;
-    }
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qinng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          kubernetes扩展apiserver实现分析
+        </h1>
 
-    #toc-content ol {
-        padding-left: 10px;
-    }
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
 
-    #toc-content ol li {
-        padding-left: 10px;
-    }
+              <time title="创建时间：2020-04-24 15:28:16" itemprop="dateCreated datePublished" datetime="2020-04-24T15:28:16+08:00">2020-04-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-28 10:13:33" itemprop="dateModified" datetime="2020-04-28T10:13:33+08:00">2020-04-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/cloud/" itemprop="url" rel="index"><span itemprop="name">cloud</span></a>
+                </span>
+            </span>
 
-    #toc-content .toc-link:hover {
-        color: #42b983;
-        font-weight: 700;
-        text-decoration: underline;
-    }
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
 
-    #toc-content .toc-link::before {
-        background-color: transparent;
-        max-height: 25px;
-
-        position: absolute;
-        right: 23.5vw;
-        display: block;
-    }
-
-    #toc-content .is-active-link {
-        color: #42b983;
-    }
-
-    #floating-toc-btn {
-        position: fixed;
-        right: 15px;
-        bottom: 76px;
-        padding-top: 15px;
-        margin-bottom: 0;
-        z-index: 998;
-    }
-
-    #floating-toc-btn .btn-floating {
-        background: #fff !important;
-        opacity: 0.8;
-    }
-
-    #floating-toc-btn .btn-floating i {
-        color: #1f4d71;
-        font-size: 1rem;
-    }
-
-    #floating-toc-btn .after {
-        color: #000;
-        font-size: 1rem;
-    }
-</style>
-<div class="row">
-    <div id="main-content" class="col s12 m12 l9">
-        <!-- 文章内容详情 -->
-<div id="artDetail">
-    <div class="card">
-        <div class="card-content article-info">
-            <div class="row tag-cate">
-                <div class="col s7">
-                    
-                    <div class="article-tag">
-                        
-                            <a href="/tags/k8s/">
-                                <span class="chip bg-color">k8s</span>
-                            </a>
-                        
-                            <a href="/tags/apiserver/">
-                                <span class="chip bg-color">apiserver</span>
-                            </a>
-                        
-                    </div>
-                    
-                </div>
-                <div class="col s5 right-align">
-                    
-                    <div class="post-cate">
-                        <i class="fas fa-bookmark fa-fw icon-category"></i>
-                        
-                            <a href="/categories/cloud/" class="post-category">
-                                cloud
-                            </a>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-
-            <div class="post-info">
-                
-                <div class="post-date info-break-policy">
-                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2020-04-24
-                </div>
-                
-
-                
-
-                
-                <div class="info-break-policy">
-                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    2k
-                </div>
-                
-
-                
-                <div class="info-break-policy">
-                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    9 分
-                </div>
-                
-
-                
-                    <div id="busuanzi_container_page_pv" class="info-break-policy">
-                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
-                        <span id="busuanzi_value_page_pv"></span>
-                    </div>
-				
-            </div>
         </div>
-        <hr class="clearfix">
-        <div class="card-content article-card-content">
-            <div id="articleContent">
-                <p>Kubernetes提供了丰富的扩展功能，实现自定义资源有两种方式<code>CRD</code>与<code>Aggregation API</code>。相对于<code>CRD</code>，扩展API功能更丰富，可以实现单独的存储。今天来聊一聊，k8s是如是实现扩展api的，它与apiserver之间又是如何协作的</p>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Kubernetes提供了丰富的扩展功能，实现自定义资源有两种方式<code>CRD</code>与<code>Aggregation API</code>。相对于<code>CRD</code>，扩展API功能更丰富，可以实现单独的存储。今天来聊一聊，k8s是如是实现扩展api的，它与apiserver之间又是如何协作的</p>
 <h2 id="AggregationApiserver介绍"><a href="#AggregationApiserver介绍" class="headerlink" title="AggregationApiserver介绍"></a>AggregationApiserver介绍</h2><p><code>Aggregator</code>类似于一个七层负载均衡，将来自用户的请求拦截转发给其他服务器，并且负责整个 APIServer 的 Discovery 功能。</p>
 <p>通过<code>APIServices</code>对象关联到某个<code>Service</code>来进行请求的转发，其关联的<code>Service</code>类型进一步决定了请求转发形式。<code>Aggregator</code>包括一个<code>GenericAPIServer</code>和维护自身状态的<code>Controller</code>。其中 <code>GenericAPIServer</code>主要处理<code>apiregistration.k8s.io</code>组下的<code>APIService</code>资源请求。</p>
 <p>主要controller包括：</p>
@@ -422,20 +247,12 @@
 <li>crdRegistrationController：负责将<code>CRD GroupVersions</code>自动注册到<code>APIServices</code>中；</li>
 <li>openAPIAggregationController：将<code>APIServices</code>资源的变化同步至提供的<code>OpenAPI</code>文档；</li>
 </ol>
-<p>在 kube-apiserver 中需要增加以下配置来开启 API Aggregation：</p>
-<pre><code>--proxy-client-cert-file=/etc/kubernetes/certs/proxy.crt
---proxy-client-key-file=/etc/kubernetes/certs/proxy.key
---requestheader-client-ca-file=/etc/kubernetes/certs/proxy-ca.crt
---requestheader-extra-headers-prefix=X-Remote-Extra-
---requestheader-group-headers=X-Remote-Group
---requestheader-username-headers=X-Remote-User
-</code></pre><p>如果 kube-proxy 没有和 API server 运行在同一台主机上，那么需要确保启用了如下 apiserver 标记：</p>
-<pre><code>--enable-aggregator-routing=true
-</code></pre><p>在<a href="./kube-apiserver-start.md">apiserver启动流程</a>中，分析了<code>AggregationApiserver</code>的初始化流程, 需要了解的可以回去看下。</p>
+<p>在 kube-apiserver 中需要增加以下配置来开启 API Aggregation：<br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">--proxy-client-cert-file=/etc/kubernetes/certs/proxy.crt</span><br><span class="line">--proxy-client-key-file=/etc/kubernetes/certs/proxy.key</span><br><span class="line">--requestheader-client-ca-file=/etc/kubernetes/certs/proxy-ca.crt</span><br><span class="line">--requestheader-extra-headers-prefix=X-Remote-Extra-</span><br><span class="line">--requestheader-group-headers=X-Remote-Group</span><br><span class="line">--requestheader-username-headers=X-Remote-User</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>如果 kube-proxy 没有和 API server 运行在同一台主机上，那么需要确保启用了如下 apiserver 标记：<br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">--enable-aggregator-routing=true</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>在<a href="./kube-apiserver-start.md">apiserver启动流程</a>中，分析了<code>AggregationApiserver</code>的初始化流程, 需要了解的可以回去看下。</p>
 <h2 id="AggregationApiserver认证流程"><a href="#AggregationApiserver认证流程" class="headerlink" title="AggregationApiserver认证流程"></a>AggregationApiserver认证流程</h2><p>与自定义资源定义（CRD）不同，除标准的 Kubernetes apiserver 外，Aggregation API 还涉及另一个服务器：扩展 apiserver。Kubernetes apiserver 将需要与您的扩展 apiserver 通信，并且您的扩展 apiserver 也需要与 Kubernetes apiserver 通信。为了确保此通信的安全，Kubernetes apiserver 使用 x509 证书向扩展 apiserver 认证。</p>
-<p>AggregationApi的请求链路如下：</p>
-<pre><code>defaultHandlerChain-&gt;aggregator-&gt;aggregation-apiserver-&gt;aggregator-&gt;user
-</code></pre><p>大致流程如下：</p>
+<p>AggregationApi的请求链路如下：<br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">defaultHandlerChain-&gt;aggregator-&gt;aggregation-apiserver-&gt;aggregator-&gt;user</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>大致流程如下：</p>
 <ol>
 <li>Kubernetes apiserver：对发出请求的用户身份认证，并对请求的 API 路径执行鉴权。</li>
 <li>Kubernetes apiserver：将请求转发到扩展 apiserver</li>
@@ -458,197 +275,12 @@
 <li>构造请求，删除reqeustheader信息，通过user重新填充</li>
 <li>通过<code>proxyRoundTripper</code>转发请求</li>
 </ol>
-<p>(kube-apiserver-authentication-code.md)<br>aggregation的<a href="https://github.com/kubernetes/kubernetes/blob/df9b4e92e84849e2b9fdb5b4849c9c4ebfae8040/staging/src/k8s.io/kube-aggregator/pkg/apiserver/handler_proxy.go#L109" target="_blank" rel="noopener">hander</a>的实现：</p>
-<pre class="line-numbers language-golang"><code class="language-golang">// 通过context获取user
-    user, ok := genericapirequest.UserFrom(req.Context())
-    if !ok {
-        proxyError(w, req, "missing user", http.StatusInternalServerError)
-        return
-  }
-  // 构造请求url,通过apiservice配置的service/namespace随机得到某个endpoint后端
-  location := &url.URL{}
-    location.Scheme = "https"
-    rloc, err := r.serviceResolver.ResolveEndpoint(handlingInfo.serviceNamespace, handlingInfo.serviceName, handlingInfo.servicePort)
-    if err != nil {
-        klog.Errorf("error resolving %s/%s: %v", handlingInfo.serviceNamespace, handlingInfo.serviceName, err)
-        proxyError(w, req, "service unavailable", http.StatusServiceUnavailable)
-        return
-    }
-    location.Host = rloc.Host
-    location.Path = req.URL.Path
-  location.RawQuery = req.URL.Query().Encode()
-
-  // we need to wrap the roundtripper in another roundtripper which will apply the front proxy headers
-  // 包裹请求信息，将user信息放到header中
-    proxyRoundTripper, upgrade, err := maybeWrapForConnectionUpgrades(handlingInfo.restConfig, handlingInfo.proxyRoundTripper, req)
-    if err != nil {
-        proxyError(w, req, err.Error(), http.StatusInternalServerError)
-        return
-    }
-  proxyRoundTripper = transport.NewAuthProxyRoundTripper(user.GetName(), user.GetGroups(), user.GetExtra(), proxyRoundTripper)
-
-  // 调用后端
-  handler := proxy.NewUpgradeAwareHandler(location, proxyRoundTripper, true, upgrade, &responder{w: w})
-    handler.ServeHTTP(w, newReq)
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>根据扩展apiserver找到后端时通过service获取对应endpoint列表，随机选择某个endpoint、<br>实现如下：</p>
-<pre class="line-numbers language-go"><code class="language-go"><span class="token comment" spellcheck="true">// ResourceLocation returns a URL to which one can send traffic for the specified service.</span>
-<span class="token keyword">func</span> <span class="token function">ResolveEndpoint</span><span class="token punctuation">(</span>services listersv1<span class="token punctuation">.</span>ServiceLister<span class="token punctuation">,</span> endpoints listersv1<span class="token punctuation">.</span>EndpointsLister<span class="token punctuation">,</span> namespace<span class="token punctuation">,</span> id <span class="token builtin">string</span><span class="token punctuation">,</span> port <span class="token builtin">int32</span><span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token operator">*</span>url<span class="token punctuation">.</span>URL<span class="token punctuation">,</span> <span class="token builtin">error</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-    svc<span class="token punctuation">,</span> err <span class="token operator">:=</span> services<span class="token punctuation">.</span><span class="token function">Services</span><span class="token punctuation">(</span>namespace<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Get</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span>
-    <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
-        <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> err
-    <span class="token punctuation">}</span>
-
-    svcPort<span class="token punctuation">,</span> err <span class="token operator">:=</span> <span class="token function">findServicePort</span><span class="token punctuation">(</span>svc<span class="token punctuation">,</span> port<span class="token punctuation">)</span>
-    <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
-        <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> err
-    <span class="token punctuation">}</span>
-
-    <span class="token keyword">switch</span> <span class="token punctuation">{</span>
-    <span class="token keyword">case</span> svc<span class="token punctuation">.</span>Spec<span class="token punctuation">.</span>Type <span class="token operator">==</span> v1<span class="token punctuation">.</span>ServiceTypeClusterIP<span class="token punctuation">,</span> svc<span class="token punctuation">.</span>Spec<span class="token punctuation">.</span>Type <span class="token operator">==</span> v1<span class="token punctuation">.</span>ServiceTypeLoadBalancer<span class="token punctuation">,</span> svc<span class="token punctuation">.</span>Spec<span class="token punctuation">.</span>Type <span class="token operator">==</span> v1<span class="token punctuation">.</span>ServiceTypeNodePort<span class="token punctuation">:</span>
-        <span class="token comment" spellcheck="true">// these are fine</span>
-    <span class="token keyword">default</span><span class="token punctuation">:</span>
-        <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> fmt<span class="token punctuation">.</span><span class="token function">Errorf</span><span class="token punctuation">(</span><span class="token string">"unsupported service type %q"</span><span class="token punctuation">,</span> svc<span class="token punctuation">.</span>Spec<span class="token punctuation">.</span>Type<span class="token punctuation">)</span>
-    <span class="token punctuation">}</span>
-
-    eps<span class="token punctuation">,</span> err <span class="token operator">:=</span> endpoints<span class="token punctuation">.</span><span class="token function">Endpoints</span><span class="token punctuation">(</span>namespace<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Get</span><span class="token punctuation">(</span>svc<span class="token punctuation">.</span>Name<span class="token punctuation">)</span>
-    <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
-        <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> err
-    <span class="token punctuation">}</span>
-    <span class="token keyword">if</span> <span class="token function">len</span><span class="token punctuation">(</span>eps<span class="token punctuation">.</span>Subsets<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span> <span class="token punctuation">{</span>
-        <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> errors<span class="token punctuation">.</span><span class="token function">NewServiceUnavailable</span><span class="token punctuation">(</span>fmt<span class="token punctuation">.</span><span class="token function">Sprintf</span><span class="token punctuation">(</span><span class="token string">"no endpoints available for service %q"</span><span class="token punctuation">,</span> svc<span class="token punctuation">.</span>Name<span class="token punctuation">)</span><span class="token punctuation">)</span>
-    <span class="token punctuation">}</span>
-
-    <span class="token comment" spellcheck="true">// Pick a random Subset to start searching from.</span>
-    ssSeed <span class="token operator">:=</span> rand<span class="token punctuation">.</span><span class="token function">Intn</span><span class="token punctuation">(</span><span class="token function">len</span><span class="token punctuation">(</span>eps<span class="token punctuation">.</span>Subsets<span class="token punctuation">)</span><span class="token punctuation">)</span>
-
-    <span class="token comment" spellcheck="true">// Find a Subset that has the port.</span>
-    <span class="token keyword">for</span> ssi <span class="token operator">:=</span> <span class="token number">0</span><span class="token punctuation">;</span> ssi <span class="token operator">&lt;</span> <span class="token function">len</span><span class="token punctuation">(</span>eps<span class="token punctuation">.</span>Subsets<span class="token punctuation">)</span><span class="token punctuation">;</span> ssi<span class="token operator">++</span> <span class="token punctuation">{</span>
-        ss <span class="token operator">:=</span> <span class="token operator">&amp;</span>eps<span class="token punctuation">.</span>Subsets<span class="token punctuation">[</span><span class="token punctuation">(</span>ssSeed<span class="token operator">+</span>ssi<span class="token punctuation">)</span><span class="token operator">%</span><span class="token function">len</span><span class="token punctuation">(</span>eps<span class="token punctuation">.</span>Subsets<span class="token punctuation">)</span><span class="token punctuation">]</span>
-        <span class="token keyword">if</span> <span class="token function">len</span><span class="token punctuation">(</span>ss<span class="token punctuation">.</span>Addresses<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span> <span class="token punctuation">{</span>
-            <span class="token keyword">continue</span>
-        <span class="token punctuation">}</span>
-        <span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token keyword">range</span> ss<span class="token punctuation">.</span>Ports <span class="token punctuation">{</span>
-            <span class="token keyword">if</span> ss<span class="token punctuation">.</span>Ports<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>Name <span class="token operator">==</span> svcPort<span class="token punctuation">.</span>Name <span class="token punctuation">{</span>
-                <span class="token comment" spellcheck="true">// Pick a random address.</span>
-                <span class="token comment" spellcheck="true">// 核心，随机选择endpoint</span>
-                ip <span class="token operator">:=</span> ss<span class="token punctuation">.</span>Addresses<span class="token punctuation">[</span>rand<span class="token punctuation">.</span><span class="token function">Intn</span><span class="token punctuation">(</span><span class="token function">len</span><span class="token punctuation">(</span>ss<span class="token punctuation">.</span>Addresses<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">.</span>IP
-                port <span class="token operator">:=</span> <span class="token function">int</span><span class="token punctuation">(</span>ss<span class="token punctuation">.</span>Ports<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>Port<span class="token punctuation">)</span>
-                <span class="token keyword">return</span> <span class="token operator">&amp;</span>url<span class="token punctuation">.</span>URL<span class="token punctuation">{</span>
-                    Scheme<span class="token punctuation">:</span> <span class="token string">"https"</span><span class="token punctuation">,</span>
-                    Host<span class="token punctuation">:</span>   net<span class="token punctuation">.</span><span class="token function">JoinHostPort</span><span class="token punctuation">(</span>ip<span class="token punctuation">,</span> strconv<span class="token punctuation">.</span><span class="token function">Itoa</span><span class="token punctuation">(</span>port<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-                <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token boolean">nil</span>
-            <span class="token punctuation">}</span>
-        <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span>
-    <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> errors<span class="token punctuation">.</span><span class="token function">NewServiceUnavailable</span><span class="token punctuation">(</span>fmt<span class="token punctuation">.</span><span class="token function">Sprintf</span><span class="token punctuation">(</span><span class="token string">"no endpoints available for service %q"</span><span class="token punctuation">,</span> id<span class="token punctuation">)</span><span class="token punctuation">)</span>
-<span class="token punctuation">}</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>ProxyRoundTripper创建在<a href="https://github.com/kubernetes/kubernetes/blob/a42e029e6905bee5b9d5489610c4fbe5988eeac6/staging/src/k8s.io/client-go/transport/round_trippers.go#L101" target="_blank" rel="noopener">round_trippers.go</a></p>
-<pre class="line-numbers language-golang"><code class="language-golang">func NewAuthProxyRoundTripper(username string, groups []string, extra map[string][]string, rt http.RoundTripper) http.RoundTripper {
-    return &authProxyRoundTripper{
-        username: username,
-        groups:   groups,
-        extra:    extra,
-        rt:       rt,
-    }
-}
-
-func (rt *authProxyRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-  req = utilnet.CloneRequest(req)
-  // 包裹user信息
-    SetAuthProxyHeaders(req, rt.username, rt.groups, rt.extra)
-
-    return rt.rt.RoundTrip(req)
-}
-
-// SetAuthProxyHeaders stomps the auth proxy header fields.  It mutates its argument.
-func SetAuthProxyHeaders(req *http.Request, username string, groups []string, extra map[string][]string) {
-  // 清楚原始url的requestheader信息
-    req.Header.Del("X-Remote-User")
-    req.Header.Del("X-Remote-Group")
-    for key := range req.Header {
-        if strings.HasPrefix(strings.ToLower(key), strings.ToLower("X-Remote-Extra-")) {
-            req.Header.Del(key)
-        }
-    }
-
-  // 通过user重新填充信息
-    req.Header.Set("X-Remote-User", username)
-    for _, group := range groups {
-        req.Header.Add("X-Remote-Group", group)
-    }
-    for key, values := range extra {
-        for _, value := range values {
-            req.Header.Add("X-Remote-Extra-"+headerKeyEscape(key), value)
-        }
-    }
-}
-
-
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>(kube-apiserver-authentication-code.md)<br>aggregation的<a href="https://github.com/kubernetes/kubernetes/blob/df9b4e92e84849e2b9fdb5b4849c9c4ebfae8040/staging/src/k8s.io/kube-aggregator/pkg/apiserver/handler_proxy.go#L109" target="_blank" rel="noopener">hander</a>的实现：<br></p><figure class="highlight golang"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 通过context获取user</span></span><br><span class="line">	user, ok := genericapirequest.UserFrom(req.Context())</span><br><span class="line">	<span class="keyword">if</span> !ok {</span><br><span class="line">		proxyError(w, req, <span class="string">"missing user"</span>, http.StatusInternalServerError)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">  }</span><br><span class="line">  <span class="comment">// 构造请求url,通过apiservice配置的service/namespace随机得到某个endpoint后端</span></span><br><span class="line">  location := &amp;url.URL{}</span><br><span class="line">	location.Scheme = <span class="string">"https"</span></span><br><span class="line">	rloc, err := r.serviceResolver.ResolveEndpoint(handlingInfo.serviceNamespace, handlingInfo.serviceName, handlingInfo.servicePort)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> {</span><br><span class="line">		klog.Errorf(<span class="string">"error resolving %s/%s: %v"</span>, handlingInfo.serviceNamespace, handlingInfo.serviceName, err)</span><br><span class="line">		proxyError(w, req, <span class="string">"service unavailable"</span>, http.StatusServiceUnavailable)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	}</span><br><span class="line">	location.Host = rloc.Host</span><br><span class="line">	location.Path = req.URL.Path</span><br><span class="line">  location.RawQuery = req.URL.Query().Encode()</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// we need to wrap the roundtripper in another roundtripper which will apply the front proxy headers</span></span><br><span class="line">  <span class="comment">// 包裹请求信息，将user信息放到header中</span></span><br><span class="line">	proxyRoundTripper, upgrade, err := maybeWrapForConnectionUpgrades(handlingInfo.restConfig, handlingInfo.proxyRoundTripper, req)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> {</span><br><span class="line">		proxyError(w, req, err.Error(), http.StatusInternalServerError)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	}</span><br><span class="line">  proxyRoundTripper = transport.NewAuthProxyRoundTripper(user.GetName(), user.GetGroups(), user.GetExtra(), proxyRoundTripper)</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 调用后端</span></span><br><span class="line">  handler := proxy.NewUpgradeAwareHandler(location, proxyRoundTripper, <span class="literal">true</span>, upgrade, &amp;responder{w: w})</span><br><span class="line">	handler.ServeHTTP(w, newReq)</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>根据扩展apiserver找到后端时通过service获取对应endpoint列表，随机选择某个endpoint、<br>实现如下：<br></p><figure class="highlight go"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ResourceLocation returns a URL to which one can send traffic for the specified service.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ResolveEndpoint</span><span class="params">(services listersv1.ServiceLister, endpoints listersv1.EndpointsLister, namespace, id <span class="keyword">string</span>, port <span class="keyword">int32</span>)</span> <span class="params">(*url.URL, error)</span></span> {</span><br><span class="line">	svc, err := services.Services(namespace).Get(id)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> {</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">	svcPort, err := findServicePort(svc, port)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> {</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">	<span class="keyword">switch</span> {</span><br><span class="line">	<span class="keyword">case</span> svc.Spec.Type == v1.ServiceTypeClusterIP, svc.Spec.Type == v1.ServiceTypeLoadBalancer, svc.Spec.Type == v1.ServiceTypeNodePort:</span><br><span class="line">		<span class="comment">// these are fine</span></span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">"unsupported service type %q"</span>, svc.Spec.Type)</span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">	eps, err := endpoints.Endpoints(namespace).Get(svc.Name)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> {</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	}</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(eps.Subsets) == <span class="number">0</span> {</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, errors.NewServiceUnavailable(fmt.Sprintf(<span class="string">"no endpoints available for service %q"</span>, svc.Name))</span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Pick a random Subset to start searching from.</span></span><br><span class="line">	ssSeed := rand.Intn(<span class="built_in">len</span>(eps.Subsets))</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Find a Subset that has the port.</span></span><br><span class="line">	<span class="keyword">for</span> ssi := <span class="number">0</span>; ssi &lt; <span class="built_in">len</span>(eps.Subsets); ssi++ {</span><br><span class="line">		ss := &amp;eps.Subsets[(ssSeed+ssi)%<span class="built_in">len</span>(eps.Subsets)]</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(ss.Addresses) == <span class="number">0</span> {</span><br><span class="line">			<span class="keyword">continue</span></span><br><span class="line">		}</span><br><span class="line">		<span class="keyword">for</span> i := <span class="keyword">range</span> ss.Ports {</span><br><span class="line">			<span class="keyword">if</span> ss.Ports[i].Name == svcPort.Name {</span><br><span class="line">				<span class="comment">// Pick a random address.</span></span><br><span class="line">				<span class="comment">// 核心，随机选择endpoint</span></span><br><span class="line">				ip := ss.Addresses[rand.Intn(<span class="built_in">len</span>(ss.Addresses))].IP</span><br><span class="line">				port := <span class="keyword">int</span>(ss.Ports[i].Port)</span><br><span class="line">				<span class="keyword">return</span> &amp;url.URL{</span><br><span class="line">					Scheme: <span class="string">"https"</span>,</span><br><span class="line">					Host:   net.JoinHostPort(ip, strconv.Itoa(port)),</span><br><span class="line">				}, <span class="literal">nil</span></span><br><span class="line">			}</span><br><span class="line">		}</span><br><span class="line">	}</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span>, errors.NewServiceUnavailable(fmt.Sprintf(<span class="string">"no endpoints available for service %q"</span>, id))</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>ProxyRoundTripper创建在<a href="https://github.com/kubernetes/kubernetes/blob/a42e029e6905bee5b9d5489610c4fbe5988eeac6/staging/src/k8s.io/client-go/transport/round_trippers.go#L101" target="_blank" rel="noopener">round_trippers.go</a><br></p><figure class="highlight golang"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewAuthProxyRoundTripper</span><span class="params">(username <span class="keyword">string</span>, groups []<span class="keyword">string</span>, extra <span class="keyword">map</span>[<span class="keyword">string</span>][]<span class="keyword">string</span>, rt http.RoundTripper)</span> <span class="title">http</span>.<span class="title">RoundTripper</span></span> {</span><br><span class="line">	<span class="keyword">return</span> &amp;authProxyRoundTripper{</span><br><span class="line">		username: username,</span><br><span class="line">		groups:   groups,</span><br><span class="line">		extra:    extra,</span><br><span class="line">		rt:       rt,</span><br><span class="line">	}</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(rt *authProxyRoundTripper)</span> <span class="title">RoundTrip</span><span class="params">(req *http.Request)</span> <span class="params">(*http.Response, error)</span></span> {</span><br><span class="line">  req = utilnet.CloneRequest(req)</span><br><span class="line">  <span class="comment">// 包裹user信息</span></span><br><span class="line">	SetAuthProxyHeaders(req, rt.username, rt.groups, rt.extra)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> rt.rt.RoundTrip(req)</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">// SetAuthProxyHeaders stomps the auth proxy header fields.  It mutates its argument.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">SetAuthProxyHeaders</span><span class="params">(req *http.Request, username <span class="keyword">string</span>, groups []<span class="keyword">string</span>, extra <span class="keyword">map</span>[<span class="keyword">string</span>][]<span class="keyword">string</span>)</span></span> {</span><br><span class="line">  <span class="comment">// 清楚原始url的requestheader信息</span></span><br><span class="line">	req.Header.Del(<span class="string">"X-Remote-User"</span>)</span><br><span class="line">	req.Header.Del(<span class="string">"X-Remote-Group"</span>)</span><br><span class="line">	<span class="keyword">for</span> key := <span class="keyword">range</span> req.Header {</span><br><span class="line">		<span class="keyword">if</span> strings.HasPrefix(strings.ToLower(key), strings.ToLower(<span class="string">"X-Remote-Extra-"</span>)) {</span><br><span class="line">			req.Header.Del(key)</span><br><span class="line">		}</span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 通过user重新填充信息</span></span><br><span class="line">	req.Header.Set(<span class="string">"X-Remote-User"</span>, username)</span><br><span class="line">	<span class="keyword">for</span> _, group := <span class="keyword">range</span> groups {</span><br><span class="line">		req.Header.Add(<span class="string">"X-Remote-Group"</span>, group)</span><br><span class="line">	}</span><br><span class="line">	<span class="keyword">for</span> key, values := <span class="keyword">range</span> extra {</span><br><span class="line">		<span class="keyword">for</span> _, value := <span class="keyword">range</span> values {</span><br><span class="line">			req.Header.Add(<span class="string">"X-Remote-Extra-"</span>+headerKeyEscape(key), value)</span><br><span class="line">		}</span><br><span class="line">	}</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><p></p>
 <h3 id="扩展apiserver处理逻辑"><a href="#扩展apiserver处理逻辑" class="headerlink" title="扩展apiserver处理逻辑"></a>扩展apiserver处理逻辑</h3><p>下以metrics-server为例说明扩展apiserver在收到apiserver请求后的处理</p>
-<p>与apiserver初始化相同，metrics-server也需要初始化生成<code>genericServer</code>, 然后注册apigroup<br><code>pkg/metrics-server/config.go</code></p>
-<pre class="line-numbers language-go"><code class="language-go"><span class="token keyword">func</span> <span class="token punctuation">(</span>c Config<span class="token punctuation">)</span> <span class="token function">Complete</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token operator">*</span>MetricsServer<span class="token punctuation">,</span> <span class="token builtin">error</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-    informer<span class="token punctuation">,</span> err <span class="token operator">:=</span> c<span class="token punctuation">.</span><span class="token function">informer</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
-    <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
-        <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> err
-    <span class="token punctuation">}</span>
-    kubeletClient<span class="token punctuation">,</span> err <span class="token operator">:=</span> c<span class="token punctuation">.</span><span class="token function">kubeletClient</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
-    <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
-        <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> err
-    <span class="token punctuation">}</span>
-    addressResolver <span class="token operator">:=</span> c<span class="token punctuation">.</span><span class="token function">addressResolver</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-    <span class="token comment" spellcheck="true">// 创建scraper，负责抓取监控数据</span>
-    scrape <span class="token operator">:=</span> scraper<span class="token punctuation">.</span><span class="token function">NewScraper</span><span class="token punctuation">(</span>informer<span class="token punctuation">.</span><span class="token function">Core</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">V1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Nodes</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Lister</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> kubeletClient<span class="token punctuation">,</span> addressResolver<span class="token punctuation">,</span> c<span class="token punctuation">.</span>ScrapeTimeout<span class="token punctuation">)</span>
-
-    scraper<span class="token punctuation">.</span><span class="token function">RegisterScraperMetrics</span><span class="token punctuation">(</span>c<span class="token punctuation">.</span>ScrapeTimeout<span class="token punctuation">)</span>
-    <span class="token function">RegisterServerMetrics</span><span class="token punctuation">(</span>c<span class="token punctuation">.</span>MetricResolution<span class="token punctuation">)</span>
-
-    <span class="token comment" spellcheck="true">// 生成genericServer, 包裹有 DefaultBuildHandlerChain</span>
-    genericServer<span class="token punctuation">,</span> err <span class="token operator">:=</span> c<span class="token punctuation">.</span>Apiserver<span class="token punctuation">.</span><span class="token function">Complete</span><span class="token punctuation">(</span>informer<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span><span class="token string">"metrics-server"</span><span class="token punctuation">,</span> genericapiserver<span class="token punctuation">.</span><span class="token function">NewEmptyDelegate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-    <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
-        <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> err
-    <span class="token punctuation">}</span>
-
-    store <span class="token operator">:=</span> storage<span class="token punctuation">.</span><span class="token function">NewStorage</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
-    <span class="token comment" spellcheck="true">// 注册api</span>
-    <span class="token keyword">if</span> err <span class="token operator">:=</span> api<span class="token punctuation">.</span><span class="token function">Install</span><span class="token punctuation">(</span>store<span class="token punctuation">,</span> informer<span class="token punctuation">.</span><span class="token function">Core</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">V1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> genericServer<span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
-        <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> err
-    <span class="token punctuation">}</span>
-    <span class="token keyword">return</span> <span class="token operator">&amp;</span>MetricsServer<span class="token punctuation">{</span>
-        GenericAPIServer<span class="token punctuation">:</span> genericServer<span class="token punctuation">,</span>
-        storage<span class="token punctuation">:</span>          store<span class="token punctuation">,</span>
-        scraper<span class="token punctuation">:</span>          scrape<span class="token punctuation">,</span>
-        resolution<span class="token punctuation">:</span>       c<span class="token punctuation">.</span>MetricResolution<span class="token punctuation">,</span>
-    <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token boolean">nil</span>
-<span class="token punctuation">}</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>api注册代码，通过<code>Build</code>生成apigroup，调用<code>InstallAPIGroup</code>进行注册<br><code>pkg/api/install.go</code></p>
-<pre class="line-numbers language-go"><code class="language-go"><span class="token comment" spellcheck="true">// InstallStorage builds the metrics for the metrics.k8s.io API, and then installs it into the given API metrics-server.</span>
-<span class="token keyword">func</span> <span class="token function">Install</span><span class="token punctuation">(</span>metrics MetricsGetter<span class="token punctuation">,</span> informers coreinf<span class="token punctuation">.</span>Interface<span class="token punctuation">,</span> server <span class="token operator">*</span>genericapiserver<span class="token punctuation">.</span>GenericAPIServer<span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">{</span>
-    info <span class="token operator">:=</span> <span class="token function">Build</span><span class="token punctuation">(</span>metrics<span class="token punctuation">,</span> informers<span class="token punctuation">)</span>
-    <span class="token comment" spellcheck="true">// 注册apigroup</span>
-    <span class="token keyword">return</span> server<span class="token punctuation">.</span><span class="token function">InstallAPIGroup</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>info<span class="token punctuation">)</span>
-<span class="token punctuation">}</span>
-
-<span class="token comment" spellcheck="true">// Build constructs APIGroupInfo the metrics.k8s.io API group using the given getters.</span>
-<span class="token keyword">func</span> <span class="token function">Build</span><span class="token punctuation">(</span>m MetricsGetter<span class="token punctuation">,</span> informers coreinf<span class="token punctuation">.</span>Interface<span class="token punctuation">)</span> genericapiserver<span class="token punctuation">.</span>APIGroupInfo <span class="token punctuation">{</span>
-    apiGroupInfo <span class="token operator">:=</span> genericapiserver<span class="token punctuation">.</span><span class="token function">NewDefaultAPIGroupInfo</span><span class="token punctuation">(</span>metrics<span class="token punctuation">.</span>GroupName<span class="token punctuation">,</span> Scheme<span class="token punctuation">,</span> metav1<span class="token punctuation">.</span>ParameterCodec<span class="token punctuation">,</span> Codecs<span class="token punctuation">)</span>
-
-    <span class="token comment" spellcheck="true">// 注册metrics相关api</span>
-    node <span class="token operator">:=</span> <span class="token function">newNodeMetrics</span><span class="token punctuation">(</span>metrics<span class="token punctuation">.</span><span class="token function">Resource</span><span class="token punctuation">(</span><span class="token string">"nodemetrics"</span><span class="token punctuation">)</span><span class="token punctuation">,</span> m<span class="token punctuation">,</span> informers<span class="token punctuation">.</span><span class="token function">Nodes</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Lister</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-    pod <span class="token operator">:=</span> <span class="token function">newPodMetrics</span><span class="token punctuation">(</span>metrics<span class="token punctuation">.</span><span class="token function">Resource</span><span class="token punctuation">(</span><span class="token string">"podmetrics"</span><span class="token punctuation">)</span><span class="token punctuation">,</span> m<span class="token punctuation">,</span> informers<span class="token punctuation">.</span><span class="token function">Pods</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Lister</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-    metricsServerResources <span class="token operator">:=</span> <span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span>rest<span class="token punctuation">.</span>Storage<span class="token punctuation">{</span>
-        <span class="token string">"nodes"</span><span class="token punctuation">:</span> node<span class="token punctuation">,</span>
-        <span class="token string">"pods"</span><span class="token punctuation">:</span>  pod<span class="token punctuation">,</span>
-    <span class="token punctuation">}</span>
-    apiGroupInfo<span class="token punctuation">.</span>VersionedResourcesStorageMap<span class="token punctuation">[</span>v1beta1<span class="token punctuation">.</span>SchemeGroupVersion<span class="token punctuation">.</span>Version<span class="token punctuation">]</span> <span class="token operator">=</span> metricsServerResources
-
-    <span class="token keyword">return</span> apiGroupInfo
-<span class="token punctuation">}</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>与apiserver初始化相同，metrics-server也需要初始化生成<code>genericServer</code>, 然后注册apigroup<br><code>pkg/metrics-server/config.go</code><br></p><figure class="highlight go"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c Config)</span> <span class="title">Complete</span><span class="params">()</span> <span class="params">(*MetricsServer, error)</span></span> {</span><br><span class="line">	informer, err := c.informer()</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> {</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	}</span><br><span class="line">	kubeletClient, err := c.kubeletClient()</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> {</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	}</span><br><span class="line">	addressResolver := c.addressResolver()</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 创建scraper，负责抓取监控数据</span></span><br><span class="line">	scrape := scraper.NewScraper(informer.Core().V1().Nodes().Lister(), kubeletClient, addressResolver, c.ScrapeTimeout)</span><br><span class="line"></span><br><span class="line">	scraper.RegisterScraperMetrics(c.ScrapeTimeout)</span><br><span class="line">	RegisterServerMetrics(c.MetricResolution)</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 生成genericServer, 包裹有 DefaultBuildHandlerChain</span></span><br><span class="line">	genericServer, err := c.Apiserver.Complete(informer).New(<span class="string">"metrics-server"</span>, genericapiserver.NewEmptyDelegate())</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> {</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">	store := storage.NewStorage()</span><br><span class="line">	<span class="comment">// 注册api</span></span><br><span class="line">	<span class="keyword">if</span> err := api.Install(store, informer.Core().V1(), genericServer); err != <span class="literal">nil</span> {</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	}</span><br><span class="line">	<span class="keyword">return</span> &amp;MetricsServer{</span><br><span class="line">		GenericAPIServer: genericServer,</span><br><span class="line">		storage:          store,</span><br><span class="line">		scraper:          scrape,</span><br><span class="line">		resolution:       c.MetricResolution,</span><br><span class="line">	}, <span class="literal">nil</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>api注册代码，通过<code>Build</code>生成apigroup，调用<code>InstallAPIGroup</code>进行注册<br><code>pkg/api/install.go</code><br></p><figure class="highlight go"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// InstallStorage builds the metrics for the metrics.k8s.io API, and then installs it into the given API metrics-server.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Install</span><span class="params">(metrics MetricsGetter, informers coreinf.Interface, server *genericapiserver.GenericAPIServer)</span> <span class="title">error</span></span> {</span><br><span class="line">	info := Build(metrics, informers)</span><br><span class="line">	<span class="comment">// 注册apigroup</span></span><br><span class="line">	<span class="keyword">return</span> server.InstallAPIGroup(&amp;info)</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">// Build constructs APIGroupInfo the metrics.k8s.io API group using the given getters.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Build</span><span class="params">(m MetricsGetter, informers coreinf.Interface)</span> <span class="title">genericapiserver</span>.<span class="title">APIGroupInfo</span></span> {</span><br><span class="line">	apiGroupInfo := genericapiserver.NewDefaultAPIGroupInfo(metrics.GroupName, Scheme, metav1.ParameterCodec, Codecs)</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 注册metrics相关api</span></span><br><span class="line">	node := newNodeMetrics(metrics.Resource(<span class="string">"nodemetrics"</span>), m, informers.Nodes().Lister())</span><br><span class="line">	pod := newPodMetrics(metrics.Resource(<span class="string">"podmetrics"</span>), m, informers.Pods().Lister())</span><br><span class="line">	metricsServerResources := <span class="keyword">map</span>[<span class="keyword">string</span>]rest.Storage{</span><br><span class="line">		<span class="string">"nodes"</span>: node,</span><br><span class="line">		<span class="string">"pods"</span>:  pod,</span><br><span class="line">	}</span><br><span class="line">	apiGroupInfo.VersionedResourcesStorageMap[v1beta1.SchemeGroupVersion.Version] = metricsServerResources</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> apiGroupInfo</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><p></p>
 <p>同apiserver，metrics-server收到请求后会经过<code>DefaultBuildHandlerChain</code></p>
 <ul>
 <li>认证，从apiserver转发来的请求是<code>reqeustheader</code>形式，metrics-server会使用<code>requestheader-ca</code>验证证书</li>
@@ -659,490 +291,363 @@ func SetAuthProxyHeaders(req *http.Request, username string, groups []string, ex
 </blockquote>
 <p>最后，metrics-server执行具体逻辑，返回结果。</p>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>扩容apiserver的创建，处理流程与apiserver完全一样，可以直接调用apiserver的库，扩展apiserver直接处理请求，不需要经过webhook，性能更好，更强大的是完全不使用etcd，替换成时序数据库或者其他数据库。后续可以分析下CRD与扩展apiserver的区别以及使用场景。</p>
-
-            </div>
-            <hr/>
-
-            
-
-
-
-            <div class="tag_share" style="display: block;">
-                <div class="post-meta__tag-list" style="display: inline-block;">
-                    
-                        <div class="article-tag">
-                            
-                                <a href="/tags/k8s/">
-                                    <span class="chip bg-color">k8s</span>
-                                </a>
-                            
-                                <a href="/tags/apiserver/">
-                                    <span class="chip bg-color">apiserver</span>
-                                </a>
-                            
-                        </div>
-                    
-                </div>
-                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
-                    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/css/share.min.css">
-<div id="article-share">
-
-    
-    <div class="social-share" data-sites="wechat,weibo" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/js/social-share.min.js"></script>
-    
-
-    
-
-</div>
-
-                </div>
-            </div>
-            
-        </div>
-    </div>
-
-    
-        <link rel="stylesheet" href="/libs/gitalk/gitalk.css">
-<link rel="stylesheet" href="/libs/gitalk/gitalk.min.js">
-
-<div class="card gitalk-card" data-aos="fade-up">
-    <div class="comment_headling" style="font-size: 20px; font-weight: 700; position: relative; padding-left: 20px; top: 15px; padding-bottom: 5px;">
-        <i class="fas fa-comments fa-fw" aria-hidden="true"></i>
-        <span>评论</span>
-    </div>
-    <div id="gitalk-container" class="card-content"></div>
-</div>
-
-<script src="/libs/gitalk/gitalk.min.js"></script>
 <script>
-    let gitalk = new Gitalk({
-        clientID: 'a705189dfc18ec59a7d0',
-        clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
-        repo: 'qingwave.github.io',
-        owner: 'qingwave',
-        admin: "qingwave",
-        id: '2020-04-24T15-28-16',
-        distractionFreeMode: false  // Facebook-like distraction free mode
-    });
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return; }
+            const img = document.createElement('img');
+            img.style = 'display:none !important;';
+            img.src = el.dataset.src;
+            img.addEventListener('error', () => {
+              img.remove();
+              el.style.color = 'inherit';
+              el.style.backgroundImage = 'none';
+              el.style.background = 'none';
+            });
+            img.addEventListener('load', () => {
+              img.remove();
+            });
+            document.body.appendChild(img);
+          });
+      </script>
+    </div>
 
-    gitalk.render('gitalk-container');
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>qinng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://qingwave.github.io/kube-apiserver-aggretation-api/" title="kubernetes扩展apiserver实现分析">https://qingwave.github.io/kube-apiserver-aggretation-api/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/k8s/" rel="tag"># k8s</a>
+              <a href="/tags/apiserver/" rel="tag"># apiserver</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/k8s-tls/" rel="prev" title="可能是史上最全的Kubernetes证书解析">
+      <i class="fa fa-chevron-left"></i> 可能是史上最全的Kubernetes证书解析
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/kube-apiserver-start/" rel="next" title="kube-apiserver启动流程分析">
+      kube-apiserver启动流程分析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
 </script>
 
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-<article id="prenext-posts" class="prev-next articles">
-    <div class="row article-row">
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
-            <div class="card">
-                <a href="/k8s-tls/">
-                    <div class="card-image">
-                        
-                        
-                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/5.jpg" class="responsive-img" alt="可能是史上最全的Kubernetes证书解析">
-                        
-                        <span class="card-title">可能是史上最全的Kubernetes证书解析</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            为了避免广告法，题目还是加个可能吧。
-想要安全就必须复杂起来，证书是少不了的。在Kubernetes中提供了非常丰富的证书类型，满足各种不同场景的需求，今天我们就来看一看Kubernetes中的证书。
-k8s证书分类在说证书之前，先想想作为
-                        
-                    </div>
-                    <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2020-04-25
-                        </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                            
-                            
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/k8s/">
-                        <span class="chip bg-color">k8s</span>
-                    </a>
-                    
-                    <a href="/tags/apiserver/">
-                        <span class="chip bg-color">apiserver</span>
-                    </a>
-                    
-                    <a href="/tags/tls/">
-                        <span class="chip bg-color">tls</span>
-                    </a>
-                    
-                </div>
-                
-            </div>
         </div>
-        
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge right-badge text-color">
-                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
-            </div>
-            <div class="card">
-                <a href="/kube-apiserver-start/">
-                    <div class="card-image">
-                        
-                        
-                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/18.jpg" class="responsive-img" alt="kube-apiserver启动流程分析">
-                        
-                        <span class="card-title">kube-apiserver启动流程分析</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            kube-apiserver 共由 3 个组件构成（Aggregator. KubeAPIServer. APIExtensionServer），这些组件依次通过 Delegation 处理请求：
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
 
-Aggregator：暴露的功能类似于一
-                        
-                    </div>
-                    <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-04-24
-                            </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                            
-                            
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/k8s/">
-                        <span class="chip bg-color">k8s</span>
-                    </a>
-                    
-                    <a href="/tags/apiserver/">
-                        <span class="chip bg-color">apiserver</span>
-                    </a>
-                    
-                </div>
-                
-            </div>
-        </div>
-        
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#AggregationApiserver介绍"><span class="nav-number">1.</span> <span class="nav-text">AggregationApiserver介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AggregationApiserver认证流程"><span class="nav-number">2.</span> <span class="nav-text">AggregationApiserver认证流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AggregationApiserver处理流程"><span class="nav-number">3.</span> <span class="nav-text">AggregationApiserver处理流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#apiserver处理逻辑"><span class="nav-number">3.1.</span> <span class="nav-text">apiserver处理逻辑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#扩展apiserver处理逻辑"><span class="nav-number">3.2.</span> <span class="nav-text">扩展apiserver处理逻辑</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Qinng</p>
+  <div class="site-description" itemprop="description">Coding, Reading and Daydreaming</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/qingwave" title="GitHub → https://github.com/qingwave" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:isguory@gmail.com" title="E-Mail → mailto:isguory@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
     </div>
-</article>
+  </aside>
+  <div id="sidebar-dimmer"></div>
 
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2018 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-terminal"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Qinng</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
 
 
 
-<!-- 代码块功能依赖 -->
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeBlockFuction.js"></script>
-
-<!-- 代码语言 -->
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeLang.js"></script>
-
-
-<!-- 代码块复制 -->
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeCopy.js"></script>
-
-
-<!-- 代码块收缩 -->
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeShrink.js"></script>
-
-
-<!-- 代码块折行 -->
-
-<style type="text/css">
-code[class*="language-"], pre[class*="language-"] { white-space: pre !important; }
-</style>
-
-
-    </div>
-    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
-        <div class="toc-widget">
-            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
-            <div id="toc-content"></div>
-        </div>
-    </div>
-</div>
-
-<!-- TOC 悬浮按钮. -->
-
-<div id="floating-toc-btn" class="hide-on-med-and-down">
-    <a class="btn-floating btn-mini waves-effect bnt-color">
-        <i class="fas fa-list-ul"></i>
-    </a>
-</div>
-
-
-<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.min.js"></script>
-<script>
-    $(function () {
-        tocbot.init({
-            tocSelector: '#toc-content',
-            contentSelector: '#articleContent',
-            headingsOffset: -($(window).height() * 0.4 - 45),
-            collapseDepth: Number('0'),
-            headingSelector: 'h2, h3, h4'
-        });
-
-        // modify the toc link href to support Chinese.
-        let i = 0;
-        let tocHeading = 'toc-heading-';
-        $('#toc-content a').each(function () {
-            $(this).attr('href', '#' + tocHeading + (++i));
-        });
-
-        // modify the heading title id to support Chinese.
-        i = 0;
-        $('#articleContent').children('h2, h3, h4').each(function () {
-            $(this).attr('id', tocHeading + (++i));
-        });
-
-        // Set scroll toc fixed.
-        let tocHeight = parseInt($(window).height() * 0.4 - 64);
-        let $tocWidget = $('.toc-widget');
-        $(window).scroll(function () {
-            let scroll = $(window).scrollTop();
-            /* add post toc fixed. */
-            if (scroll > tocHeight) {
-                $tocWidget.addClass('toc-fixed');
-            } else {
-                $tocWidget.removeClass('toc-fixed');
-            }
-        });
-
-        
-        /* 修复文章卡片 div 的宽度. */
-        let fixPostCardWidth = function (srcId, targetId) {
-            let srcDiv = $('#' + srcId);
-            if (srcDiv.length === 0) {
-                return;
-            }
-
-            let w = srcDiv.width();
-            if (w >= 450) {
-                w = w + 21;
-            } else if (w >= 350 && w < 450) {
-                w = w + 18;
-            } else if (w >= 300 && w < 350) {
-                w = w + 16;
-            } else {
-                w = w + 14;
-            }
-            $('#' + targetId).width(w);
-        };
-
-        // 切换TOC目录展开收缩的相关操作.
-        const expandedClass = 'expanded';
-        let $tocAside = $('#toc-aside');
-        let $mainContent = $('#main-content');
-        $('#floating-toc-btn .btn-floating').click(function () {
-            if ($tocAside.hasClass(expandedClass)) {
-                $tocAside.removeClass(expandedClass).hide();
-                $mainContent.removeClass('l9');
-            } else {
-                $tocAside.addClass(expandedClass).show();
-                $mainContent.addClass('l9');
-            }
-            fixPostCardWidth('artDetail', 'prenext-posts');
-        });
-        
-    });
-</script>
-
-    
-
-</main>
-
-
-
-
-    <footer class="page-footer bg-color">
-    
-    <div class="container row center-align" style="margin-bottom: 0px !important;">
-        <div class="center-align">
-            Copyright&nbsp;&copy;
-            <span id="year">2018</span>
-            <a href="https://qinng.now.sh" target="_blank">Qinng</a>
-            <br>
-            
-            &nbsp;<i class="fas fa-chart-area"></i>&nbsp;&nbsp;<span
-                >49.9k</span>&nbsp;
-            
-            
-            
-            
-            
-            
-            <span id="busuanzi_container_site_pv">
-                |&nbsp;<i class="far fa-eye"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_pv"
-                    ></span>&nbsp;
-            </span>
-            
-            
-            <span id="busuanzi_container_site_uv">
-                |&nbsp;<i class="fas fa-users"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_uv"
-                    ></span>&nbsp;
-            </span>
-            
-            <br>
-            
-            <br>
-            
-        </div>
-        <!-- <div class="col s12 m4 l4 social-link social-statis">
-    <a href="https://github.com/qingwave" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
-        <i class="fab fa-github"></i>
-    </a>
-
-
-
-    <a href="mailto:isguory@gmail.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
-        <i class="fas fa-envelope-open"></i>
-    </a>
 
 
 
 
 
+      </div>
+    </footer>
+  </div>
 
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/pjax/pjax.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/muse.js"></script>
+<script src="/js/next-boot.js"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '.languages',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
 
-
-
-
-
-
-
-
-
-
-
-    <a href="https://www.douban.com/people/69458430"
-       target="_blank" data-tooltip="关注我的豆瓣: 69458430" data-position="top"
-       data-delay="50">
-        <i class="fa fa-inverse">豆</i>
-    </a>
-
-
-
-    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
-        <i class="fas fa-rss"></i>
-    </a>
-
-</div> -->
-    </div>
-</footer>
-
-<div class="progress-bar"></div>
-
-
-    <!-- 搜索遮罩框 -->
-<div id="searchModal" class="modal">
-    <div class="modal-content">
-        <div class="search-header">
-            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
-            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
-                   class="search-input">
-        </div>
-        <div id="searchResult"></div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/search.js"></script>
-<script type="text/javascript">
-$(function () {
-    searchFunc("https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/search.xml", 'searchInput', 'searchResult');
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[data-pjax], script#page-configurations, #pjax script').forEach(element => {
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (element.id) {
+      script.id = element.id;
+    }
+    if (element.className) {
+      script.className = element.className;
+    }
+    if (element.type) {
+      script.type = element.type;
+    }
+    if (element.src) {
+      script.src = element.src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (element.dataset.pjax !== undefined) {
+      script.dataset.pjax = '';
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.subMenu)
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
 });
 </script>
 
-    <!-- 回到顶部按钮 -->
-<div id="backTop" class="top-scroll">
-    <a class="btn-floating btn-mini waves-effect" href="#!">
-        <!-- <i class="fas fa-caret-up"></i> -->
-        <!-- <i class="fas fa-chevron-up"></i> -->
-        <i class="fas fa-angle-double-up"></i>
-    </a>
-</div>
 
 
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/masonry/masonry.pkgd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/scrollprogress/scrollProgress.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/js/lightgallery-all.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/matery.js"></script>
 
-    <!-- Baidu Analytics -->
+  
+  <script data-pjax>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
 
-    <!-- Baidu Push -->
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
 
 <script>
-    (function () {
-        var bp = document.createElement('script');
-        var curProtocol = window.location.protocol.split(':')[0];
-        if (curProtocol === 'https') {
-            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
-        } else {
-            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
-        }
-        var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(bp, s);
-    })();
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'a705189dfc18ec59a7d0',
+      clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
+      repo        : 'qingwave.github.io',
+      owner       : 'qingwave',
+      admin       : [''],
+      id          : '62e78c83331ff0c726645c1a5f12a437',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
 </script>
 
-    
-    
-    <script async src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/others/busuanzi.pure.mini.js"></script>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/instantpage/instantpage.js" type="module"></script>
-    
-
+    </div>
 </body>
-
 </html>

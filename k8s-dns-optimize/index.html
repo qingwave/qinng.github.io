@@ -1,609 +1,264 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/medias/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/medias/favicon.png">
+  <meta name="google-site-verification" content="googledbe9fc5bea9bf603.html">
+  <meta name="baidu-site-verification" content="muFp3xopwC">
+
+<link rel="stylesheet" href="/css/main.css">
 
 
-<head><meta name="generator" content="Hexo 3.9.0">
-    <meta charset="utf-8">
-    <meta name="keywords" content="优化Kubernetes集群内DNS, Qinng">
-    <meta name="description" content="Coding, Reading and Daydreaming">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="renderer" content="webkit|ie-stand|ie-comp">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- Global site tag (gtag.js) - Google Analytics -->
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"qingwave.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="kubernetes集群内置的dns插件kubedns/coredns在高并发情况下可能遇到性能瓶颈，以下从配置与本地缓存方面说明如何减少dns查询失败率，提高性能。">
+<meta name="keywords" content="k8s,dns">
+<meta property="og:type" content="article">
+<meta property="og:title" content="优化Kubernetes集群内DNS">
+<meta property="og:url" content="https://qingwave.github.io/k8s-dns-optimize/index.html">
+<meta property="og:site_name" content="Qinng">
+<meta property="og:description" content="kubernetes集群内置的dns插件kubedns/coredns在高并发情况下可能遇到性能瓶颈，以下从配置与本地缓存方面说明如何减少dns查询失败率，提高性能。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://d33wubrfki0l68.cloudfront.net/bf8e5eaac697bac89c5b36a0edb8855c860bfb45/6944f/images/docs/nodelocaldns.svg">
+<meta property="og:updated_time" content="2021-02-03T07:13:09.478Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="优化Kubernetes集群内DNS">
+<meta name="twitter:description" content="kubernetes集群内置的dns插件kubedns/coredns在高并发情况下可能遇到性能瓶颈，以下从配置与本地缓存方面说明如何减少dns查询失败率，提高性能。">
+<meta name="twitter:image" content="https://d33wubrfki0l68.cloudfront.net/bf8e5eaac697bac89c5b36a0edb8855c860bfb45/6944f/images/docs/nodelocaldns.svg">
+
+<link rel="canonical" href="https://qingwave.github.io/k8s-dns-optimize/">
 
 
-    <title>优化Kubernetes集群内DNS | Qinng</title>
-    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png">
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
 
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/awesome/css/all.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/animate/animate.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/css/lightgallery.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/matery.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/css/my.css">
+  <title>优化Kubernetes集群内DNS | Qinng</title>
+  
 
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/jquery/jquery.min.js"></script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
 
 <link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
 <link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
 
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
 
-<body>
-    <header class="navbar-fixed">
-    <nav id="headNav" class="bg-color nav-transparent">
-        <div id="navContainer" class="nav-wrapper container">
-            <div class="brand-logo">
-                <a href="/" class="waves-effect waves-light">
-                    
-                    <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img" alt="LOGO">
-                    
-                    <span class="logo-span">Qinng</span>
-                </a>
-            </div>
-            
-
-<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
-<ul class="right nav-menu">
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/" class="waves-effect waves-light">
-      
-      <i class="fas fa-home" style="zoom: 0.6;"></i>
-      
-      <span>首页</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/tags" class="waves-effect waves-light">
-      
-      <i class="fas fa-tags" style="zoom: 0.6;"></i>
-      
-      <span>标签</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/categories" class="waves-effect waves-light">
-      
-      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
-      
-      <span>分类</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/archives" class="waves-effect waves-light">
-      
-      <i class="fas fa-archive" style="zoom: 0.6;"></i>
-      
-      <span>归档</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/contact" class="waves-effect waves-light">
-      
-      <i class="fas fa-comments" style="zoom: 0.6;"></i>
-      
-      <span>留言</span>
-    </a>
-    
-  </li>
-  
-  <li class="hide-on-med-and-down nav-item">
-    
-    <a href="/about" class="waves-effect waves-light">
-      
-      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
-      
-      <span>关于</span>
-    </a>
-    
-  </li>
-  
-  <li>
-    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
-      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
-    </a>
-  </li>
-</ul>
-
-
-<div id="mobile-nav" class="side-nav sidenav">
-
-    <div class="mobile-head bg-color">
-        
-        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/favicon.png" class="logo-img circle responsive-img">
-        
-        <div class="logo-name">Qinng</div>
-        <div class="logo-desc">
-            
-            Coding, Reading and Daydreaming
-            
-        </div>
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
     </div>
+  </div>
 
-    
+  <div class="site-meta">
 
-    <ul class="menu-list mobile-menu-list">
-        
-        <li class="m-nav-item">
-	  
-		<a href="/" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-home"></i>
-			
-			首页
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/tags" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-tags"></i>
-			
-			标签
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/categories" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-bookmark"></i>
-			
-			分类
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/archives" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-archive"></i>
-			
-			归档
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/contact" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-comments"></i>
-			
-			留言
-		</a>
-          
-        </li>
-        
-        <li class="m-nav-item">
-	  
-		<a href="/about" class="waves-effect waves-light">
-			
-			    <i class="fa-fw fas fa-user-circle"></i>
-			
-			关于
-		</a>
-          
-        </li>
-        
-        
-    </ul>
-</div>
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Qinng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Qinng</p>
+  </div>
 
-
-        </div>
-
-        
-    </nav>
-
-</header>
-
-    
-
-
-
-<div class="bg-cover pd-header post-cover" style="background-image: url('https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/22.jpg')">
-    <div class="container" style="right: 0px;left: 0px;">
-        <div class="row">
-            <div class="col s12 m12 l12">
-                <div class="brand">
-                    <h1 class="description center-align post-title">优化Kubernetes集群内DNS</h1>
-                </div>
-            </div>
-        </div>
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
     </div>
+  </div>
 </div>
 
 
 
 
-<main class="post-container content">
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
 
     
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.css">
-<style>
-    #articleContent h1::before,
-    #articleContent h2::before,
-    #articleContent h3::before,
-    #articleContent h4::before,
-    #articleContent h5::before,
-    #articleContent h6::before {
-        display: block;
-        content: " ";
-        height: 100px;
-        margin-top: -100px;
-        visibility: hidden;
-    }
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
 
-    #articleContent :focus {
-        outline: none;
-    }
 
-    .toc-fixed {
-        position: fixed;
-        top: 64px;
-    }
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
 
-    .toc-widget {
-        width: 345px;
-        padding-left: 20px;
-    }
+          <div class="content post posts-expand">
+            
 
-    .toc-widget .toc-title {
-        margin: 35px 0 15px 0;
-        padding-left: 17px;
-        font-size: 1.5rem;
-        font-weight: bold;
-        line-height: 1.5rem;
-    }
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/k8s-dns-optimize/">
 
-    .toc-widget ol {
-        padding: 0;
-        list-style: none;
-    }
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Qinng">
+      <meta itemprop="description" content="Coding, Reading and Daydreaming">
+    </span>
 
-    #toc-content {
-        height: calc(100vh - 250px);
-        overflow: auto;
-    }
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qinng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          优化Kubernetes集群内DNS
+        </h1>
 
-    #toc-content ol {
-        padding-left: 10px;
-    }
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
 
-    #toc-content ol li {
-        padding-left: 10px;
-    }
+              <time title="创建时间：2021-02-01 10:17:40" itemprop="dateCreated datePublished" datetime="2021-02-01T10:17:40+08:00">2021-02-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-03 15:13:09" itemprop="dateModified" datetime="2021-02-03T15:13:09+08:00">2021-02-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/cloud/" itemprop="url" rel="index"><span itemprop="name">cloud</span></a>
+                </span>
+            </span>
 
-    #toc-content .toc-link:hover {
-        color: #42b983;
-        font-weight: 700;
-        text-decoration: underline;
-    }
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
 
-    #toc-content .toc-link::before {
-        background-color: transparent;
-        max-height: 25px;
-
-        position: absolute;
-        right: 23.5vw;
-        display: block;
-    }
-
-    #toc-content .is-active-link {
-        color: #42b983;
-    }
-
-    #floating-toc-btn {
-        position: fixed;
-        right: 15px;
-        bottom: 76px;
-        padding-top: 15px;
-        margin-bottom: 0;
-        z-index: 998;
-    }
-
-    #floating-toc-btn .btn-floating {
-        background: #fff !important;
-        opacity: 0.8;
-    }
-
-    #floating-toc-btn .btn-floating i {
-        color: #1f4d71;
-        font-size: 1rem;
-    }
-
-    #floating-toc-btn .after {
-        color: #000;
-        font-size: 1rem;
-    }
-</style>
-<div class="row">
-    <div id="main-content" class="col s12 m12 l9">
-        <!-- 文章内容详情 -->
-<div id="artDetail">
-    <div class="card">
-        <div class="card-content article-info">
-            <div class="row tag-cate">
-                <div class="col s7">
-                    
-                    <div class="article-tag">
-                        
-                            <a href="/tags/k8s/">
-                                <span class="chip bg-color">k8s</span>
-                            </a>
-                        
-                            <a href="/tags/dns/">
-                                <span class="chip bg-color">dns</span>
-                            </a>
-                        
-                    </div>
-                    
-                </div>
-                <div class="col s5 right-align">
-                    
-                    <div class="post-cate">
-                        <i class="fas fa-bookmark fa-fw icon-category"></i>
-                        
-                            <a href="/categories/cloud/" class="post-category">
-                                cloud
-                            </a>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-
-            <div class="post-info">
-                
-                <div class="post-date info-break-policy">
-                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2021-02-01
-                </div>
-                
-
-                
-
-                
-                <div class="info-break-policy">
-                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    2.1k
-                </div>
-                
-
-                
-                <div class="info-break-policy">
-                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    10 分
-                </div>
-                
-
-                
-                    <div id="busuanzi_container_page_pv" class="info-break-policy">
-                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
-                        <span id="busuanzi_value_page_pv"></span>
-                    </div>
-				
-            </div>
         </div>
-        <hr class="clearfix">
-        <div class="card-content article-card-content">
-            <div id="articleContent">
-                <p>kubernetes集群内置的dns插件<code>kubedns/coredns</code>在高并发情况下可能遇到性能瓶颈，以下从配置与本地缓存方面说明如何减少dns查询失败率，提高性能。</p>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>kubernetes集群内置的dns插件<code>kubedns/coredns</code>在高并发情况下可能遇到性能瓶颈，以下从配置与本地缓存方面说明如何减少dns查询失败率，提高性能。</p>
 <h2 id="配置优化"><a href="#配置优化" class="headerlink" title="配置优化"></a>配置优化</h2><h3 id="dnsPolicy"><a href="#dnsPolicy" class="headerlink" title="dnsPolicy"></a>dnsPolicy</h3><p>k8s 默认的 <code>dnsPolicy</code> 是<code>ClusterFirst</code>，因为 <code>ndots</code> 和 <code>serach domain</code> 在访问外部 dns 会有额外的查询次数。</p>
-<pre class="line-numbers language-bash"><code class="language-bash">/ <span class="token comment" spellcheck="true"># cat /etc/resolv.conf </span>
-nameserver 10.254.0.2
-search default.svc.cluster.local svc.cluster.local cluster.local
-options ndots:5
-/ <span class="token comment" spellcheck="true"># </span>
-/ <span class="token comment" spellcheck="true"># </span>
-/ <span class="token comment" spellcheck="true">#  host -v mi.com</span>
-Trying <span class="token string">"mi.com.default.svc.cluster.local"</span>
-Trying <span class="token string">"mi.com.svc.cluster.local"</span>
-Trying <span class="token string">"mi.com.cluster.local"</span>
-Trying <span class="token string">"mi.com"</span>
-<span class="token punctuation">;</span><span class="token punctuation">;</span> -<span class="token operator">>></span>HEADER<span class="token operator">&lt;&lt;</span>- opcode: QUERY, status: NOERROR, id: 38967
-<span class="token punctuation">;</span><span class="token punctuation">;</span> flags: qr rd ra<span class="token punctuation">;</span> QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
-
-<span class="token punctuation">;</span><span class="token punctuation">;</span> QUESTION SECTION:
-<span class="token punctuation">;</span>mi.com.                                IN        A
-
-<span class="token punctuation">;</span><span class="token punctuation">;</span> ANSWER SECTION:
-mi.com.                        30        IN        A        58.83.160.156
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">/ <span class="comment"># cat /etc/resolv.conf </span></span><br><span class="line">nameserver 10.254.0.2</span><br><span class="line">search default.svc.cluster.local svc.cluster.local cluster.local</span><br><span class="line">options ndots:5</span><br><span class="line">/ <span class="comment"># </span></span><br><span class="line">/ <span class="comment"># </span></span><br><span class="line">/ <span class="comment">#  host -v mi.com</span></span><br><span class="line">Trying <span class="string">"mi.com.default.svc.cluster.local"</span></span><br><span class="line">Trying <span class="string">"mi.com.svc.cluster.local"</span></span><br><span class="line">Trying <span class="string">"mi.com.cluster.local"</span></span><br><span class="line">Trying <span class="string">"mi.com"</span></span><br><span class="line">;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 38967</span><br><span class="line">;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0</span><br><span class="line"></span><br><span class="line">;; QUESTION SECTION:</span><br><span class="line">;mi.com.                                IN        A</span><br><span class="line"></span><br><span class="line">;; ANSWER SECTION:</span><br><span class="line">mi.com.                        30        IN        A        58.83.160.156</span><br></pre></td></tr></tbody></table></figure>
 <p>如果不访问service，调整<code>dnsPolicy</code>为<code>Default</code>，直接走宿主机的dns</p>
 <h3 id="ndots"><a href="#ndots" class="headerlink" title="ndots"></a>ndots</h3><p>如需访问service，尽量减少<code>ndots</code>（默认5）即域名中点的个数小于<code>ndots</code>会按照search域（mi.com.default.svc.cluster.local）依次查询，若查询不到再查询原始域名，总共进行8次dns查询（4次ipv4, 4次ipv6）</p>
-<p>设置<code>ndots</code>为1后，只有两次查询（1次ipv4, ipv6）</p>
-<pre class="line-numbers language-bash"><code class="language-bash">/ <span class="token comment" spellcheck="true">#  host -v mi.com</span>
-Trying <span class="token string">"mi.com"</span>
-<span class="token punctuation">;</span><span class="token punctuation">;</span> -<span class="token operator">>></span>HEADER<span class="token operator">&lt;&lt;</span>- opcode: QUERY, status: NOERROR, id: 23894
-<span class="token punctuation">;</span><span class="token punctuation">;</span> flags: qr rd ra<span class="token punctuation">;</span> QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
-
-<span class="token punctuation">;</span><span class="token punctuation">;</span> QUESTION SECTION:
-<span class="token punctuation">;</span>mi.com.                                IN        A
-
-<span class="token punctuation">;</span><span class="token punctuation">;</span> ANSWER SECTION:
-mi.com.                        30        IN        A        58.83.160.156
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>但此种方式service域名分割大于等于<code>ndots</code>，则解析不到，需要业务自行判断合适的<code>ndots</code>值</p>
-<pre class="line-numbers language-bash"><code class="language-bash">/ <span class="token comment" spellcheck="true">#  host -v prometheus.kube-system</span>
-Trying <span class="token string">"prometheus.kube-system"</span>
-Host prometheus.kube-system not found: 3<span class="token punctuation">(</span>NXDOMAIN<span class="token punctuation">)</span>
-Received 115 bytes from 10.254.0.2<span class="token comment" spellcheck="true">#53 in 8 ms</span>
-Received 115 bytes from 10.254.0.2<span class="token comment" spellcheck="true">#53 in 8 ms</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>设置<code>ndots</code>为1后，只有两次查询（1次ipv4, ipv6）<br></p><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">/ <span class="comment">#  host -v mi.com</span></span><br><span class="line">Trying <span class="string">"mi.com"</span></span><br><span class="line">;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 23894</span><br><span class="line">;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0</span><br><span class="line"></span><br><span class="line">;; QUESTION SECTION:</span><br><span class="line">;mi.com.                                IN        A</span><br><span class="line"></span><br><span class="line">;; ANSWER SECTION:</span><br><span class="line">mi.com.                        30        IN        A        58.83.160.156</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>但此种方式service域名分割大于等于<code>ndots</code>，则解析不到，需要业务自行判断合适的<code>ndots</code>值<br></p><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">/ <span class="comment">#  host -v prometheus.kube-system</span></span><br><span class="line">Trying <span class="string">"prometheus.kube-system"</span></span><br><span class="line">Host prometheus.kube-system not found: 3(NXDOMAIN)</span><br><span class="line">Received 115 bytes from 10.254.0.2<span class="comment">#53 in 8 ms</span></span><br><span class="line">Received 115 bytes from 10.254.0.2<span class="comment">#53 in 8 ms</span></span><br></pre></td></tr></tbody></table></figure><p></p>
 <h3 id="coredns优化"><a href="#coredns优化" class="headerlink" title="coredns优化"></a>coredns优化</h3><p>调整合理的副本数，阿里建议<code>coredns:node=1:8</code>，启动<code>AutoPath</code>插件减少查询次数，见<a href="2">DNS性能优化</a></p>
 <h2 id="DNS缓存"><a href="#DNS缓存" class="headerlink" title="DNS缓存"></a>DNS缓存</h2><h3 id="NodeLocalDNS"><a href="#NodeLocalDNS" class="headerlink" title="NodeLocalDNS"></a>NodeLocalDNS</h3><p>NodeLocal DNSCache 通过在集群节点上作为 DaemonSet 运行 dns 缓存代理来提高集群 DNS 性能，<br>借助这种新架构，Pods 将可以访问在同一节点上运行的 dns 缓存代理，从而避免了 iptables DNAT 规则和连接跟踪。</p>
 <p>架构如下:<br><img src="https://d33wubrfki0l68.cloudfront.net/bf8e5eaac697bac89c5b36a0edb8855c860bfb45/6944f/images/docs/nodelocaldns.svg" alt="local-dns"></p>
 <p>NodeLocalDNS的设计提案见（<a href="3">nodelocal-dns-cache</a>）</p>
 <h4 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h4><p>官方安装方式见<a href="https://github.com/kubernetes/kubernetes/tree/master/cluster/addons/dns/nodelocaldns" target="_blank" rel="noopener">nodelocaldns</a>，需要自行替换变量</p>
-<p>可通过如下脚本，一键安装（注意设置kubedns svc ClusterIP）</p>
-<pre class="line-numbers language-bash"><code class="language-bash"><span class="token shebang important">#!/bin/bash</span>
-
-<span class="token function">wget</span> https://raw.githubusercontent.com/kubernetes/kubernetes/master/cluster/addons/dns/nodelocaldns/nodelocaldns.yaml
-
-<span class="token comment" spellcheck="true"># registery</span>
-docker_registery<span class="token operator">=</span>k8s.gcr.io/dns/k8s-dns-node-cache
-<span class="token comment" spellcheck="true"># kube-dns svc clusterip</span>
-kubedns_svc<span class="token operator">=</span>10.254.0.2
-<span class="token comment" spellcheck="true"># nodelocaldns ip</span>
-nodelocaldns_ip<span class="token operator">=</span>169.254.20.10
-<span class="token comment" spellcheck="true"># kube-proxy mode, iptables or ipvs</span>
-kubeproxy_mode<span class="token operator">=</span>iptables
-result<span class="token operator">=</span>result.yaml
-
-<span class="token keyword">if</span> <span class="token punctuation">[</span> <span class="token variable">${kubeproxy_mode}</span> <span class="token operator">==</span> <span class="token string">"ipvs"</span> <span class="token punctuation">]</span><span class="token punctuation">;</span> <span class="token keyword">then</span>
-    <span class="token function">sed</span> -e <span class="token string">"s|k8s.gcr.io/dns/k8s-dns-node-cache|<span class="token variable">$docker_registery</span>|g"</span> \
-        -e <span class="token string">"s/__PILLAR__CLUSTER__DNS__/<span class="token variable">$kubedns_svc</span>/g"</span> \
-        -e <span class="token string">"s/__PILLAR__LOCAL__DNS__/<span class="token variable">$nodelocaldns_ip</span>/g"</span> \
-        -e <span class="token string">'s/[ |,]__PILLAR__DNS__SERVER__//g'</span> \
-        -e <span class="token string">"s/__PILLAR__DNS__DOMAIN__/cluster.local/g"</span> nodelocaldns.yaml <span class="token operator">></span><span class="token variable">$result</span>
-<span class="token keyword">else</span>
-    <span class="token function">sed</span> -e <span class="token string">"s|k8s.gcr.io/dns/k8s-dns-node-cache|<span class="token variable">$docker_registery</span>|g"</span> \
-        -e <span class="token string">"s/__PILLAR__DNS__SERVER__/<span class="token variable">$kubedns_svc</span>/g"</span> \
-        -e <span class="token string">"s/__PILLAR__LOCAL__DNS__/<span class="token variable">$nodelocaldns_ip</span>/g"</span> \
-        -e <span class="token string">"s/__PILLAR__DNS__DOMAIN__/cluster.local/g"</span> nodelocaldns.yaml <span class="token operator">></span><span class="token variable">$result</span>
-<span class="token keyword">fi</span>
-
-kubectl apply -f <span class="token variable">$result</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>创建完成后，每个节点运行一个pod，查看pod(个别节点ingress-nginx占用8080端口，导致nodelocaldns启动失败)</p>
-<pre class="line-numbers language-bash"><code class="language-bash"><span class="token comment" spellcheck="true"># kubectl  get po -n kube-system -l k8s-app=node-local-dns -o wide</span>
-NAME                   READY   STATUS             RESTARTS   AGE    IP              NODE                            NOMINATED NODE   READINESS GATES
-node-local-dns-2fvxb   0/1     CrashLoopBackOff   4          103s   10.38.200.195   node04          <span class="token operator">&lt;</span>none<span class="token operator">></span>           <span class="token operator">&lt;</span>none<span class="token operator">></span>
-node-local-dns-4zmcd   1/1     Running            0          54d    10.38.201.55    node06   <span class="token operator">&lt;</span>none<span class="token operator">></span>           <span class="token operator">&lt;</span>none<span class="token operator">></span>
-node-local-dns-55tzg   1/1     Running            0          60d    10.38.200.186   node02          <span class="token operator">&lt;</span>none<span class="token operator">></span>           <span class="token operator">&lt;</span>none<span class="token operator">></span>
-node-local-dns-cctg7   1/1     Running            0          54d    10.38.200.242   node07   <span class="token operator">&lt;</span>none<span class="token operator">></span>           <span class="token operator">&lt;</span>none<span class="token operator">></span>
-node-local-dns-khgmm   1/1     Running            0          54d    10.38.201.36    node08   <span class="token operator">&lt;</span>none<span class="token operator">></span>           <span class="token operator">&lt;</span>none<span class="token operator">></span>
-node-local-dns-mbr64   1/1     Running            0          60d    10.38.200.187   node05          <span class="token operator">&lt;</span>none<span class="token operator">></span>           <span class="token operator">&lt;</span>none<span class="token operator">></span>
-node-local-dns-t67vw   1/1     Running            0          60d    10.38.200.188   node03          <span class="token operator">&lt;</span>none<span class="token operator">></span>           <span class="token operator">&lt;</span>none<span class="token operator">></span>
-node-local-dns-tmm92   1/1     Running            14         54d    10.38.200.57    node09   <span class="token operator">&lt;</span>none<span class="token operator">></span>           <span class="token operator">&lt;</span>none<span class="token operator">></span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>默认配置如下：</p>
-<pre class="line-numbers language-bash"><code class="language-bash">cluster.local:53 <span class="token punctuation">{</span>
-    errors
-    cache <span class="token punctuation">{</span>
-            success 9984 30 <span class="token comment" spellcheck="true"># 默认成功缓存30s</span>
-            denial 9984 5 <span class="token comment" spellcheck="true">#失败缓存5s</span>
-    <span class="token punctuation">}</span>
-    reload
-    loop
-    bind 169.254.20.10 10.254.0.2 <span class="token comment" spellcheck="true">#本地监听ip</span>
-    forward <span class="token keyword">.</span> 10.254.132.95 <span class="token punctuation">{</span> <span class="token comment" spellcheck="true">#转发到kubedns-upstream</span>
-            force_tcp
-    <span class="token punctuation">}</span>
-    prometheus :9253 <span class="token comment" spellcheck="true">#监控接口</span>
-    health 169.254.20.10:8080 <span class="token comment" spellcheck="true">#健康检测端口</span>
-    <span class="token punctuation">}</span>
-in-addr.arpa:53 <span class="token punctuation">{</span>
-    errors
-    cache 30
-    reload
-    loop
-    bind 169.254.20.10 10.254.0.2
-    forward <span class="token keyword">.</span> 10.254.132.95 <span class="token punctuation">{</span>
-            force_tcp
-    <span class="token punctuation">}</span>
-    prometheus :9253
-    <span class="token punctuation">}</span>
-ip6.arpa:53 <span class="token punctuation">{</span>
-    errors
-    cache 30
-    reload
-    loop
-    bind 169.254.20.10 10.254.0.2
-    forward <span class="token keyword">.</span> 10.254.132.95 <span class="token punctuation">{</span>
-            force_tcp
-    <span class="token punctuation">}</span>
-    prometheus :9253
-    <span class="token punctuation">}</span>
-.:53 <span class="token punctuation">{</span>
-    errors
-    cache 30
-    reload
-    loop
-    bind 169.254.20.10 10.254.0.2
-    forward <span class="token keyword">.</span> /etc/resolv.conf
-    prometheus :9253
-    <span class="token punctuation">}</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>节点上查看localdns的网卡，本地将监听<code>169.254.20.10</code>与<code>10.254.0.2</code>两个地址，拦截kubedns((默认<code>10.254.0.2</code>)的请求，命中后直接返回，若未命中转发到kubedns(对应service <code>kube-dns-upstream</code>，kube-dns-upstream由localdns创建绑定kubedns pod)</p>
-<pre class="line-numbers language-bash"><code class="language-bash"><span class="token comment" spellcheck="true"># ip addr show nodelocaldns</span>
-182232: nodelocaldns: <span class="token operator">&lt;</span>BROADCAST,NOARP<span class="token operator">></span> mtu 1500 qdisc noop state DOWN 
-    link/ether 4e:62:1c:fd:56:12 brd ff:ff:ff:ff:ff:ff
-    inet 169.254.20.10/32 brd 169.254.20.10 scope global nodelocaldns
-       valid_lft forever preferred_lft forever
-    inet 10.254.0.2/32 brd 10.254.0.2 scope global nodelocaldns
-       valid_lft forever preferred_lft forever
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>iptables规则，使用<code>NOTRACK</code>跳过其它表处理</p>
-<pre class="line-numbers language-bash"><code class="language-bash">iptables-save <span class="token operator">|</span> <span class="token function">egrep</span> <span class="token string">"10.254.0.2|169.254.20.10"</span>
--A PREROUTING -d 10.254.0.2/32 -p udp -m udp --dport 53 -j NOTRACK
--A PREROUTING -d 10.254.0.2/32 -p tcp -m tcp --dport 53 -j NOTRACK
--A PREROUTING -d 169.254.20.10/32 -p udp -m udp --dport 53 -j NOTRACK
--A PREROUTING -d 169.254.20.10/32 -p tcp -m tcp --dport 53 -j NOTRACK
-
--A OUTPUT -d 10.254.0.2/32 -p udp -m udp --dport 53 -j NOTRACK
--A OUTPUT -d 10.254.0.2/32 -p tcp -m tcp --dport 53 -j NOTRACK
-
--A INPUT -d 10.254.0.2/32 -p udp -m udp --dport 53 -j ACCEPT
--A INPUT -d 10.254.0.2/32 -p tcp -m tcp --dport 53 -j ACCEPT
--A OUTPUT -s 10.254.0.2/32 -p udp -m udp --sport 53 -j ACCEPT
--A OUTPUT -s 10.254.0.2/32 -p tcp -m tcp --sport 53 -j ACCEPT
-
-<span class="token punctuation">..</span>.
--A KUBE-SERVICES -d 10.254.0.2/32 -p tcp -m comment --comment <span class="token string">"kube-system/kube-dns:dns-tcp cluster IP"</span> -m tcp --dport 53 -j KUBE-SVC-ERIFXISQEP7F7OF4
--A KUBE-SERVICES -d 10.254.0.2/32 -p tcp -m comment --comment <span class="token string">"kube-system/kube-dns:metrics cluster IP"</span> -m tcp --dport 9153 -j KUBE-SVC-JD5MR3NA4I4DYORP
--A KUBE-SERVICES -d 10.254.0.2/32 -p udp -m comment --comment <span class="token string">"kube-system/kube-dns:dns cluster IP"</span> -m udp --dport 53 -j KUBE-SVC-TCOU7JCQXEZGVUNU
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>在pod通过localdns解析域名</p>
-<pre class="line-numbers language-bash"><code class="language-bash"><span class="token comment" spellcheck="true"># kubectl  exec -it dns-perf-client-64cfb49f9-9c5hg sh</span>
-/ <span class="token comment" spellcheck="true"># nslookup kubernetes 169.254.20.10</span>
-Server:                169.254.20.10
-Address:        169.254.20.10<span class="token comment" spellcheck="true">#53</span>
-
-Name:        kubernetes.default.svc.cluster.local
-Address: 10.254.0.1
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>可通过如下脚本，一键安装（注意设置kubedns svc ClusterIP）<br></p><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">wget https://raw.githubusercontent.com/kubernetes/kubernetes/master/cluster/addons/dns/nodelocaldns/nodelocaldns.yaml</span><br><span class="line"></span><br><span class="line"><span class="comment"># registery</span></span><br><span class="line">docker_registery=k8s.gcr.io/dns/k8s-dns-node-cache</span><br><span class="line"><span class="comment"># kube-dns svc clusterip</span></span><br><span class="line">kubedns_svc=10.254.0.2</span><br><span class="line"><span class="comment"># nodelocaldns ip</span></span><br><span class="line">nodelocaldns_ip=169.254.20.10</span><br><span class="line"><span class="comment"># kube-proxy mode, iptables or ipvs</span></span><br><span class="line">kubeproxy_mode=iptables</span><br><span class="line">result=result.yaml</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ <span class="variable">${kubeproxy_mode}</span> == <span class="string">"ipvs"</span> ]; <span class="keyword">then</span></span><br><span class="line">    sed -e <span class="string">"s|k8s.gcr.io/dns/k8s-dns-node-cache|<span class="variable">$docker_registery</span>|g"</span> \</span><br><span class="line">        -e <span class="string">"s/__PILLAR__CLUSTER__DNS__/<span class="variable">$kubedns_svc</span>/g"</span> \</span><br><span class="line">        -e <span class="string">"s/__PILLAR__LOCAL__DNS__/<span class="variable">$nodelocaldns_ip</span>/g"</span> \</span><br><span class="line">        -e <span class="string">'s/[ |,]__PILLAR__DNS__SERVER__//g'</span> \</span><br><span class="line">        -e <span class="string">"s/__PILLAR__DNS__DOMAIN__/cluster.local/g"</span> nodelocaldns.yaml &gt;<span class="variable">$result</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    sed -e <span class="string">"s|k8s.gcr.io/dns/k8s-dns-node-cache|<span class="variable">$docker_registery</span>|g"</span> \</span><br><span class="line">        -e <span class="string">"s/__PILLAR__DNS__SERVER__/<span class="variable">$kubedns_svc</span>/g"</span> \</span><br><span class="line">        -e <span class="string">"s/__PILLAR__LOCAL__DNS__/<span class="variable">$nodelocaldns_ip</span>/g"</span> \</span><br><span class="line">        -e <span class="string">"s/__PILLAR__DNS__DOMAIN__/cluster.local/g"</span> nodelocaldns.yaml &gt;<span class="variable">$result</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">kubectl apply -f <span class="variable">$result</span></span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>创建完成后，每个节点运行一个pod，查看pod(个别节点ingress-nginx占用8080端口，导致nodelocaldns启动失败)<br></p><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># kubectl  get po -n kube-system -l k8s-app=node-local-dns -o wide</span></span><br><span class="line">NAME                   READY   STATUS             RESTARTS   AGE    IP              NODE                            NOMINATED NODE   READINESS GATES</span><br><span class="line">node-local-dns-2fvxb   0/1     CrashLoopBackOff   4          103s   10.38.200.195   node04          &lt;none&gt;           &lt;none&gt;</span><br><span class="line">node-local-dns-4zmcd   1/1     Running            0          54d    10.38.201.55    node06   &lt;none&gt;           &lt;none&gt;</span><br><span class="line">node-local-dns-55tzg   1/1     Running            0          60d    10.38.200.186   node02          &lt;none&gt;           &lt;none&gt;</span><br><span class="line">node-local-dns-cctg7   1/1     Running            0          54d    10.38.200.242   node07   &lt;none&gt;           &lt;none&gt;</span><br><span class="line">node-local-dns-khgmm   1/1     Running            0          54d    10.38.201.36    node08   &lt;none&gt;           &lt;none&gt;</span><br><span class="line">node-local-dns-mbr64   1/1     Running            0          60d    10.38.200.187   node05          &lt;none&gt;           &lt;none&gt;</span><br><span class="line">node-local-dns-t67vw   1/1     Running            0          60d    10.38.200.188   node03          &lt;none&gt;           &lt;none&gt;</span><br><span class="line">node-local-dns-tmm92   1/1     Running            14         54d    10.38.200.57    node09   &lt;none&gt;           &lt;none&gt;</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>默认配置如下：<br></p><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">cluster.local:53 {</span><br><span class="line">    errors</span><br><span class="line">    cache {</span><br><span class="line">            success 9984 30 <span class="comment"># 默认成功缓存30s</span></span><br><span class="line">            denial 9984 5 <span class="comment">#失败缓存5s</span></span><br><span class="line">    }</span><br><span class="line">    reload</span><br><span class="line">    loop</span><br><span class="line">    <span class="built_in">bind</span> 169.254.20.10 10.254.0.2 <span class="comment">#本地监听ip</span></span><br><span class="line">    forward . 10.254.132.95 { <span class="comment">#转发到kubedns-upstream</span></span><br><span class="line">            force_tcp</span><br><span class="line">    }</span><br><span class="line">    prometheus :9253 <span class="comment">#监控接口</span></span><br><span class="line">    health 169.254.20.10:8080 <span class="comment">#健康检测端口</span></span><br><span class="line">    }</span><br><span class="line"><span class="keyword">in</span>-addr.arpa:53 {</span><br><span class="line">    errors</span><br><span class="line">    cache 30</span><br><span class="line">    reload</span><br><span class="line">    loop</span><br><span class="line">    <span class="built_in">bind</span> 169.254.20.10 10.254.0.2</span><br><span class="line">    forward . 10.254.132.95 {</span><br><span class="line">            force_tcp</span><br><span class="line">    }</span><br><span class="line">    prometheus :9253</span><br><span class="line">    }</span><br><span class="line">ip6.arpa:53 {</span><br><span class="line">    errors</span><br><span class="line">    cache 30</span><br><span class="line">    reload</span><br><span class="line">    loop</span><br><span class="line">    <span class="built_in">bind</span> 169.254.20.10 10.254.0.2</span><br><span class="line">    forward . 10.254.132.95 {</span><br><span class="line">            force_tcp</span><br><span class="line">    }</span><br><span class="line">    prometheus :9253</span><br><span class="line">    }</span><br><span class="line">.:53 {</span><br><span class="line">    errors</span><br><span class="line">    cache 30</span><br><span class="line">    reload</span><br><span class="line">    loop</span><br><span class="line">    <span class="built_in">bind</span> 169.254.20.10 10.254.0.2</span><br><span class="line">    forward . /etc/resolv.conf</span><br><span class="line">    prometheus :9253</span><br><span class="line">    }</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>节点上查看localdns的网卡，本地将监听<code>169.254.20.10</code>与<code>10.254.0.2</code>两个地址，拦截kubedns((默认<code>10.254.0.2</code>)的请求，命中后直接返回，若未命中转发到kubedns(对应service <code>kube-dns-upstream</code>，kube-dns-upstream由localdns创建绑定kubedns pod)<br></p><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ip addr show nodelocaldns</span></span><br><span class="line">182232: nodelocaldns: &lt;BROADCAST,NOARP&gt; mtu 1500 qdisc noop state DOWN </span><br><span class="line">    link/ether 4e:62:1c:fd:56:12 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 169.254.20.10/32 brd 169.254.20.10 scope global nodelocaldns</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet 10.254.0.2/32 brd 10.254.0.2 scope global nodelocaldns</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>iptables规则，使用<code>NOTRACK</code>跳过其它表处理<br></p><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">iptables-save | egrep <span class="string">"10.254.0.2|169.254.20.10"</span></span><br><span class="line">-A PREROUTING -d 10.254.0.2/32 -p udp -m udp --dport 53 -j NOTRACK</span><br><span class="line">-A PREROUTING -d 10.254.0.2/32 -p tcp -m tcp --dport 53 -j NOTRACK</span><br><span class="line">-A PREROUTING -d 169.254.20.10/32 -p udp -m udp --dport 53 -j NOTRACK</span><br><span class="line">-A PREROUTING -d 169.254.20.10/32 -p tcp -m tcp --dport 53 -j NOTRACK</span><br><span class="line"></span><br><span class="line">-A OUTPUT -d 10.254.0.2/32 -p udp -m udp --dport 53 -j NOTRACK</span><br><span class="line">-A OUTPUT -d 10.254.0.2/32 -p tcp -m tcp --dport 53 -j NOTRACK</span><br><span class="line"></span><br><span class="line">-A INPUT -d 10.254.0.2/32 -p udp -m udp --dport 53 -j ACCEPT</span><br><span class="line">-A INPUT -d 10.254.0.2/32 -p tcp -m tcp --dport 53 -j ACCEPT</span><br><span class="line">-A OUTPUT -s 10.254.0.2/32 -p udp -m udp --sport 53 -j ACCEPT</span><br><span class="line">-A OUTPUT -s 10.254.0.2/32 -p tcp -m tcp --sport 53 -j ACCEPT</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line">-A KUBE-SERVICES -d 10.254.0.2/32 -p tcp -m comment --comment <span class="string">"kube-system/kube-dns:dns-tcp cluster IP"</span> -m tcp --dport 53 -j KUBE-SVC-ERIFXISQEP7F7OF4</span><br><span class="line">-A KUBE-SERVICES -d 10.254.0.2/32 -p tcp -m comment --comment <span class="string">"kube-system/kube-dns:metrics cluster IP"</span> -m tcp --dport 9153 -j KUBE-SVC-JD5MR3NA4I4DYORP</span><br><span class="line">-A KUBE-SERVICES -d 10.254.0.2/32 -p udp -m comment --comment <span class="string">"kube-system/kube-dns:dns cluster IP"</span> -m udp --dport 53 -j KUBE-SVC-TCOU7JCQXEZGVUNU</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>在pod通过localdns解析域名<br></p><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># kubectl  exec -it dns-perf-client-64cfb49f9-9c5hg sh</span></span><br><span class="line">/ <span class="comment"># nslookup kubernetes 169.254.20.10</span></span><br><span class="line">Server:                169.254.20.10</span><br><span class="line">Address:        169.254.20.10<span class="comment">#53</span></span><br><span class="line"></span><br><span class="line">Name:        kubernetes.default.svc.cluster.local</span><br><span class="line">Address: 10.254.0.1</span><br></pre></td></tr></tbody></table></figure><p></p>
 <h4 id="压测"><a href="#压测" class="headerlink" title="压测"></a>压测</h4><p>通过<code>dnsperf</code>进行压测</p>
-<p>测试域名列表如下</p>
-<pre class="line-numbers language-bash"><code class="language-bash"><span class="token comment" spellcheck="true"># cat records.txt </span>
-mi.com A
-github.com A
-www.microsoft.com A
-www.aliyun.com A
-kubernetes.io A
-nginx A
-nginx.default A
-kubernetes A
-kubernetes.default.svc.cluster.local A
-kube-dns.kube-system.svc.cluster.local A
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>测试命令</p>
-<pre class="line-numbers language-bash"><code class="language-bash">dnsperf -l 120 -s 10.254.0.2 -d records.txt
-<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>测试域名列表如下<br></p><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># cat records.txt </span></span><br><span class="line">mi.com A</span><br><span class="line">github.com A</span><br><span class="line">www.microsoft.com A</span><br><span class="line">www.aliyun.com A</span><br><span class="line">kubernetes.io A</span><br><span class="line">nginx A</span><br><span class="line">nginx.default A</span><br><span class="line">kubernetes A</span><br><span class="line">kubernetes.default.svc.cluster.local A</span><br><span class="line">kube-dns.kube-system.svc.cluster.local A</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>测试命令<br></p><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dnsperf -l 120 -s 10.254.0.2 -d records.txt</span><br></pre></td></tr></tbody></table></figure><p></p>
 <p>结果如下<br>| |client number|qps|avg-lantency(ms)|stddev(ms)|lost| |<br>|:—-|:—-|:—-|:—-|:—-|:—-|:—-|<br>|kubedns(1 pod)|1|53910|1.83|6.07|0%| |<br>|kubedns(2 pod)|2|110000|1.83|1.94|9%| |<br>|kubedns(4 pod)|4|120000|3.2|0.8|24%| |<br>|nodelocaldns|1|71494|1.39|1.66|0%| |<br>|nodelocaldns|2|142000|1.37|1.55|0%| |</p>
 <p>相比<code>nodelocaldns</code>，<code>localdns</code>查询性能提高了33%，而且延时相对更小，由于<code>localdns</code>是分布式的整体qps相对kubedns有较大优势。当前测试相对简单，大部分请求会命中缓存，完整的测试结果待进一步验证。</p>
 <h4 id="优缺点"><a href="#优缺点" class="headerlink" title="优缺点"></a>优缺点</h4><p>优点：</p>
@@ -635,500 +290,370 @@ kube-dns.kube-system.svc.cluster.local A
 <h3 id="本地DNS缓存"><a href="#本地DNS缓存" class="headerlink" title="本地DNS缓存"></a>本地DNS缓存</h3><p>除了nodelocaldns，用户还可以在容器内或者添加sidecar来启用dns缓存</p>
 <ol>
 <li><p>通过在镜像中加入nscd进程，缓存dns，如下：</p>
-<pre class="line-numbers language-bash"><code class="language-bash"> FROM ubuntu
- RUN <span class="token function">apt-get</span> update <span class="token operator">&amp;&amp;</span> <span class="token function">apt-get</span> <span class="token function">install</span> -y nscd <span class="token operator">&amp;&amp;</span> <span class="token function">rm</span> -rf /var/lib/apt/lists/*
- CMD <span class="token function">service</span> nscd start<span class="token punctuation">;</span> <span class="token function">bash</span> -c <span class="token string">"sleep 3600"</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+ <figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">FROM ubuntu</span><br><span class="line">RUN apt-get update &amp;&amp; apt-get install -y nscd &amp;&amp; rm -rf /var/lib/apt/lists/*</span><br><span class="line">CMD service nscd start; bash -c <span class="string">"sleep 3600"</span></span><br></pre></td></tr></tbody></table></figure>
 <p> 此种方式需要用户改动镜像，或者加入额外脚本配置<code>nscd</code></p>
 </li>
 <li><p>另外可以配置可配置dns缓存 sidecar（如<code>coredns</code>, <code>dnsmasq</code>）来提高性能，此种方式灵活性高，但需要改动pod配置，而且较<code>nodelocaldns</code>浪费资源</p>
 </li>
 </ol>
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p>[1] <a href="https://kubernetes.io/zh/docs/tasks/administer-cluster/nodelocaldns/" target="_blank" rel="noopener">https://kubernetes.io/zh/docs/tasks/administer-cluster/nodelocaldns/</a><br>[2] <a href="https://help.aliyun.com/document_detail/172339.html" target="_blank" rel="noopener">https://help.aliyun.com/document_detail/172339.html</a><br>[3] <a href="https://github.com/kubernetes/enhancements/blob/master/keps/sig-network/0030-nodelocal-dns-cache.md" target="_blank" rel="noopener">https://github.com/kubernetes/enhancements/blob/master/keps/sig-network/0030-nodelocal-dns-cache.md</a><br>[4] <a href="https://github.com/kubernetes/enhancements/blob/master/keps/sig-network/1024-nodelocal-cache-dns/README.md" target="_blank" rel="noopener">https://github.com/kubernetes/enhancements/blob/master/keps/sig-network/1024-nodelocal-cache-dns/README.md</a><br>[5] <a href="https://lework.github.io/2020/11/09/node-local-dns/" target="_blank" rel="noopener">https://lework.github.io/2020/11/09/node-local-dns/</a></p>
-
-            </div>
-            <hr/>
-
-            
-
-
-
-            <div class="tag_share" style="display: block;">
-                <div class="post-meta__tag-list" style="display: inline-block;">
-                    
-                        <div class="article-tag">
-                            
-                                <a href="/tags/k8s/">
-                                    <span class="chip bg-color">k8s</span>
-                                </a>
-                            
-                                <a href="/tags/dns/">
-                                    <span class="chip bg-color">dns</span>
-                                </a>
-                            
-                        </div>
-                    
-                </div>
-                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
-                    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/css/share.min.css">
-<div id="article-share">
-
-    
-    <div class="social-share" data-sites="wechat,weibo" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/share/js/social-share.min.js"></script>
-    
-
-    
-
-</div>
-
-                </div>
-            </div>
-            
-        </div>
-    </div>
-
-    
-        <link rel="stylesheet" href="/libs/gitalk/gitalk.css">
-<link rel="stylesheet" href="/libs/gitalk/gitalk.min.js">
-
-<div class="card gitalk-card" data-aos="fade-up">
-    <div class="comment_headling" style="font-size: 20px; font-weight: 700; position: relative; padding-left: 20px; top: 15px; padding-bottom: 5px;">
-        <i class="fas fa-comments fa-fw" aria-hidden="true"></i>
-        <span>评论</span>
-    </div>
-    <div id="gitalk-container" class="card-content"></div>
-</div>
-
-<script src="/libs/gitalk/gitalk.min.js"></script>
 <script>
-    let gitalk = new Gitalk({
-        clientID: 'a705189dfc18ec59a7d0',
-        clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
-        repo: 'qingwave.github.io',
-        owner: 'qingwave',
-        admin: "qingwave",
-        id: '2021-02-01T10-17-40',
-        distractionFreeMode: false  // Facebook-like distraction free mode
-    });
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return; }
+            const img = document.createElement('img');
+            img.style = 'display:none !important;';
+            img.src = el.dataset.src;
+            img.addEventListener('error', () => {
+              img.remove();
+              el.style.color = 'inherit';
+              el.style.backgroundImage = 'none';
+              el.style.background = 'none';
+            });
+            img.addEventListener('load', () => {
+              img.remove();
+            });
+            document.body.appendChild(img);
+          });
+      </script>
+    </div>
 
-    gitalk.render('gitalk-container');
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>qinng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://qingwave.github.io/k8s-dns-optimize/" title="优化Kubernetes集群内DNS">https://qingwave.github.io/k8s-dns-optimize/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/k8s/" rel="tag"># k8s</a>
+              <a href="/tags/dns/" rel="tag"># dns</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/docker-shell-signal/" rel="prev" title="k8s中shell脚本启动如何传递信号">
+      <i class="fa fa-chevron-left"></i> k8s中shell脚本启动如何传递信号
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/k8s-rate-limit/" rel="next" title="kubernetes apiserver限流方案">
+      kubernetes apiserver限流方案 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
 </script>
 
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-<article id="prenext-posts" class="prev-next articles">
-    <div class="row article-row">
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
-            <div class="card">
-                <a href="/docker-shell-signal/">
-                    <div class="card-image">
-                        
-                        
-                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/23.jpg" class="responsive-img" alt="k8s中shell脚本启动如何传递信号">
-                        
-                        <span class="card-title">k8s中shell脚本启动如何传递信号</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            背景在k8s或docker中，有时候我们需要通过shell来启动程序，但是默认shell不会传递信号（sigterm）给子进程，当在pod终止时应用无法优雅退出，直到最大时间时间后强制退出（kill -9）。
-分析普通情况下，大多业务的启动
-                        
-                    </div>
-                    <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2021-02-03
-                        </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                            
-                            
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/k8s/">
-                        <span class="chip bg-color">k8s</span>
-                    </a>
-                    
-                    <a href="/tags/docker/">
-                        <span class="chip bg-color">docker</span>
-                    </a>
-                    
-                </div>
-                
-            </div>
         </div>
-        
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge right-badge text-color">
-                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
-            </div>
-            <div class="card">
-                <a href="/k8s-rate-limit/">
-                    <div class="card-image">
-                        
-                        
-                        <img src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/medias/featureimages/13.jpg" class="responsive-img" alt="kubernetes apiserver限流方案">
-                        
-                        <span class="card-title">kubernetes apiserver限流方案</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            背景为了防止突发流量影响apiserver可用性，k8s支持多种限流配置，包括：
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
 
-MaxInFlightLimit，server级别整体限流
-Client限流
-EventRateLimit, 限制event
-APF，更细力度的限制配置
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#配置优化"><span class="nav-number">1.</span> <span class="nav-text">配置优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#dnsPolicy"><span class="nav-number">1.1.</span> <span class="nav-text">dnsPolicy</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ndots"><span class="nav-number">1.2.</span> <span class="nav-text">ndots</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#coredns优化"><span class="nav-number">1.3.</span> <span class="nav-text">coredns优化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DNS缓存"><span class="nav-number">2.</span> <span class="nav-text">DNS缓存</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#NodeLocalDNS"><span class="nav-number">2.1.</span> <span class="nav-text">NodeLocalDNS</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#验证"><span class="nav-number">2.1.1.</span> <span class="nav-text">验证</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#压测"><span class="nav-number">2.1.2.</span> <span class="nav-text">压测</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#优缺点"><span class="nav-number">2.1.3.</span> <span class="nav-text">优缺点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#HA"><span class="nav-number">2.1.4.</span> <span class="nav-text">HA</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#灰度方式"><span class="nav-number">2.1.5.</span> <span class="nav-text">灰度方式</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#本地DNS缓存"><span class="nav-number">2.2.</span> <span class="nav-text">本地DNS缓存</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Qinng</p>
+  <div class="site-description" itemprop="description">Coding, Reading and Daydreaming</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/qingwave" title="GitHub → https://github.com/qingwave" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:isguory@gmail.com" title="E-Mail → mailto:isguory@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
 
 
-                        
-                    </div>
-                    <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-11-11
-                            </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/cloud/" class="post-category">
-                                    cloud
-                                </a>
-                            
-                            
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/k8s/">
-                        <span class="chip bg-color">k8s</span>
-                    </a>
-                    
-                    <a href="/tags/apiserver/">
-                        <span class="chip bg-color">apiserver</span>
-                    </a>
-                    
-                </div>
-                
-            </div>
-        </div>
-        
+
+      </div>
+
     </div>
-</article>
+  </aside>
+  <div id="sidebar-dimmer"></div>
 
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2018 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-terminal"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Qinng</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
 
 
 
-<!-- 代码块功能依赖 -->
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeBlockFuction.js"></script>
-
-<!-- 代码语言 -->
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeLang.js"></script>
-
-
-<!-- 代码块复制 -->
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeCopy.js"></script>
-
-
-<!-- 代码块收缩 -->
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/codeBlock/codeShrink.js"></script>
-
-
-<!-- 代码块折行 -->
-
-<style type="text/css">
-code[class*="language-"], pre[class*="language-"] { white-space: pre !important; }
-</style>
-
-
-    </div>
-    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
-        <div class="toc-widget">
-            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
-            <div id="toc-content"></div>
-        </div>
-    </div>
-</div>
-
-<!-- TOC 悬浮按钮. -->
-
-<div id="floating-toc-btn" class="hide-on-med-and-down">
-    <a class="btn-floating btn-mini waves-effect bnt-color">
-        <i class="fas fa-list-ul"></i>
-    </a>
-</div>
-
-
-<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/tocbot/tocbot.min.js"></script>
-<script>
-    $(function () {
-        tocbot.init({
-            tocSelector: '#toc-content',
-            contentSelector: '#articleContent',
-            headingsOffset: -($(window).height() * 0.4 - 45),
-            collapseDepth: Number('0'),
-            headingSelector: 'h2, h3, h4'
-        });
-
-        // modify the toc link href to support Chinese.
-        let i = 0;
-        let tocHeading = 'toc-heading-';
-        $('#toc-content a').each(function () {
-            $(this).attr('href', '#' + tocHeading + (++i));
-        });
-
-        // modify the heading title id to support Chinese.
-        i = 0;
-        $('#articleContent').children('h2, h3, h4').each(function () {
-            $(this).attr('id', tocHeading + (++i));
-        });
-
-        // Set scroll toc fixed.
-        let tocHeight = parseInt($(window).height() * 0.4 - 64);
-        let $tocWidget = $('.toc-widget');
-        $(window).scroll(function () {
-            let scroll = $(window).scrollTop();
-            /* add post toc fixed. */
-            if (scroll > tocHeight) {
-                $tocWidget.addClass('toc-fixed');
-            } else {
-                $tocWidget.removeClass('toc-fixed');
-            }
-        });
-
-        
-        /* 修复文章卡片 div 的宽度. */
-        let fixPostCardWidth = function (srcId, targetId) {
-            let srcDiv = $('#' + srcId);
-            if (srcDiv.length === 0) {
-                return;
-            }
-
-            let w = srcDiv.width();
-            if (w >= 450) {
-                w = w + 21;
-            } else if (w >= 350 && w < 450) {
-                w = w + 18;
-            } else if (w >= 300 && w < 350) {
-                w = w + 16;
-            } else {
-                w = w + 14;
-            }
-            $('#' + targetId).width(w);
-        };
-
-        // 切换TOC目录展开收缩的相关操作.
-        const expandedClass = 'expanded';
-        let $tocAside = $('#toc-aside');
-        let $mainContent = $('#main-content');
-        $('#floating-toc-btn .btn-floating').click(function () {
-            if ($tocAside.hasClass(expandedClass)) {
-                $tocAside.removeClass(expandedClass).hide();
-                $mainContent.removeClass('l9');
-            } else {
-                $tocAside.addClass(expandedClass).show();
-                $mainContent.addClass('l9');
-            }
-            fixPostCardWidth('artDetail', 'prenext-posts');
-        });
-        
-    });
-</script>
-
-    
-
-</main>
-
-
-
-
-    <footer class="page-footer bg-color">
-    
-    <div class="container row center-align" style="margin-bottom: 0px !important;">
-        <div class="center-align">
-            Copyright&nbsp;&copy;
-            <span id="year">2018</span>
-            <a href="https://qinng.now.sh" target="_blank">Qinng</a>
-            <br>
-            
-            &nbsp;<i class="fas fa-chart-area"></i>&nbsp;&nbsp;<span
-                >49.9k</span>&nbsp;
-            
-            
-            
-            
-            
-            
-            <span id="busuanzi_container_site_pv">
-                |&nbsp;<i class="far fa-eye"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_pv"
-                    ></span>&nbsp;
-            </span>
-            
-            
-            <span id="busuanzi_container_site_uv">
-                |&nbsp;<i class="fas fa-users"></i>&nbsp;&nbsp;<span id="busuanzi_value_site_uv"
-                    ></span>&nbsp;
-            </span>
-            
-            <br>
-            
-            <br>
-            
-        </div>
-        <!-- <div class="col s12 m4 l4 social-link social-statis">
-    <a href="https://github.com/qingwave" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
-        <i class="fab fa-github"></i>
-    </a>
-
-
-
-    <a href="mailto:isguory@gmail.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
-        <i class="fas fa-envelope-open"></i>
-    </a>
 
 
 
 
 
+      </div>
+    </footer>
+  </div>
 
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/pjax/pjax.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/muse.js"></script>
+<script src="/js/next-boot.js"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '.languages',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
 
-
-
-
-
-
-
-
-
-
-
-    <a href="https://www.douban.com/people/69458430"
-       target="_blank" data-tooltip="关注我的豆瓣: 69458430" data-position="top"
-       data-delay="50">
-        <i class="fa fa-inverse">豆</i>
-    </a>
-
-
-
-    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
-        <i class="fas fa-rss"></i>
-    </a>
-
-</div> -->
-    </div>
-</footer>
-
-<div class="progress-bar"></div>
-
-
-    <!-- 搜索遮罩框 -->
-<div id="searchModal" class="modal">
-    <div class="modal-content">
-        <div class="search-header">
-            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
-            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
-                   class="search-input">
-        </div>
-        <div id="searchResult"></div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/search.js"></script>
-<script type="text/javascript">
-$(function () {
-    searchFunc("https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/search.xml", 'searchInput', 'searchResult');
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[data-pjax], script#page-configurations, #pjax script').forEach(element => {
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (element.id) {
+      script.id = element.id;
+    }
+    if (element.className) {
+      script.className = element.className;
+    }
+    if (element.type) {
+      script.type = element.type;
+    }
+    if (element.src) {
+      script.src = element.src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (element.dataset.pjax !== undefined) {
+      script.dataset.pjax = '';
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.subMenu)
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
 });
 </script>
 
-    <!-- 回到顶部按钮 -->
-<div id="backTop" class="top-scroll">
-    <a class="btn-floating btn-mini waves-effect" href="#!">
-        <!-- <i class="fas fa-caret-up"></i> -->
-        <!-- <i class="fas fa-chevron-up"></i> -->
-        <i class="fas fa-angle-double-up"></i>
-    </a>
-</div>
 
 
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/materialize/materialize.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/masonry/masonry.pkgd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/aos/aos.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/scrollprogress/scrollProgress.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/lightGallery/js/lightgallery-all.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/js/matery.js"></script>
 
-    <!-- Baidu Analytics -->
+  
+  <script data-pjax>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
 
-    <!-- Baidu Push -->
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
 
 <script>
-    (function () {
-        var bp = document.createElement('script');
-        var curProtocol = window.location.protocol.split(':')[0];
-        if (curProtocol === 'https') {
-            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
-        } else {
-            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
-        }
-        var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(bp, s);
-    })();
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'a705189dfc18ec59a7d0',
+      clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
+      repo        : 'qingwave.github.io',
+      owner       : 'qingwave',
+      admin       : [''],
+      id          : '6eb5bc6ab23da83fe513d3df7112a0e7',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
 </script>
 
-    
-    
-    <script async src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/others/busuanzi.pure.mini.js"></script>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <script src="https://cdn.jsdelivr.net/gh/qingwave/qingwave.github.io/libs/instantpage/instantpage.js" type="module"></script>
-    
-
+    </div>
 </body>
-
 </html>
