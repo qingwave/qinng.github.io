@@ -21,7 +21,7 @@
   </script>
 
   <meta name="description" content="今天在创建java镜像时，使用了(openjdk:8-jdk-alpine)[https://hub.docker.com/_/openjdk]，启动容器后需要运行一java脚本，直接执行./test.sh报错sh:.sh test.sh: not found">
-<meta name="keywords" content="k8s,docker">
+<meta name="keywords" content="docker,k8s">
 <meta property="og:type" content="article">
 <meta property="og:title" content="apline 容器中执行shell脚本报错 executable file not found">
 <meta property="og:url" content="https://qingwave.github.io/apline-shell-executable-file-not-found/index.html">
@@ -248,7 +248,7 @@
 <h2 id="探究"><a href="#探究" class="headerlink" title="探究"></a>探究</h2><p>直到看到stackoverflow上有同样的问题(docker alpine /bin/sh script.sh not found)[<a href="https://stackoverflow.com/questions/45860784/bin-bash-command-not-found-in-alpine-docker#]" target="_blank" rel="noopener">https://stackoverflow.com/questions/45860784/bin-bash-command-not-found-in-alpine-docker#]</a>,<br>说与shell脚本中的执行器有关，test.sh的执行器是<code>#!/bin/bash</code>，而alpine默认的是<code>/bin/ash, /bin/sh</code>没有bash，所以执行会报错</p>
 <p>问题找到，至于bash与sh的区别，网上有不少解释<br>alpine中sh只是一个符号链接<br><code>sh -&gt; /bin/busybox</code></p>
 <h2 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h2><h3 id="方法1"><a href="#方法1" class="headerlink" title="方法1"></a>方法1</h3><p>将shell脚本中<code>#!/bin/bash</code>改为<code>/bin/sh</code></p>
-<h3 id="方法2"><a href="#方法2" class="headerlink" title="方法2"></a>方法2</h3><p>镜像中添加bash<br></p><figure class="highlight dockerfile"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> alpine:<span class="number">3.9</span></span><br><span class="line"><span class="keyword">RUN</span> apk update &amp;&amp; \</span><br><span class="line">    apk add --no-cache bash &amp;&amp; \</span><br><span class="line">    rm -rf /var/cache/apk/* /tmp/* /var/tmp/* $HOME/.cache</span><br></pre></td></tr></tbody></table></figure><p></p>
+<h3 id="方法2"><a href="#方法2" class="headerlink" title="方法2"></a>方法2</h3><p>镜像中添加bash<br></p><figure class="highlight dockerfile"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> alpine:<span class="number">3.9</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apk update &amp;&amp; \</span></span><br><span class="line"><span class="bash">    apk add --no-cache bash &amp;&amp; \</span></span><br><span class="line"><span class="bash">    rm -rf /var/cache/apk/* /tmp/* /var/tmp/* <span class="variable">$HOME</span>/.cache</span></span><br></pre></td></tr></tbody></table></figure><p></p>
 <script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
@@ -293,8 +293,8 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/k8s/" rel="tag"># k8s</a>
               <a href="/tags/docker/" rel="tag"># docker</a>
+              <a href="/tags/k8s/" rel="tag"># k8s</a>
           </div>
 
         
