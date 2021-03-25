@@ -21,7 +21,7 @@
   </script>
 
   <meta name="description" content="在k8s或docker中，有时候我们需要通过shell来启动程序，但是默认shell不会传递信号（sigterm）给子进程，当在pod终止时应用无法优雅退出，直到最大时间时间后强制退出（kill -9）。">
-<meta name="keywords" content="docker,k8s">
+<meta name="keywords" content="k8s,docker">
 <meta property="og:type" content="article">
 <meta property="og:title" content="k8s中shell脚本启动如何传递信号">
 <meta property="og:url" content="https://qingwave.github.io/docker-shell-signal/index.html">
@@ -249,7 +249,7 @@
 <p>通过<code>exec</code>运行后，命令<code>sh -c 'echo "start"; exec sleep 100'</code><br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash(28701)───sleep(24664)</span><br></pre></td></tr></tbody></table></figure><p></p>
 <p>加入<code>exec</code>后，<code>sleep</code>进程替换了shell进程，没有生成子进程</p>
 <p>此种方式可以收到信号，但只适用于一个子进程的情况</p>
-<h3 id="trap"><a href="#trap" class="headerlink" title="trap"></a>trap</h3><p>在shell中可以显示通过<code>trap</code>捕捉信号传递给子进程<br></p><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"start"</span></span><br><span class="line">binary -flags... &amp;</span><br><span class="line">pid=<span class="string">"$!"</span></span><br><span class="line"></span><br><span class="line"><span class="function">_kill</span>() {</span><br><span class="line">  <span class="built_in">echo</span> <span class="string">"receive sigterm"</span></span><br><span class="line">  <span class="built_in">kill</span> <span class="variable">$pid</span> <span class="comment">#传递给子进程</span></span><br><span class="line">  <span class="built_in">wait</span> <span class="variable">$pid</span></span><br><span class="line">  <span class="built_in">exit</span> 0</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="built_in">trap</span> _kill SIGTERM <span class="comment">#捕获信号</span></span><br><span class="line"><span class="built_in">wait</span> <span class="comment">#等待子进程退出</span></span><br></pre></td></tr></tbody></table></figure><p></p>
+<h3 id="trap"><a href="#trap" class="headerlink" title="trap"></a>trap</h3><p>在shell中可以显示通过<code>trap</code>捕捉信号传递给子进程<br></p><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"start"</span></span><br><span class="line">binary -flags... &amp;</span><br><span class="line">pid=<span class="string">"$!"</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">_kill</span></span>() {</span><br><span class="line">  <span class="built_in">echo</span> <span class="string">"receive sigterm"</span></span><br><span class="line">  <span class="built_in">kill</span> <span class="variable">$pid</span> <span class="comment">#传递给子进程</span></span><br><span class="line">  <span class="built_in">wait</span> <span class="variable">$pid</span></span><br><span class="line">  <span class="built_in">exit</span> 0</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="built_in">trap</span> _kill SIGTERM <span class="comment">#捕获信号</span></span><br><span class="line"><span class="built_in">wait</span> <span class="comment">#等待子进程退出</span></span><br></pre></td></tr></tbody></table></figure><p></p>
 <p>此种方式需要改动启动脚本，显示传递信号给子进程</p>
 <h2 id="docker-init"><a href="#docker-init" class="headerlink" title="docker-init"></a>docker-init</h2><p><a href="https://docs.docker.com/engine/reference/run/#specify-an-init-process" target="_blank" rel="noopener">docker-init</a>即在docker启动时加入<code>--init</code>参数，docker-int会作为一号进程，会向子进程传递信号并且会回收僵尸进程。</p>
 <p>遗憾的是k8s并不支持<code>--init</code>参数，用户可在镜像中声明init进程，更多可参考<a href="./container-init.md">container-init</a><br></p><figure class="highlight dockerfile"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">RUN</span><span class="bash"> wget -O /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_amd64</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> chmod +x /usr/bin/dumb-init</span></span><br><span class="line"><span class="keyword">ENTRYPOINT</span><span class="bash"> [<span class="string">"/usr/bin/dumb-init"</span>, <span class="string">"-v"</span>, <span class="string">"--"</span>]</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">CMD</span><span class="bash"> [<span class="string">"nginx"</span>, <span class="string">"-g"</span>, <span class="string">"daemon off;"</span>]</span></span><br></pre></td></tr></tbody></table></figure><p></p>
@@ -297,8 +297,8 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/docker/" rel="tag"># docker</a>
               <a href="/tags/k8s/" rel="tag"># k8s</a>
+              <a href="/tags/docker/" rel="tag"># docker</a>
           </div>
 
         
@@ -605,7 +605,7 @@ NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
       clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
       repo        : 'qingwave.github.io',
       owner       : 'qingwave',
-      admin       : ['qingwave'],
+      admin       : ['qingwave, shiyajuan123, '*''],
       id          : 'e259f264d18ef804e445a0b084c11713',
         language: '',
       distractionFreeMode: true

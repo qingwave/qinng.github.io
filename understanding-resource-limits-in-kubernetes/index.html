@@ -21,7 +21,7 @@
   </script>
 
   <meta name="description" content="当我开始大范围使用Kubernetes的时候，我开始考虑一个我做实验时没有遇到的问题：当集群里的节点没有足够资源的时候，Pod会卡在Pending状态。你是没有办法给节点增加CPU或者内存的，那么你该怎么做才能将这个Pod从这个节点拿走？最简单的办法是添加另一个节点，我承认我总是这么干。最终这个策略无法发挥出Kubernetes最重要的一个能力：即它优化计算资源使用的能力。这些场景里面实际的问题并">
-<meta name="keywords" content="docker,k8s,cgroup">
+<meta name="keywords" content="k8s,docker,cgroup">
 <meta property="og:type" content="article">
 <meta property="og:title" content="深入理解K8s资源限制[转]">
 <meta property="og:url" content="https://qingwave.github.io/understanding-resource-limits-in-kubernetes/index.html">
@@ -375,8 +375,8 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/docker/" rel="tag"># docker</a>
               <a href="/tags/k8s/" rel="tag"># k8s</a>
+              <a href="/tags/docker/" rel="tag"># docker</a>
               <a href="/tags/cgroup/" rel="tag"># cgroup</a>
           </div>
 
@@ -684,7 +684,7 @@ NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
       clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
       repo        : 'qingwave.github.io',
       owner       : 'qingwave',
-      admin       : ['qingwave'],
+      admin       : ['qingwave, shiyajuan123, '*''],
       id          : '647ef0ae344722f7f94696b5c96d9162',
         language: '',
       distractionFreeMode: true
