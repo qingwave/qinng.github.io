@@ -116,9 +116,14 @@
 
 <nav class="site-nav">
   <ul id="menu" class="main-menu menu">
-        <li class="menu-item menu-item-">
+        <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -389,7 +394,8 @@
 <div class="site-state-wrap motion-element">
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
-          <a href="/archives">
+          <a href="/archives/">
+        
           <span class="site-state-item-count">48</span>
           <span class="site-state-item-name">日志</span>
         </a>
@@ -401,6 +407,7 @@
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
+          
         <span class="site-state-item-count">25</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
@@ -412,6 +419,9 @@
       </span>
       <span class="links-of-author-item">
         <a href="mailto:isguory@gmail.com" title="E-Mail → mailto:isguory@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/contact" title="Contact → /contact"><i class="fab fa-flipboard fa-fw"></i></a>
       </span>
   </div>
 
@@ -604,7 +614,7 @@ NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
       clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
       repo        : 'qingwave.github.io',
       owner       : 'qingwave',
-      admin       : [''],
+      admin       : ['qingwave'],
       id          : '7434d87218409ff594059902015831f8',
         language: '',
       distractionFreeMode: true
