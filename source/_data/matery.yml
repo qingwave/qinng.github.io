@@ -276,7 +276,7 @@ gitalk:
   oauth:
     clientId: a705189dfc18ec59a7d0
     clientSecret: 17415910b55e24cdb8c1c8d72bc992a0457f193b
-  admin: qingwave
+  admin: qingwave, "*"
 
 # the Gitment config，default disabled
 # Gitment 评论模块的配置，默认为不激活
