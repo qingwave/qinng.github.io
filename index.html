@@ -178,6 +178,83 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/sudongpo/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Qinng">
+      <meta itemprop="description" content="Coding, Reading and Daydreaming">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qinng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/sudongpo/" class="post-title-link" itemprop="url">也谈苏东坡</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-03-25 21:30:25 / 修改时间：22:23:30" itemprop="dateCreated datePublished" datetime="2021-03-25T21:30:25+08:00">2021-03-25</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/杂记/" itemprop="url" rel="index"><span itemprop="name">杂记</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>何夜无月，何夜无竹柏，但少闲人如无两人尔</p>
+</blockquote>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/sudongpo/" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/golang-zk-statedisconnected/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -235,7 +312,7 @@
           <p>在容器平台上我们提供了<code>zk</code>做白名单功能，<code>Pod</code>启动时 sidecar会自动注册<code>zk</code>。昨天遇到<code>zk server</code>抖动，<code>sidecar</code>容器输出大量<code>StateDisconnected</code>事件，zk正常后仍无法恢复，由于大量日志造成<code>sidecar</code>容器 cpu占用过高，进而引发<code>dockerd</code>cpu占用过高，严重时影响dockerd正常调用。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/golang-zk-statedisconnected/#more" rel="contents">
+              <a class="btn" href="/golang-zk-statedisconnected/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -316,7 +393,7 @@
           <p>在k8s或docker中，有时候我们需要通过shell来启动程序，但是默认shell不会传递信号（sigterm）给子进程，当在pod终止时应用无法优雅退出，直到最大时间时间后强制退出（<code>kill -9</code>）。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/docker-shell-signal/#more" rel="contents">
+              <a class="btn" href="/docker-shell-signal/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -397,7 +474,7 @@
           <p>kubernetes集群内置的dns插件<code>kubedns/coredns</code>在高并发情况下可能遇到性能瓶颈，以下从配置与本地缓存方面说明如何减少dns查询失败率，提高性能。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/k8s-dns-optimize/#more" rel="contents">
+              <a class="btn" href="/k8s-dns-optimize/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -472,7 +549,7 @@
           <p>为了防止突发流量影响apiserver可用性，k8s支持多种限流配置，包括：</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/k8s-rate-limit/#more" rel="contents">
+              <a class="btn" href="/k8s-rate-limit/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -547,7 +624,7 @@
           <p>在多个容器的Pod中，通常业务容器需要依赖sidecar。启动时sidecar需要先启动，退出时sidecar需要在业务容器退出后再退出。k8s目前对于sidecar的生命周期比较有争议，见<a href="https://github.com/kubernetes/enhancements/issues/753" target="_blank" rel="noopener">issue</a>、<a href="https://github.com/kubernetes/enhancements/blob/master/keps/sig-node/0753-sidecarcontainers.md" target="_blank" rel="noopener">sidecarcontainers</a>。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/k8s-sideccar-lifecycle/#more" rel="contents">
+              <a class="btn" href="/k8s-sideccar-lifecycle/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -628,7 +705,7 @@
           <p>目前k8s不支持容器启动顺序，部分业务通过开启<code>shareProcessNamespace</code>监控某些进程状态。当开启共享pid后，有用户反馈某个容器主进程退出，但是容器并没有重启，执行<code>exec</code>会卡住，现象参考<a href="3">issue</a></p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/cotainer-init/#more" rel="contents">
+              <a class="btn" href="/cotainer-init/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -709,7 +786,7 @@
           <p>prometheus中<code>rate</code>只能用于<code>counter</code>类型，对于需要聚合的数据需要先<code>rate</code>再<code>sum</code>，而不是<code>rate(sum)</code></p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/prometheus-best-practice-operation/#more" rel="contents">
+              <a class="btn" href="/prometheus-best-practice-operation/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -784,7 +861,7 @@
           <p>总结下项目中可参考k8s相关开源项目，不断更新中…</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/kubernetes-opensource-project/#more" rel="contents">
+              <a class="btn" href="/kubernetes-opensource-project/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -865,7 +942,7 @@
           <p>在k8s中通常用户通过<code>ingress</code>接入流量，转发到后端实例(<code>ingress → pod</code>)，在后端应用更新过程中，<code>ingress</code>是否能做到优雅升级，本文将通过分析升级流程与实验验证，说明在k8s中如何实现优化升级。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/k8s-graceful-update-app/#more" rel="contents">
+              <a class="btn" href="/k8s-graceful-update-app/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -946,7 +1023,7 @@
           <p>一般情况下，经过ingress的请求会携带header<code>X-Real-IP</code>，用户可根据header解析出真实访问IP。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/ingress-real-ip/#more" rel="contents">
+              <a class="btn" href="/ingress-real-ip/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1021,88 +1098,7 @@
           <p>线上遇到多次由ingress header过大引起的请求失败, 可能返回502/400，解决方案如下。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/ingress-header-too-large/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/ingress-benchmark/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Qinng">
-      <meta itemprop="description" content="Coding, Reading and Daydreaming">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Qinng">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/ingress-benchmark/" class="post-title-link" itemprop="url">ingress nginx benchmark</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-05-21 19:16:04" itemprop="dateCreated datePublished" datetime="2020-05-21T19:16:04+08:00">2020-05-21</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-05-22 20:53:21" itemprop="dateModified" datetime="2020-05-22T20:53:21+08:00">2020-05-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/cloud/" itemprop="url" rel="index"><span itemprop="name">cloud</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>Ingress是目前Kubernetes集群流量接入的重要入口，了解其性能指标有助于用户选用合适的网络方案。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/ingress-benchmark/#more" rel="contents">
+              <a class="btn" href="/ingress-header-too-large/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1125,7 +1121,7 @@
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1191,7 +1187,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-count">49</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1203,7 +1199,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-count">26</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

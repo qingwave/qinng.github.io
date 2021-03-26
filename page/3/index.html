@@ -178,6 +178,87 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/candy/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Qinng">
+      <meta itemprop="description" content="Coding, Reading and Daydreaming">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qinng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/candy/" class="post-title-link" itemprop="url">糖</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-02 14:36:59" itemprop="dateCreated datePublished" datetime="2020-02-02T14:36:59+08:00">2020-02-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-03-25 17:29:35" itemprop="dateModified" datetime="2021-03-25T17:29:35+08:00">2021-03-25</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/杂记/" itemprop="url" rel="index"><span itemprop="name">杂记</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>一轮明月沉到了脸底<br>迷恋这红尘 不愿睡去<br>又变成红娘的大痣<br>在招摇过市</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/candy/" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/kube-apiserver-authentication-code/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -235,7 +316,7 @@
           <p>kube-apiserver中与权限相关的主要有三种机制，即认证、鉴权和准入控制。本文主要分析apiserver的认证流程。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/kube-apiserver-authentication-code/#more" rel="contents">
+              <a class="btn" href="/kube-apiserver-authentication-code/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -316,7 +397,7 @@
           <p>k8s中为了实现高可用，需要部署多个副本，例如多个apiserver、scheduler、controller-manager等，其中apiserver是无状态的每个组件都可以工作，而scheduler与controller-manager是有状态的，同一时刻只能存在一个活跃的，需要进行选主。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/k8s-leaderelection-code/#more" rel="contents">
+              <a class="btn" href="/k8s-leaderelection-code/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -397,7 +478,7 @@
           <p>用户发现线上某容器请求hbase延迟较大，其他容器无类似现象，发现问题容器宿主机系统cpu占用较大（30%左右，正常在5%以下）。通过top查看lxcfs占用cpu较多（200%以上）。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/lxcfs-high-system-cpu/#more" rel="contents">
+              <a class="btn" href="/lxcfs-high-system-cpu/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -478,7 +559,7 @@
           <p>在上线fd隔离后，多个用户反馈部署有问题，日志显示 <code>su could not open session</code>，dolphin（主进程） 启动用户程序时如果用户部署账号为work，会通过su切换到work下启动用户程序，报错正是这时产生。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/k8s-limit-fd-and-thread2/#more" rel="contents">
+              <a class="btn" href="/k8s-limit-fd-and-thread2/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -559,7 +640,7 @@
           <p>linux中为了防止进程恶意使用资源，系统使用ulimit来限制进程的资源使用情况（包括文件描述符，线程数，内存大小等）。同样地在容器化场景中，需要限制其系统资源的使用量。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/k8s-limit-fd-and-thread1/#more" rel="contents">
+              <a class="btn" href="/k8s-limit-fd-and-thread1/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -640,7 +721,7 @@
           <p>在容器化环境中，平台需要提供准确的业务监控指标，已方便业务查看。那么如何准确计算容器或Pod的内存使用率，k8s/docker又是如何计算，本文通过实验与源码阅读相结合来分析容器的内存实际使用量。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/container-memory/#more" rel="contents">
+              <a class="btn" href="/container-memory/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -721,7 +802,7 @@
           <p>k8s组件日志级别热更新<br></p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/k8s-docker-stack/#more" rel="contents">
+              <a class="btn" href="/k8s-docker-stack/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -802,7 +883,7 @@
           <figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl x509 -noout -text  -<span class="keyword">in</span> ca.pem</span><br></pre></td></tr></tbody></table></figure>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/openssl-cmd/#more" rel="contents">
+              <a class="btn" href="/openssl-cmd/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -883,7 +964,7 @@
           <p>单个Prometheus Server可以轻松的处理数以百万的时间序列。但当机器规模过大时，需要对其进行分区，Prometheus也提供了集群联邦的功能，方便对其扩展。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/prometheus-federation/#more" rel="contents">
+              <a class="btn" href="/prometheus-federation/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -964,7 +1045,7 @@
           <p>一年又过去了<br>还没有下雪<br>匆匆忙忙<br>春节又来了<br>回家过年</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/festival/#more" rel="contents">
+              <a class="btn" href="/festival/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1045,88 +1126,7 @@
           <p>k8s: 1.10.2<br>docker: 17.03</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/pod-outofcpu-error/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/understanding-resource-limits-in-kubernetes/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Qinng">
-      <meta itemprop="description" content="Coding, Reading and Daydreaming">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Qinng">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/understanding-resource-limits-in-kubernetes/" class="post-title-link" itemprop="url">深入理解K8s资源限制[转]</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2019-01-09 16:34:33" itemprop="dateCreated datePublished" datetime="2019-01-09T16:34:33+08:00">2019-01-09</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-03-19 11:22:04" itemprop="dateModified" datetime="2020-03-19T11:22:04+08:00">2020-03-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/cloud/" itemprop="url" rel="index"><span itemprop="name">cloud</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>当我开始大范围使用Kubernetes的时候，我开始考虑一个我做实验时没有遇到的问题：当集群里的节点没有足够资源的时候，Pod会卡在Pending状态。你是没有办法给节点增加CPU或者内存的，那么你该怎么做才能将这个Pod从这个节点拿走？最简单的办法是添加另一个节点，我承认我总是这么干。最终这个策略无法发挥出Kubernetes最重要的一个能力：即它优化计算资源使用的能力。这些场景里面实际的问题并不是节点太小，而是我们没有仔细为Pod计算过资源限制。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/understanding-resource-limits-in-kubernetes/#more" rel="contents">
+              <a class="btn" href="/pod-outofcpu-error/" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1149,7 +1149,7 @@
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/2/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/4/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/page/2/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/4/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1215,7 +1215,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-count">49</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1227,7 +1227,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-count">26</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
