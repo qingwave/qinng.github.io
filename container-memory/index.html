@@ -21,7 +21,7 @@
   </script>
 
   <meta name="description" content="在容器化环境中，平台需要提供准确的业务监控指标，已方便业务查看。那么如何准确计算容器或Pod的内存使用率，k8s/docker又是如何计算，本文通过实验与源码阅读相结合来分析容器的内存实际使用量。">
-<meta name="keywords" content="docker,k8s,cgroup">
+<meta name="keywords" content="k8s,docker,cgroup">
 <meta property="og:type" content="article">
 <meta property="og:title" content="容器内存分析">
 <meta property="og:url" content="https://qingwave.github.io/container-memory/index.html">
@@ -316,8 +316,8 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/docker/" rel="tag"># docker</a>
               <a href="/tags/k8s/" rel="tag"># k8s</a>
+              <a href="/tags/docker/" rel="tag"># docker</a>
               <a href="/tags/cgroup/" rel="tag"># cgroup</a>
           </div>
 
@@ -625,7 +625,7 @@ NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
       clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
       repo        : 'qingwave.github.io',
       owner       : 'qingwave',
-      admin       : ['qingwave, shiyajuan123'],
+      admin       : ["qingwave, shiyajuan123. "*""],
       id          : 'container-memory/',
         language: '',
       distractionFreeMode: true
