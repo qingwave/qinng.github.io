@@ -21,7 +21,7 @@
   </script>
 
   <meta name="description" content="目前k8s不支持容器启动顺序，部分业务通过开启shareProcessNamespace监控某些进程状态。当开启共享pid后，有用户反馈某个容器主进程退出，但是容器并没有重启，执行exec会卡住，现象参考issue">
-<meta name="keywords" content="k8s,docker">
+<meta name="keywords" content="docker,k8s">
 <meta property="og:type" content="article">
 <meta property="og:title" content="开启shareProcessNamespace后容器异常">
 <meta property="og:url" content="https://qingwave.github.io/cotainer-init/index.html">
@@ -311,8 +311,8 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/k8s/" rel="tag"># k8s</a>
               <a href="/tags/docker/" rel="tag"># docker</a>
+              <a href="/tags/k8s/" rel="tag"># k8s</a>
           </div>
 
         
@@ -619,8 +619,8 @@ NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
       clientSecret: '17415910b55e24cdb8c1c8d72bc992a0457f193b',
       repo        : 'qingwave.github.io',
       owner       : 'qingwave',
-      admin       : ['qingwave, shiyajuan123, '*''],
-      id          : 'de82da2eb31386c10ff6db76fbe10763',
+      admin       : ['qingwave, shiyajuan123'],
+      id          : 'cotainer-init/',
         language: '',
       distractionFreeMode: true
     });

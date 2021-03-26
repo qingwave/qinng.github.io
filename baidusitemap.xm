@@ -142,10 +142,10 @@
     <loc>https://qingwave.github.io/k8s-leaderelection-code/</loc>
     <lastmod>2020-03-19</lastmod>
   </url>  <url>
-    <loc>https://qingwave.github.io/apline-shell-executable-file-not-found/</loc>
+    <loc>https://qingwave.github.io/apline-timezone/</loc>
     <lastmod>2020-03-19</lastmod>
   </url>  <url>
-    <loc>https://qingwave.github.io/apline-timezone/</loc>
+    <loc>https://qingwave.github.io/apline-shell-executable-file-not-found/</loc>
     <lastmod>2020-03-19</lastmod>
   </url>
 </urlset>
