@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://qingwave.github.io/"/>
-  <updated>2021-03-25T14:23:30.849Z</updated>
+  <updated>2021-03-26T15:18:33.231Z</updated>
   <id>https://qingwave.github.io/</id>
   
   <author>
@@ -21,14 +21,14 @@
     <link href="https://qingwave.github.io/sudongpo/"/>
     <id>https://qingwave.github.io/sudongpo/</id>
     <published>2021-03-25T13:30:25.000Z</published>
-    <updated>2021-03-25T14:23:30.849Z</updated>
+    <updated>2021-03-26T15:18:33.231Z</updated>
     
-    <content type="html"><![CDATA[<blockquote><p>何夜无月，何夜无竹柏，但少闲人如无两人尔</p></blockquote><p>李一冰的《苏东坡新传》在微信读书里躺了一年有余，偶尔想起翻开几页，不过大多时候是想不起的。年纪越大越发的浮躁，少了上学时的心平气和，工作之后阅读的功利心重了许多，总想通过几段文字掌握多少知识，开阔些许眼界，对于这些“不务正业”的书难有闲心了。<br>&nbsp;</p><blockquote><p>春江水暖鸭先知</p></blockquote><p>对于苏东坡，上学前就会背他的《赤壁怀古》，记得小学时老师问谁会背词，便大东江东去了一番，引得不少目光。但对东坡其人知之甚少，后来开始慢慢接触他的诗与杂文，读了林语堂的《苏东坡传》，被他的乐观旷达所吸引。遇到不如意的，“一蓑烟雨任平生”；</p><script>        document.querySelectorAll('.github-emoji')          .forEach(el => {            if (!el.dataset.src) { return; }            const img = document.createElement('img');            img.style = 'display:none !important;';            img.src = el.dataset.src;            img.addEventListener('error', () => {              img.remove();              el.style.color = 'inherit';              el.style.backgroundImage = 'none';              el.style.background = 'none';            });            img.addEventListener('load', () => {              img.remove();            });            document.body.appendChild(img);          });      </script>]]></content>
+    <content type="html"><![CDATA[<blockquote><p>何夜无月，何夜无竹柏，但少闲人如吾两人尔</p></blockquote><p>李一冰的《苏东坡新传》在微信读书里躺了一年有余，偶尔想起翻开几页，不过大多时候是想不起的。年纪越大越发的浮躁，少了上学时的心平气和，工作之后阅读的功利心重了许多，总想通过几段文字掌握多少知识，开阔些许眼界，对于这些“不务正业”的书难有闲心了。<br>&nbsp;</p><blockquote><p>春江水暖鸭先知</p></blockquote><p>对于苏东坡，上学前就会背他的《赤壁怀古》，记得小学时老师问谁会背词，便大东江东去了一番，引得不少目光。但对东坡其人知之甚少，后来开始慢慢接触他的诗与杂文，读了林语堂的《苏东坡传》，被他的乐观旷达所吸引。遇到不如意的，“一蓑烟雨任平生”；</p><script>        document.querySelectorAll('.github-emoji')          .forEach(el => {            if (!el.dataset.src) { return; }            const img = document.createElement('img');            img.style = 'display:none !important;';            img.src = el.dataset.src;            img.addEventListener('error', () => {              img.remove();              el.style.color = 'inherit';              el.style.backgroundImage = 'none';              el.style.background = 'none';            });            img.addEventListener('load', () => {              img.remove();            });            document.body.appendChild(img);          });      </script>]]></content>
     
     <summary type="html">
     
       &lt;blockquote&gt;
-&lt;p&gt;何夜无月，何夜无竹柏，但少闲人如无两人尔&lt;/p&gt;
+&lt;p&gt;何夜无月，何夜无竹柏，但少闲人如吾两人尔&lt;/p&gt;
 &lt;/blockquote&gt;
     
     </summary>
@@ -82,9 +82,9 @@
       <category term="cloud" scheme="https://qingwave.github.io/categories/cloud/"/>
     
     
-      <category term="k8s" scheme="https://qingwave.github.io/tags/k8s/"/>
-    
       <category term="docker" scheme="https://qingwave.github.io/tags/docker/"/>
+    
+      <category term="k8s" scheme="https://qingwave.github.io/tags/k8s/"/>
     
   </entry>
   
@@ -178,9 +178,9 @@
       <category term="cloud" scheme="https://qingwave.github.io/categories/cloud/"/>
     
     
-      <category term="k8s" scheme="https://qingwave.github.io/tags/k8s/"/>
-    
       <category term="docker" scheme="https://qingwave.github.io/tags/docker/"/>
+    
+      <category term="k8s" scheme="https://qingwave.github.io/tags/k8s/"/>
     
   </entry>
   

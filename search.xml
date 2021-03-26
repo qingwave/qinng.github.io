@@ -8,7 +8,7 @@
       <link href="/sudongpo/"/>
       <url>/sudongpo/</url>
       
-        <content type="html"><![CDATA[<blockquote><p>何夜无月，何夜无竹柏，但少闲人如无两人尔</p></blockquote><p>李一冰的《苏东坡新传》在微信读书里躺了一年有余，偶尔想起翻开几页，不过大多时候是想不起的。年纪越大越发的浮躁，少了上学时的心平气和，工作之后阅读的功利心重了许多，总想通过几段文字掌握多少知识，开阔些许眼界，对于这些“不务正业”的书难有闲心了。<br>&nbsp;</p><blockquote><p>春江水暖鸭先知</p></blockquote><p>对于苏东坡，上学前就会背他的《赤壁怀古》，记得小学时老师问谁会背词，便大东江东去了一番，引得不少目光。但对东坡其人知之甚少，后来开始慢慢接触他的诗与杂文，读了林语堂的《苏东坡传》，被他的乐观旷达所吸引。遇到不如意的，“一蓑烟雨任平生”；</p><script>        document.querySelectorAll('.github-emoji')          .forEach(el => {            if (!el.dataset.src) { return; }            const img = document.createElement('img');            img.style = 'display:none !important;';            img.src = el.dataset.src;            img.addEventListener('error', () => {              img.remove();              el.style.color = 'inherit';              el.style.backgroundImage = 'none';              el.style.background = 'none';            });            img.addEventListener('load', () => {              img.remove();            });            document.body.appendChild(img);          });      </script>]]></content>
+        <content type="html"><![CDATA[<blockquote><p>何夜无月，何夜无竹柏，但少闲人如吾两人尔</p></blockquote><p>李一冰的《苏东坡新传》在微信读书里躺了一年有余，偶尔想起翻开几页，不过大多时候是想不起的。年纪越大越发的浮躁，少了上学时的心平气和，工作之后阅读的功利心重了许多，总想通过几段文字掌握多少知识，开阔些许眼界，对于这些“不务正业”的书难有闲心了。<br>&nbsp;</p><blockquote><p>春江水暖鸭先知</p></blockquote><p>对于苏东坡，上学前就会背他的《赤壁怀古》，记得小学时老师问谁会背词，便大东江东去了一番，引得不少目光。但对东坡其人知之甚少，后来开始慢慢接触他的诗与杂文，读了林语堂的《苏东坡传》，被他的乐观旷达所吸引。遇到不如意的，“一蓑烟雨任平生”；</p><script>        document.querySelectorAll('.github-emoji')          .forEach(el => {            if (!el.dataset.src) { return; }            const img = document.createElement('img');            img.style = 'display:none !important;';            img.src = el.dataset.src;            img.addEventListener('error', () => {              img.remove();              el.style.color = 'inherit';              el.style.backgroundImage = 'none';              el.style.background = 'none';            });            img.addEventListener('load', () => {              img.remove();            });            document.body.appendChild(img);          });      </script>]]></content>
       
       
       <categories>
@@ -72,9 +72,9 @@
       
         <tags>
             
-            <tag> k8s </tag>
-            
             <tag> docker </tag>
+            
+            <tag> k8s </tag>
             
         </tags>
       
@@ -180,9 +180,9 @@
       
         <tags>
             
-            <tag> k8s </tag>
-            
             <tag> docker </tag>
+            
+            <tag> k8s </tag>
             
         </tags>
       
@@ -568,9 +568,9 @@
       
         <tags>
             
-            <tag> k8s </tag>
-            
             <tag> docker </tag>
+            
+            <tag> k8s </tag>
             
         </tags>
       
@@ -776,9 +776,9 @@
       
         <tags>
             
-            <tag> k8s </tag>
-            
             <tag> docker </tag>
+            
+            <tag> k8s </tag>
             
         </tags>
       
@@ -803,9 +803,9 @@
       
         <tags>
             
-            <tag> k8s </tag>
-            
             <tag> docker </tag>
+            
+            <tag> k8s </tag>
             
         </tags>
       
@@ -830,9 +830,9 @@
       
         <tags>
             
-            <tag> k8s </tag>
-            
             <tag> docker </tag>
+            
+            <tag> k8s </tag>
             
             <tag> cgroup </tag>
             
@@ -859,9 +859,9 @@
       
         <tags>
             
-            <tag> k8s </tag>
-            
             <tag> docker </tag>
+            
+            <tag> k8s </tag>
             
             <tag> pprof </tag>
             
@@ -990,9 +990,9 @@
       
         <tags>
             
-            <tag> k8s </tag>
-            
             <tag> docker </tag>
+            
+            <tag> k8s </tag>
             
             <tag> cgroup </tag>
             
@@ -1044,9 +1044,9 @@
       
         <tags>
             
-            <tag> k8s </tag>
-            
             <tag> docker </tag>
+            
+            <tag> k8s </tag>
             
             <tag> cadvisor </tag>
             
@@ -1098,9 +1098,9 @@
       
         <tags>
             
-            <tag> k8s </tag>
-            
             <tag> docker </tag>
+            
+            <tag> k8s </tag>
             
         </tags>
       
@@ -1175,9 +1175,9 @@
       
         <tags>
             
-            <tag> k8s </tag>
-            
             <tag> docker </tag>
+            
+            <tag> k8s </tag>
             
         </tags>
       
