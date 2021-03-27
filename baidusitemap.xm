@@ -106,10 +106,10 @@
     <loc>https://qingwave.github.io/prometheus-federation/</loc>
     <lastmod>2020-03-19</lastmod>
   </url>  <url>
-    <loc>https://qingwave.github.io/k8s-limit-fd-and-thread2/</loc>
+    <loc>https://qingwave.github.io/k8s-serviceaccount-mount-failed/</loc>
     <lastmod>2020-03-19</lastmod>
   </url>  <url>
-    <loc>https://qingwave.github.io/k8s-serviceaccount-mount-failed/</loc>
+    <loc>https://qingwave.github.io/k8s-limit-fd-and-thread2/</loc>
     <lastmod>2020-03-19</lastmod>
   </url>  <url>
     <loc>https://qingwave.github.io/kubectl-auto-completion/</loc>
