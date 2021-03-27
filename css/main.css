@@ -1190,7 +1190,7 @@ pre .javascript .function {
 }
 .links-of-author a::before,
 .links-of-author span.exturl::before {
-  background: #ff659c;
+  background: #e29075;
   border-radius: 50%;
   content: ' ';
   display: none;
@@ -1800,10 +1800,11 @@ pre .javascript .function {
   text-align: center;
   overflow-wrap: break-word;
   word-wrap: break-word;
+  color: #2bbc8a;
 }
 .posts-expand .post-title-link {
   border-bottom: none;
-  color: var(--link-color);
+  color: #2bbc8a;
   display: inline-block;
   position: relative;
   vertical-align: top;
