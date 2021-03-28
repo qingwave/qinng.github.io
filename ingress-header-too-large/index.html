@@ -237,28 +237,10 @@
       
         <p>线上遇到多次由ingress header过大引起的请求失败, 可能返回502/400，解决方案如下。</p>
 <h2 id="502-–-too-big-header"><a href="#502-–-too-big-header" class="headerlink" title="502 – too big header"></a>502 – too big header</h2><p>502错误一般是后端服务不可用，但这里是nginx-ingress返回的，在nginx-ingress可看到如下日志：<br><code>upstream sent too big header while reading response header from upstream, client...</code></p>
-<p>需要在ingress配置如下参数<br></p><figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">extensions/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Ingress</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  annotations:</span></span><br><span class="line">    <span class="string">nginx.ingress.kubernetes.io/proxy-buffer-size:</span> <span class="number">128</span><span class="string">k</span> <span class="comment">#根据实际情况配置</span></span><br><span class="line">    <span class="string">nginx.ingress.kubernetes.io/proxy-buffering:</span> <span class="string">"on"</span></span><br><span class="line">    <span class="string">nginx.ingress.kubernetes.io/server-snippet:</span> <span class="string">|</span></span><br><span class="line"><span class="string">      large_client_header_buffers 16 128K;</span></span><br><span class="line"><span class="string">      client_header_buffer_size 128k;</span></span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>需要在ingress配置如下参数<br><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">extensions/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Ingress</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  annotations:</span></span><br><span class="line">    <span class="string">nginx.ingress.kubernetes.io/proxy-buffer-size:</span> <span class="number">128</span><span class="string">k</span> <span class="comment">#根据实际情况配置</span></span><br><span class="line">    <span class="string">nginx.ingress.kubernetes.io/proxy-buffering:</span> <span class="string">"on"</span></span><br><span class="line">    <span class="string">nginx.ingress.kubernetes.io/server-snippet:</span> <span class="string">|</span></span><br><span class="line"><span class="string">      large_client_header_buffers 16 128K;</span></span><br><span class="line"><span class="string">      client_header_buffer_size 128k;</span></span><br></pre></td></tr></table></figure></p>
 <h2 id="431-400-–-too-big-header"><a href="#431-400-–-too-big-header" class="headerlink" title="431/400 – too big header"></a>431/400 – too big header</h2><p>http header过大也有可能返回400/431, 可按照上述调整，如果还是有问题需要检查后端服务的header设置，比如golang http header默认是<code>1M</code>;<br>springboot应用需要在<code>application.properties</code>加上<code>server.max-http-header-size=32KB</code>等</p>
 <h2 id="413-–-too-large-body"><a href="#413-–-too-large-body" class="headerlink" title="413 – too large body"></a>413 – too large body</h2><p>如果返回413，则超过了body size的限制（默认<code>1M</code>）, 可在ingress annotation添加<br><code>nginx.ingress.kubernetes.io/proxy-body-size: 8m</code></p>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>
+
     </div>
 
     

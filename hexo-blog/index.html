@@ -244,36 +244,18 @@
         <p>学到的分享出来才更有意义，春节前事不多使用hexo建立了个人blog，记录下。</p>
 <h2 id="gitlab-pages"><a href="#gitlab-pages" class="headerlink" title="gitlab pages"></a>gitlab pages</h2><p>创建个以<code>your_github_name.github.io</code>为名称的仓库，创建个<a href="https://help.github.com/articles/configuring-a-publishing-source-for-github-pages/" target="_blank" rel="noopener">github page</a></p>
 <h2 id="hexo建站"><a href="#hexo建站" class="headerlink" title="hexo建站"></a>hexo建站</h2><h3 id="创建hexo分支"><a href="#创建hexo分支" class="headerlink" title="创建hexo分支"></a>创建hexo分支</h3><p>为<code>your_github_name.github.io</code>创建hexo分支，存放<a href="https://hexo.io/zh-cn/docs/" target="_blank" rel="noopener">hexo</a>配置，避免维护两个仓库</p>
-<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> git@...your_github_name.github.io</span><br><span class="line"><span class="built_in">cd</span> your_github_name.github.io</span><br><span class="line">git checkout --orphan hexo</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> git@...your_github_name.github.io</span><br><span class="line"><span class="built_in">cd</span> your_github_name.github.io</span><br><span class="line">git checkout --orphan hexo</span><br></pre></td></tr></table></figure>
 <h3 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h3><p>hexo初始化<br><code>hexo init</code></p>
 <p>安装需要组件<br><code>sudo npm install</code></p>
 <p>根据hexo官网配置<code>_config.yml</code>文件</p>
 <h2 id="主题"><a href="#主题" class="headerlink" title="主题"></a>主题</h2><p>使用<a href="https://molunerfinn.com/hexo-theme-melody-doc/#/zh-Hans/quick-start" target="_blank" rel="noopener">melody主题</a>，参考官网自定义相关配置</p>
-<h2 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h2><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">hexo g <span class="comment">#生成静态文件</span></span><br><span class="line">hexo n <span class="string">"name"</span> <span class="comment">#创建blo</span></span><br><span class="line">hexo server <span class="comment">#预览</span></span><br><span class="line">hexo deploy <span class="comment">#推送到github</span></span><br></pre></td></tr></tbody></table></figure>
+<h2 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">hexo g <span class="comment">#生成静态文件</span></span><br><span class="line">hexo n <span class="string">"name"</span> <span class="comment">#创建blo</span></span><br><span class="line">hexo server <span class="comment">#预览</span></span><br><span class="line">hexo deploy <span class="comment">#推送到github</span></span><br></pre></td></tr></table></figure>
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
 <li><a href="https://help.github.com/articles/configuring-a-publishing-source-for-github-pages/" target="_blank" rel="noopener">https://help.github.com/articles/configuring-a-publishing-source-for-github-pages/</a></li>
 <li><a href="https://hexo.io/zh-cn/docs/" target="_blank" rel="noopener">https://hexo.io/zh-cn/docs/</a></li>
 <li><a href="https://molunerfinn.com/hexo-theme-melody-doc/#/zh-Hans/quick-star" target="_blank" rel="noopener">https://molunerfinn.com/hexo-theme-melody-doc/#/zh-Hans/quick-star</a></li>
 </ul>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>
+
     </div>
 
     

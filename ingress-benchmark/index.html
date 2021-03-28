@@ -245,7 +245,7 @@
 
       
         <p>Ingress是目前Kubernetes集群流量接入的重要入口，了解其性能指标有助于用户选用合适的网络方案。</p>
-<h2 id="测试方案"><a href="#测试方案" class="headerlink" title="测试方案"></a>测试方案</h2><p>通过wrk压测后端nginx服务，对比ingress-nginx, 原生nginx，以及直连后端性能的差异，如下图:<br><img src="/img/blogImg/ingress-benchmark1.png" alt=""></p>
+<h2 id="测试方案"><a href="#测试方案" class="headerlink" title="测试方案"></a>测试方案</h2><p>通过wrk压测后端nginx服务，对比ingress-nginx, 原生nginx，以及直连后端性能的差异，如下图:<br><img src="/img/blogImg/ingress-benchmark1.png" alt></p>
 <ul>
 <li>方案1，经过ingress</li>
 <li>方案2，经过nginx</li>
@@ -264,7 +264,7 @@
 <li>centos, 7.3.1611(Linux 4.9.2)</li>
 </ul>
 <h3 id="测试方法"><a href="#测试方法" class="headerlink" title="测试方法"></a>测试方法</h3><p>ingress-nginx主要工作是转发请求到后端pod, 我们着重对其RPS（每秒请求量）进行测试</p>
-<p>通过以下命令<br></p><figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">wrk</span> <span class="bullet">-t4</span> <span class="bullet">-c1000</span> <span class="bullet">-d120s</span> <span class="bullet">--latency</span> <span class="attr">http://my.nginx.svc/1kb.bin</span></span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>通过以下命令<br><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">wrk</span> <span class="bullet">-t4</span> <span class="bullet">-c1000</span> <span class="bullet">-d120s</span> <span class="bullet">--latency</span> <span class="attr">http://my.nginx.svc/1kb.bin</span></span><br></pre></td></tr></table></figure></p>
 <h2 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h2><h3 id="不同cpu下的性能"><a href="#不同cpu下的性能" class="headerlink" title="不同cpu下的性能"></a>不同cpu下的性能</h3><p>对比不同ingress-nginx启动不同worker数量的性能差异，以下测试ingress-nginx开启了keepalive等特性</p>
 <table>
 <thead>
@@ -304,7 +304,7 @@
 </tr>
 </tbody>
 </table>
-<p><img src="/img/blogImg/ingress-benchmark2.png" alt=""></p>
+<p><img src="/img/blogImg/ingress-benchmark2.png" alt></p>
 <p>如图所示，不同cpu下，ingress的rps与cpu成正比，cpu在16核之后增长趋势放缓。</p>
 <h3 id="不同方案的性能对比"><a href="#不同方案的性能对比" class="headerlink" title="不同方案的性能对比"></a>不同方案的性能对比</h3><table>
 <thead>
@@ -344,25 +344,7 @@
 <li><a href="https://www.nginx.com/blog/testing-performance-nginx-ingress-controller-kubernetes/" target="_blank" rel="noopener">https://www.nginx.com/blog/testing-performance-nginx-ingress-controller-kubernetes/</a></li>
 </ol>
 <h2 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h2><p>本测试所有配置见<a href="https://github.com/qingwave/ingress-nginx-benchmark" target="_blank" rel="noopener">qingwave/ingress-nginx-benchmark</a></p>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>
+
     </div>
 
     

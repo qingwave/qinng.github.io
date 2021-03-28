@@ -242,27 +242,9 @@
 
       
         <p>对于已经运行的deploy，有以下几种升级方式</p>
-<h3 id="kubectl升级方式"><a href="#kubectl升级方式" class="headerlink" title="kubectl升级方式"></a>kubectl升级方式</h3><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">kubectl <span class="built_in">set</span> image&nbsp;deployments/busy busy=busybox:1.29</span><br><span class="line"></span><br><span class="line">kubectl apply -f rolling-update-test.yaml</span><br><span class="line"></span><br><span class="line">kubectl edit deployment/rolling-update-test</span><br><span class="line"></span><br><span class="line">kubectl scale --replicas=3 rs/foo</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="kubectl回滚"><a href="#kubectl回滚" class="headerlink" title="kubectl回滚"></a>kubectl回滚</h3><p>查看升级<br><code>kubectl rollout status deployment/rolling-update-test</code><br>回滚<br></p><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">kubectl rollout undo deployments/busy</span><br><span class="line">kubectl rollout status deployments/busy</span><br></pre></td></tr></tbody></table></figure><p></p>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>
+<h3 id="kubectl升级方式"><a href="#kubectl升级方式" class="headerlink" title="kubectl升级方式"></a>kubectl升级方式</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">kubectl <span class="built_in">set</span> image deployments/busy busy=busybox:1.29</span><br><span class="line"></span><br><span class="line">kubectl apply -f rolling-update-test.yaml</span><br><span class="line"></span><br><span class="line">kubectl edit deployment/rolling-update-test</span><br><span class="line"></span><br><span class="line">kubectl scale --replicas=3 rs/foo</span><br></pre></td></tr></table></figure>
+<h3 id="kubectl回滚"><a href="#kubectl回滚" class="headerlink" title="kubectl回滚"></a>kubectl回滚</h3><p>查看升级<br><code>kubectl rollout status deployment/rolling-update-test</code><br>回滚<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">kubectl rollout undo deployments/busy</span><br><span class="line">kubectl rollout status deployments/busy</span><br></pre></td></tr></table></figure></p>
+
     </div>
 
     

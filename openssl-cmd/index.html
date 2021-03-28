@@ -241,31 +241,13 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h3 id="输出x509证书信息"><a href="#输出x509证书信息" class="headerlink" title="输出x509证书信息"></a>输出x509证书信息</h3><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl x509 -noout -text  -<span class="keyword">in</span> ca.pem</span><br></pre></td></tr></tbody></table></figure>
-<p>结果如下<br></p><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Certificate:</span><br><span class="line">    Data:</span><br><span class="line">        Version: 3 (0x2)</span><br><span class="line">        Serial Number:</span><br><span class="line">            5f:11:aa:b3:70:18:fd:89:b0:25:7a:9e:36:c5:e7:ce:33:5a:cc:b7</span><br><span class="line">    Signature Algorithm: sha256WithRSAEncryption</span><br><span class="line">        Issuer: C=CN, ST=BeiJing, L=BeiJing, O=xx, OU=xx, CN=xx</span><br><span class="line">        Validity</span><br><span class="line">            Not Before: Dec 26 06:17:00 2019 GMT</span><br><span class="line">            Not After : Dec  2 06:17:00 2119 GMT <span class="comment">#过期时间</span></span><br><span class="line">        Subject: C=CN, ST=BeiJing, L=BeiJing, O=xx, OU=xx, CN=xx</span><br><span class="line">        Subject Public Key Info:</span><br><span class="line">        ...</span><br></pre></td></tr></tbody></table></figure><p></p>
-<h3 id="验证公钥私钥是否匹配"><a href="#验证公钥私钥是否匹配" class="headerlink" title="验证公钥私钥是否匹配"></a>验证公钥私钥是否匹配</h3><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">diff -eq &lt;(openssl x509 -pubkey -noout -<span class="keyword">in</span> cert.crt) &lt;(openssl rsa -pubout -<span class="keyword">in</span> cert.key)</span><br></pre></td></tr></tbody></table></figure>
-<p>正常会输出<br></p><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">writing RSA key</span><br></pre></td></tr></tbody></table></figure><p></p>
-<h3 id="验证证书CA"><a href="#验证证书CA" class="headerlink" title="验证证书CA"></a>验证证书CA</h3><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl verify -CAfile ca.pem client.pem</span><br></pre></td></tr></tbody></table></figure>
-<p>正常输出<br></p><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">client.pem: OK</span><br></pre></td></tr></tbody></table></figure><p></p>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>
+        <h3 id="输出x509证书信息"><a href="#输出x509证书信息" class="headerlink" title="输出x509证书信息"></a>输出x509证书信息</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl x509 -noout -text  -<span class="keyword">in</span> ca.pem</span><br></pre></td></tr></table></figure>
+<p>结果如下<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Certificate:</span><br><span class="line">    Data:</span><br><span class="line">        Version: 3 (0x2)</span><br><span class="line">        Serial Number:</span><br><span class="line">            5f:11:aa:b3:70:18:fd:89:b0:25:7a:9e:36:c5:e7:ce:33:5a:cc:b7</span><br><span class="line">    Signature Algorithm: sha256WithRSAEncryption</span><br><span class="line">        Issuer: C=CN, ST=BeiJing, L=BeiJing, O=xx, OU=xx, CN=xx</span><br><span class="line">        Validity</span><br><span class="line">            Not Before: Dec 26 06:17:00 2019 GMT</span><br><span class="line">            Not After : Dec  2 06:17:00 2119 GMT <span class="comment">#过期时间</span></span><br><span class="line">        Subject: C=CN, ST=BeiJing, L=BeiJing, O=xx, OU=xx, CN=xx</span><br><span class="line">        Subject Public Key Info:</span><br><span class="line">        ...</span><br></pre></td></tr></table></figure></p>
+<h3 id="验证公钥私钥是否匹配"><a href="#验证公钥私钥是否匹配" class="headerlink" title="验证公钥私钥是否匹配"></a>验证公钥私钥是否匹配</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">diff -eq &lt;(openssl x509 -pubkey -noout -<span class="keyword">in</span> cert.crt) &lt;(openssl rsa -pubout -<span class="keyword">in</span> cert.key)</span><br></pre></td></tr></table></figure>
+<p>正常会输出<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">writing RSA key</span><br></pre></td></tr></table></figure></p>
+<h3 id="验证证书CA"><a href="#验证证书CA" class="headerlink" title="验证证书CA"></a>验证证书CA</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl verify -CAfile ca.pem client.pem</span><br></pre></td></tr></table></figure>
+<p>正常输出<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">client.pem: OK</span><br></pre></td></tr></table></figure></p>
+
     </div>
 
     

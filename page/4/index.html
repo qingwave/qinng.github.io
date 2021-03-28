@@ -759,7 +759,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>用户创建role失败，报错:<br></p>
+          <p>用户创建role失败，报错:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl create -f role.yml </span><br><span class="line">Error from server (Forbidden): error when creating <span class="string">"role.yml"</span>: roles.rbac.authorization.k8s.io <span class="string">"pod-modifier"</span> is forbidden: attempt to grant extra privileges: [PolicyRule&#123;APIGroups:[<span class="string">""</span>], Resources:[<span class="string">"pods"</span>], Verbs:[<span class="string">"get"</span>]&#125;] user=&amp;&#123;<span class="built_in">test</span> <span class="built_in">test</span> [system:authenticated] map[]&#125; ownerrules=[PolicyRule&#123;APIGroups:[<span class="string">"authorization.k8s.io"</span>], Resources:[<span class="string">"selfsubjectaccessreviews"</span> <span class="string">"selfsubjectrulesreviews"</span>], Verbs:[<span class="string">"create"</span>]&#125; PolicyRule&#123;NonResourceURLs:[<span class="string">"/api"</span> <span class="string">"/api/*"</span> <span class="string">"/apis"</span> <span class="string">"/apis/*"</span> <span class="string">"/healthz"</span> <span class="string">"/openapi"</span> <span class="string">"/openapi/*"</span> <span class="string">"/swagger-2.0.0.pb-v1"</span> <span class="string">"/swagger.json"</span> <span class="string">"/swaggerapi"</span> <span class="string">"/swaggerapi/*"</span> <span class="string">"/version"</span> <span class="string">"/version/"</span>], Verbs:[<span class="string">"get"</span>]&#125;] ruleResolutionErrors=[]</span><br></pre></td></tr></table></figure></p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/k8s-serviceaccount-mount-failed/" rel="contents">
@@ -1171,7 +1171,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">source &lt;(kubectl completion bash)</span><br><span class="line">echo "source &lt;(kubectl completion bash)" &gt;&gt; ~/.bashrc</span><br></pre></td></tr></tbody></table></figure>
+          <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">source &lt;(kubectl completion bash)</span><br><span class="line">echo &quot;source &lt;(kubectl completion bash)&quot; &gt;&gt; ~/.bashrc</span><br></pre></td></tr></table></figure>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/kubectl-auto-completion/" rel="contents">

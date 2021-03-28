@@ -256,33 +256,15 @@
 </ul>
 <h3 id="配置Ubuntu"><a href="#配置Ubuntu" class="headerlink" title="配置Ubuntu"></a>配置Ubuntu</h3><p>配置源，配置Sudo免密码，安装必要软件Python、Git、Docker等，终端美化可通过安装Zsh…</p>
 <h2 id="安装VSCode-WSL插件"><a href="#安装VSCode-WSL插件" class="headerlink" title="安装VSCode WSL插件"></a>安装VSCode WSL插件</h2><p>VSCode已经支持了<a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl" target="_blank" rel="noopener">WSL插件</a></p>
-<p>最终界面如下：<br><img src="/img/blogImg/wsl-vscode.png" alt=""></p>
+<p>最终界面如下：<br><img src="/img/blogImg/wsl-vscode.png" alt></p>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>可以愉快的使用VSCode开发，目前也发现了几点小问题：</p>
 <ul>
 <li>Vscode Terminal改为WSL后，启动会有1-2秒延时</li>
-<li>WSL2中的软件配置开机自启比较麻烦，网上有方案，我是通过快捷命令如启动 Docker <code>alias sds="sudo service docker start"</code></li>
+<li>WSL2中的软件配置开机自启比较麻烦，网上有方案，我是通过快捷命令如启动 Docker <code>alias sds=&quot;sudo service docker start&quot;</code></li>
 <li>WSL2本质是个虚拟机，网络方式和本地有一定差异，对我来说影响不大</li>
 </ul>
 <p>目前在家办公已两周，此方案感觉良好。</p>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>
+
     </div>
 
     

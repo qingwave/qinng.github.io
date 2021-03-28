@@ -243,25 +243,7 @@
       
         <h2 id="春节到了"><a href="#春节到了" class="headerlink" title="春节到了"></a>春节到了</h2><p>一年又过去了<br>还没有下雪<br>匆匆忙忙<br>春节又来了<br>回家过年</p>
 <h2 id="来年再见"><a href="#来年再见" class="headerlink" title="来年再见"></a>来年再见</h2><p>希望的<br>或许实现了<br>或许还在希望着<br>只能留到明年了</p>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>
+
     </div>
 
     

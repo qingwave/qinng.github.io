@@ -20,18 +20,18 @@
     var CONFIG = {"hostname":"qingwave.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="用户创建role失败，报错:">
+  <meta name="description" content="用户创建role失败，报错:12$ kubectl create -f role.yml Error from server (Forbidden): error when creating &quot;role.yml&quot;: roles.rbac.authorization.k8s.io &quot;pod-modifier&quot; is forbidden: attempt to grant extra privileg">
 <meta name="keywords" content="k8s">
 <meta property="og:type" content="article">
 <meta property="og:title" content="k8s serviceaccount挂载pod问题">
 <meta property="og:url" content="https://qingwave.github.io/k8s-serviceaccount-mount-failed/index.html">
 <meta property="og:site_name" content="Qinng">
-<meta property="og:description" content="用户创建role失败，报错:">
+<meta property="og:description" content="用户创建role失败，报错:12$ kubectl create -f role.yml Error from server (Forbidden): error when creating &quot;role.yml&quot;: roles.rbac.authorization.k8s.io &quot;pod-modifier&quot; is forbidden: attempt to grant extra privileg">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:updated_time" content="2020-03-19T03:22:04.353Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="k8s serviceaccount挂载pod问题">
-<meta name="twitter:description" content="用户创建role失败，报错:">
+<meta name="twitter:description" content="用户创建role失败，报错:12$ kubectl create -f role.yml Error from server (Forbidden): error when creating &quot;role.yml&quot;: roles.rbac.authorization.k8s.io &quot;pod-modifier&quot; is forbidden: attempt to grant extra privileg">
 
 <link rel="canonical" href="https://qingwave.github.io/k8s-serviceaccount-mount-failed/">
 
@@ -241,31 +241,13 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="问题1"><a href="#问题1" class="headerlink" title="问题1"></a>问题1</h2><p>用户创建role失败，报错:<br></p><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl create -f role.yml </span><br><span class="line">Error from server (Forbidden): error when creating <span class="string">"role.yml"</span>: roles.rbac.authorization.k8s.io <span class="string">"pod-modifier"</span> is forbidden: attempt to grant extra privileges: [PolicyRule{APIGroups:[<span class="string">""</span>], Resources:[<span class="string">"pods"</span>], Verbs:[<span class="string">"get"</span>]}] user=&amp;{<span class="built_in">test</span> <span class="built_in">test</span> [system:authenticated] map[]} ownerrules=[PolicyRule{APIGroups:[<span class="string">"authorization.k8s.io"</span>], Resources:[<span class="string">"selfsubjectaccessreviews"</span> <span class="string">"selfsubjectrulesreviews"</span>], Verbs:[<span class="string">"create"</span>]} PolicyRule{NonResourceURLs:[<span class="string">"/api"</span> <span class="string">"/api/*"</span> <span class="string">"/apis"</span> <span class="string">"/apis/*"</span> <span class="string">"/healthz"</span> <span class="string">"/openapi"</span> <span class="string">"/openapi/*"</span> <span class="string">"/swagger-2.0.0.pb-v1"</span> <span class="string">"/swagger.json"</span> <span class="string">"/swaggerapi"</span> <span class="string">"/swaggerapi/*"</span> <span class="string">"/version"</span> <span class="string">"/version/"</span>], Verbs:[<span class="string">"get"</span>]}] ruleResolutionErrors=[]</span><br></pre></td></tr></tbody></table></figure><p></p>
+        <h2 id="问题1"><a href="#问题1" class="headerlink" title="问题1"></a>问题1</h2><p>用户创建role失败，报错:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl create -f role.yml </span><br><span class="line">Error from server (Forbidden): error when creating <span class="string">"role.yml"</span>: roles.rbac.authorization.k8s.io <span class="string">"pod-modifier"</span> is forbidden: attempt to grant extra privileges: [PolicyRule&#123;APIGroups:[<span class="string">""</span>], Resources:[<span class="string">"pods"</span>], Verbs:[<span class="string">"get"</span>]&#125;] user=&amp;&#123;<span class="built_in">test</span> <span class="built_in">test</span> [system:authenticated] map[]&#125; ownerrules=[PolicyRule&#123;APIGroups:[<span class="string">"authorization.k8s.io"</span>], Resources:[<span class="string">"selfsubjectaccessreviews"</span> <span class="string">"selfsubjectrulesreviews"</span>], Verbs:[<span class="string">"create"</span>]&#125; PolicyRule&#123;NonResourceURLs:[<span class="string">"/api"</span> <span class="string">"/api/*"</span> <span class="string">"/apis"</span> <span class="string">"/apis/*"</span> <span class="string">"/healthz"</span> <span class="string">"/openapi"</span> <span class="string">"/openapi/*"</span> <span class="string">"/swagger-2.0.0.pb-v1"</span> <span class="string">"/swagger.json"</span> <span class="string">"/swaggerapi"</span> <span class="string">"/swaggerapi/*"</span> <span class="string">"/version"</span> <span class="string">"/version/"</span>], Verbs:[<span class="string">"get"</span>]&#125;] ruleResolutionErrors=[]</span><br></pre></td></tr></table></figure></p>
 <h3 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h3><p>错误显示<code>user=&amp;{test test [system:authenticated] map[]}</code>这个user没有权限，在<code>~/.kube/config</code>添加admin用户</p>
 <h2 id="问题2"><a href="#问题2" class="headerlink" title="问题2"></a>问题2</h2><p>创建serviceaccount后，没有挂载到pod中</p>
-<h3 id="解决-1"><a href="#解决-1" class="headerlink" title="解决"></a>解决</h3><p>需要在apiserver配置中开启，添加<code>--admission-control=ServiceAccount --authorization-mode=RBAC</code>，重启<br></p><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl daemon-reload</span><br><span class="line">$ systemctl restart kube-apiserver</span><br></pre></td></tr></tbody></table></figure><p></p>
+<h3 id="解决-1"><a href="#解决-1" class="headerlink" title="解决"></a>解决</h3><p>需要在apiserver配置中开启，添加<code>--admission-control=ServiceAccount --authorization-mode=RBAC</code>，重启<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl daemon-reload</span><br><span class="line">$ systemctl restart kube-apiserver</span><br></pre></td></tr></table></figure></p>
 <h2 id="问题3"><a href="#问题3" class="headerlink" title="问题3"></a>问题3</h2><p>添加配置后,直接创建pod能够加载sa与token，创建deployment则不行</p>
 <h3 id="解决-2"><a href="#解决-2" class="headerlink" title="解决"></a>解决</h3><p>kubeconfig配置有问题，确认其中user的配置</p>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>
+
     </div>
 
     

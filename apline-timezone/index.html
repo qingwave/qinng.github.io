@@ -249,26 +249,8 @@
 <li><p>设置字符格式<br>设置环境变量<code>LANG</code>与<code>LC_ALL</code></p>
 </li>
 </ol>
-<p>Dockerfile如下：<br></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">FROM alpine</span><br><span class="line"></span><br><span class="line">ENV TZ=Asia/Shanghai \</span><br><span class="line">    LANG=en_US.UTF-8  \</span><br><span class="line">    LC_ALL=en_US.UTF8</span><br><span class="line">    </span><br><span class="line">RUN apk update &amp;&amp; \</span><br><span class="line">    apk add --no-cache tzdata &amp;&amp; \</span><br><span class="line">    addgroup -S work &amp;&amp; adduser -S -G work work -s /bin/bash &amp;&amp; \</span><br><span class="line">    rm -rf /var/cache/apk/* /tmp/* /var/tmp/* $HOME/.cache</span><br></pre></td></tr></tbody></table></figure><p></p>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>
+<p>Dockerfile如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">FROM alpine</span><br><span class="line"></span><br><span class="line">ENV TZ=Asia/Shanghai \</span><br><span class="line">    LANG=en_US.UTF-8  \</span><br><span class="line">    LC_ALL=en_US.UTF8</span><br><span class="line">    </span><br><span class="line">RUN apk update &amp;&amp; \</span><br><span class="line">    apk add --no-cache tzdata &amp;&amp; \</span><br><span class="line">    addgroup -S work &amp;&amp; adduser -S -G work work -s /bin/bash &amp;&amp; \</span><br><span class="line">    rm -rf /var/cache/apk/* /tmp/* /var/tmp/* $HOME/.cache</span><br></pre></td></tr></table></figure></p>
+
     </div>
 
     
