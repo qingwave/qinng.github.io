@@ -7,7 +7,7 @@ tags:
   - crd
 date: 2020-07-14 11:12:20
 categories:
-  - k8s
+  - cloud
 ---
 
 总结下项目中可参考k8s相关开源项目，不断更新中...
