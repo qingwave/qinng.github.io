@@ -167,7 +167,7 @@ template {
   display: none;
 }
 ::selection {
-  background: #262a30;
+  background: #2bbc8a;
   color: #eee;
 }
 html,
@@ -1268,7 +1268,7 @@ pre .javascript .function {
 }
 .sidebar-nav li {
   border-bottom: 1px solid transparent;
-  color: #666;
+  color: #f5f5f5;
   cursor: pointer;
   display: inline-block;
   font-size: 0.875em;

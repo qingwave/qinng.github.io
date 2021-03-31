@@ -20,20 +20,20 @@
     var CONFIG = {"hostname":"qingwave.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="k8s组件日志级别热更新12# 调整日志级别到3curl -X PUT http://127.0.0.1:8081/debug/flags/v -d &quot;3&quot;">
-<meta name="keywords" content="k8s,docker,pprof">
+  <meta name="description" content="某些情况下我们希望程序通过自定义Nameserver去查询域名，而不希望通过操作系统给定的Nameserver，本文介绍如何在Golang中实现自定义Nameserver。">
+<meta name="keywords" content="golang,dns">
 <meta property="og:type" content="article">
-<meta property="og:title" content="k8s与docker组件堆栈及Debug">
-<meta property="og:url" content="https://qingwave.github.io/k8s-docker-stack/index.html">
+<meta property="og:title" content="Golang自定义DNS Nameserver">
+<meta property="og:url" content="https://qingwave.github.io/golang-special-dns-nameserver/index.html">
 <meta property="og:site_name" content="Qinng">
-<meta property="og:description" content="k8s组件日志级别热更新12# 调整日志级别到3curl -X PUT http://127.0.0.1:8081/debug/flags/v -d &quot;3&quot;">
+<meta property="og:description" content="某些情况下我们希望程序通过自定义Nameserver去查询域名，而不希望通过操作系统给定的Nameserver，本文介绍如何在Golang中实现自定义Nameserver。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2021-02-01T02:16:41.487Z">
+<meta property="og:updated_time" content="2021-03-29T06:51:32.442Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="k8s与docker组件堆栈及Debug">
-<meta name="twitter:description" content="k8s组件日志级别热更新12# 调整日志级别到3curl -X PUT http://127.0.0.1:8081/debug/flags/v -d &quot;3&quot;">
+<meta name="twitter:title" content="Golang自定义DNS Nameserver">
+<meta name="twitter:description" content="某些情况下我们希望程序通过自定义Nameserver去查询域名，而不希望通过操作系统给定的Nameserver，本文介绍如何在Golang中实现自定义Nameserver。">
 
-<link rel="canonical" href="https://qingwave.github.io/k8s-docker-stack/">
+<link rel="canonical" href="https://qingwave.github.io/golang-special-dns-nameserver/">
 
 
 <script id="page-configurations">
@@ -46,7 +46,7 @@
   };
 </script>
 
-  <title>k8s与docker组件堆栈及Debug | Qinng</title>
+  <title>Golang自定义DNS Nameserver | Qinng</title>
   
 
 
@@ -181,7 +181,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/k8s-docker-stack/">
+    <link itemprop="mainEntityOfPage" href="https://qingwave.github.io/golang-special-dns-nameserver/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -194,7 +194,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          k8s与docker组件堆栈及Debug
+          Golang自定义DNS Nameserver
         </h1>
 
         <div class="post-meta">
@@ -203,23 +203,17 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2019-05-11 23:11:45" itemprop="dateCreated datePublished" datetime="2019-05-11T23:11:45+08:00">2019-05-11</time>
+              <time title="创建时间：2021-03-29 10:55:24 / 修改时间：14:51:32" itemprop="dateCreated datePublished" datetime="2021-03-29T10:55:24+08:00">2021-03-29</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-02-01 10:16:41" itemprop="dateModified" datetime="2021-02-01T10:16:41+08:00">2021-02-01</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/cloud/" itemprop="url" rel="index"><span itemprop="name">cloud</span></a>
+                  <a href="/categories/coding/" itemprop="url" rel="index"><span itemprop="name">coding</span></a>
                 </span>
             </span>
 
@@ -241,12 +235,20 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>k8s组件日志级别热更新<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 调整日志级别到3</span></span><br><span class="line">curl -X PUT http://127.0.0.1:8081/debug/flags/v -d <span class="string">"3"</span></span><br></pre></td></tr></table></figure></p>
-<p>controller manager<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">wget http://localhost:10252/debug/pprof/profile</span><br><span class="line">wget http://localhost:10252/debug/pprof/heap</span><br><span class="line">curl http://127.0.0.1:10252/debug/pprof/goroutine?debug=1 &gt;&gt; debug1</span><br><span class="line">curl http://127.0.0.1:10252/debug/pprof/goroutine?debug=2 &gt;&gt; debug2</span><br></pre></td></tr></table></figure></p>
-<p>scheduler<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">kill</span> -12 <span class="variable">$&#123;SCHED_PID&#125;</span></span><br><span class="line">获取scheduler cache信息，输出到日志</span><br></pre></td></tr></table></figure></p>
-<p>kubelet 堆栈信息<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">wget http://localhost:10250/debug/pprof/profile</span><br><span class="line">wget http://localhost:10250/debug/pprof/heap</span><br><span class="line">curl http://127.0.0.1:10250/debug/pprof/goroutine?debug=1 &gt;&gt; debug1</span><br><span class="line">curl http://127.0.0.1:10250/debug/pprof/goroutine?debug=2 &gt;&gt; debug2</span><br></pre></td></tr></table></figure></p>
-<p>docker 堆栈信息<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">curl --unix-socket /var/run/docker.sock -X GET http://v1.2/debug/pprof/profile</span><br><span class="line">curl --unix-socket /var/run/docker.sock -X GET http://v1.2/debug/pprof/</span><br><span class="line">curl --unix-socket /var/run/docker.sock -X GET http://v1.2/debug/pprof/</span><br><span class="line"> </span><br><span class="line">sudo <span class="built_in">kill</span> -SIGUSR1 $(pidof dockerd)</span><br><span class="line">/var/run/docker/</span><br><span class="line"> </span><br><span class="line">curl --unix-socket /var/run/docker.sock -X GET http://v1.2/debug/pprof/profile &gt;&gt;docker.profile</span><br><span class="line">curl --unix-socket /var/run/docker.sock -X GET http://v1.2/debug/pprof/goroutine &gt;&gt; docker.goroutine</span><br><span class="line">curl --unix-socket /var/run/docker.sock -X GET http://v1.2/debug/pprof/goroutine?debug=2 &gt;&gt;docker.gorouting_debug_2</span><br><span class="line">curl --unix-socket /var/run/docker.sock -X GET http://v1.2/debug/pprof/heap?debug=2 &gt;&gt;docker.heap</span><br></pre></td></tr></table></figure></p>
-<p>docker-registry 堆栈信息<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#先登入机器,然后执行</span></span><br><span class="line">wget localhost:5002/debug/pprof/profile <span class="comment">#这个是cpu占用时间的采样结果，要先等30s</span></span><br><span class="line">wget localhost:5002/debug/pprof/heap <span class="comment">#内存的使用情况</span></span><br><span class="line">wget localhost:5002/debug/pprof/goroutine?debug=2 <span class="comment">#调用栈的全部信息</span></span><br><span class="line">wget localhost:5002/debug/pprof/goroutine</span><br><span class="line">其他可用的profile:</span><br><span class="line">allocs block goroutine cmdline mutex threadcreate trace，替换上面命令pprof/后面的词即可</span><br></pre></td></tr></table></figure></p>
+        <p>某些情况下我们希望程序通过自定义<code>Nameserver</code>去查询域名，而不希望通过操作系统给定的<code>Nameserver</code>，本文介绍如何在<code>Golang</code>中实现自定义<code>Nameserver</code>。</p>
+<h2 id="DNS解析过程"><a href="#DNS解析过程" class="headerlink" title="DNS解析过程"></a>DNS解析过程</h2><p><code>Golang</code>中一般通过<code>net.Resolver</code>的<code>LookupHost(ctx context.Context, host string) (addrs []string, err error)</code>去实现域名解析，解析过程如下：</p>
+<ol>
+<li>检查本地<code>hosts</code>文件是否存在解析记录，存在即返回解析地址</li>
+<li>不存在即根据<code>resolv.conf</code>中读取的<code>nameserver</code>发起递归查询</li>
+<li><code>nameserver</code>不断的向上级<code>nameserver</code>发起迭代查询</li>
+<li><code>nameserver</code>最终返回查询结果给请求者</li>
+</ol>
+<p>用户可以通过修改<code>/etc/resolv.conf</code>来添加特定的<code>nameserver</code>，但某些场景下我们不希望更改系统配置。比如在<code>kubernetes</code>中，作为<code>sidecar</code>服务需要通过<code>service</code>去访问其他集群内服务，必须更改<code>dnsPolicy</code>为<code>ClusterFirst</code>，但这可能会影响其他容器的DNS查询效率。</p>
+<h2 id="自定义Nameserver"><a href="#自定义Nameserver" class="headerlink" title="自定义Nameserver"></a>自定义Nameserver</h2><p>在<code>Golang</code>中自定义<code>Nameserver</code>，需要我们自己实现一个<code>Resolver</code>，如果是<code>httpClient</code>需要自定义<code>DialContext()</code></p>
+<p><code>Resolver</code>实现如下：<br><figure class="highlight golang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 默认dialer</span></span><br><span class="line">dialer := &amp;net.Dialer&#123;</span><br><span class="line">		Timeout: <span class="number">1</span> * time.Second,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义resolver</span></span><br><span class="line">resolver := &amp;net.Resolver&#123;</span><br><span class="line">	Dial: <span class="function"><span class="keyword">func</span><span class="params">(ctx context.Context, network, address <span class="keyword">string</span>)</span> <span class="params">(net.Conn, error)</span></span> &#123;</span><br><span class="line">		<span class="keyword">return</span> dialer.DialContext(ctx, <span class="string">"tcp"</span>, nameserver) <span class="comment">// 通过tcp请求nameserver解析域名</span></span><br><span class="line">	&#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>自定义<code>Dialer</code>如下：<br><figure class="highlight golang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Dialer <span class="keyword">struct</span> &#123;</span><br><span class="line">	dialer     *net.Dialer</span><br><span class="line">	resolver   *net.Resolver</span><br><span class="line">	nameserver <span class="keyword">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// NewDialer create a Dialer with user's nameserver.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewDialer</span><span class="params">(dialer *net.Dialer, nameserver <span class="keyword">string</span>)</span> <span class="params">(*Dialer, error)</span></span> &#123;</span><br><span class="line">	conn, err := dialer.Dial(<span class="string">"tcp"</span>, nameserver)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">defer</span> conn.Close()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> &amp;Dialer&#123;</span><br><span class="line">		dialer: dialer,</span><br><span class="line">		resolver: &amp;net.Resolver&#123;</span><br><span class="line">			Dial: <span class="function"><span class="keyword">func</span><span class="params">(ctx context.Context, network, address <span class="keyword">string</span>)</span> <span class="params">(net.Conn, error)</span></span> &#123;</span><br><span class="line">				<span class="keyword">return</span> dialer.DialContext(ctx, <span class="string">"tcp"</span>, nameserver)</span><br><span class="line">			&#125;,</span><br><span class="line">		&#125;,</span><br><span class="line">		nameserver: nameserver, <span class="comment">// 用户设置的nameserver</span></span><br><span class="line">	&#125;, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// DialContext connects to the address on the named network using</span></span><br><span class="line"><span class="comment">// the provided context.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Dialer)</span> <span class="title">DialContext</span><span class="params">(ctx context.Context, network, address <span class="keyword">string</span>)</span> <span class="params">(net.Conn, error)</span></span> &#123;</span><br><span class="line">	host, port, err := net.SplitHostPort(address)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	ips, err := d.resolver.LookupHost(ctx, host) <span class="comment">// 通过自定义nameserver查询域名</span></span><br><span class="line">	<span class="keyword">for</span> _, ip := <span class="keyword">range</span> ips &#123;</span><br><span class="line">    <span class="comment">// 创建链接</span></span><br><span class="line">		conn, err := d.dialer.DialContext(ctx, network, ip+<span class="string">":"</span>+port)</span><br><span class="line">		<span class="keyword">if</span> err == <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> conn, <span class="literal">nil</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> d.dialer.DialContext(ctx, network, address)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>httpClient</code>中自定义<code>DialContext()</code>如下：<br><figure class="highlight golang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ndialer, _ := NewDialer(dialer, nameserver)</span><br><span class="line"></span><br><span class="line">client := &amp;http.Client&#123;</span><br><span class="line">  Transport: &amp;http.Transport&#123;</span><br><span class="line">    DialContext:         ndialer.DialContext,</span><br><span class="line">    TLSHandshakeTimeout: <span class="number">10</span> * time.Second,</span><br><span class="line">  &#125;,</span><br><span class="line">  Timeout: timeout,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>通过以上实现可解决自定义<code>Nameserver</code>，也可以在<code>Dailer</code>中添加缓存，实现DNS缓存。</p>
 
     </div>
 
@@ -262,7 +264,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="https://qingwave.github.io/k8s-docker-stack/" title="k8s与docker组件堆栈及Debug">https://qingwave.github.io/k8s-docker-stack/</a>
+    <a href="https://qingwave.github.io/golang-special-dns-nameserver/" title="Golang自定义DNS Nameserver">https://qingwave.github.io/golang-special-dns-nameserver/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -273,9 +275,8 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/k8s/" rel="tag"># k8s</a>
-              <a href="/tags/docker/" rel="tag"># docker</a>
-              <a href="/tags/pprof/" rel="tag"># pprof</a>
+              <a href="/tags/golang/" rel="tag"># golang</a>
+              <a href="/tags/dns/" rel="tag"># dns</a>
           </div>
 
         
@@ -284,12 +285,12 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/container-memory/" rel="prev" title="容器内存分析">
-      <i class="fa fa-chevron-left"></i> 容器内存分析
+    <a href="/prometheus-auto-federation/" rel="prev" title="Prometheus高可用自动分区方案">
+      <i class="fa fa-chevron-left"></i> Prometheus高可用自动分区方案
     </a></div>
       <div class="post-nav-item">
-    <a href="/openssl-cmd/" rel="next" title="openssl常用命令">
-      openssl常用命令 <i class="fa fa-chevron-right"></i>
+    <a href="/sudongpo/" rel="next" title="也谈苏东坡">
+      也谈苏东坡 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -350,6 +351,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#DNS解析过程"><span class="nav-number">1.</span> <span class="nav-text">DNS解析过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自定义Nameserver"><span class="nav-number">2.</span> <span class="nav-text">自定义Nameserver</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -582,7 +584,7 @@ NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
       repo        : 'qingwave.github.io',
       owner       : 'qingwave',
       admin       : ['qingwave'],
-      id          : '2019-05-11T23-11-45',
+      id          : '2021-03-29T10-55-24',
         language: '',
       distractionFreeMode: true
     });
