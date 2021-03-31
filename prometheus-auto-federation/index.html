@@ -32,7 +32,7 @@
 <meta property="og:image" content="https://github.com/thanos-io/thanos/raw/main/docs/img/arch.jpg">
 <meta property="og:image" content="https://qingwave.github.io/img/blogImg/prometheus-ha.png">
 <meta property="og:image" content="https://qingwave.github.io/img/blogImg/thanos-query.png">
-<meta property="og:updated_time" content="2021-03-31T09:39:22.613Z">
+<meta property="og:updated_time" content="2021-03-31T10:01:32.830Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Prometheus高可用自动分区方案">
 <meta name="twitter:description" content="在Prometheus分区实践中我们介绍了使用集群联邦与远程存储来扩展Prometheus以及监控数据持久化，但之前的分区方案存在一定不足，如分区配置较难维护，全局Prometheus存在性能瓶颈等，本文通过Thanos+Kvass实现更优雅的Prometheus扩展方案。">
@@ -216,7 +216,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-31 17:39:22" itemprop="dateModified" datetime="2021-03-31T17:39:22+08:00">2021-03-31</time>
+                <time title="修改时间：2021-03-31 18:01:32" itemprop="dateModified" datetime="2021-03-31T18:01:32+08:00">2021-03-31</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -277,6 +277,11 @@
 <li><code>Coordinator</code>性能需要压测验证</li>
 </ul>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><code>Kvass+Thanos+Remote-write</code>可以实现Prometheus集群的自动分区、全局查询、数据持久化等功能，满足绝大部分场景。虽然有一些问题需要验证优化，但瑕不掩瑜，能够解决原生Prometheus扩展性问题。</p>
+<h2 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h2><ul>
+<li><a href="https://qingwave.github.io/prometheus-federation/">https://qingwave.github.io/prometheus-federation/</a></li>
+<li><a href="https://github.com/tkestack/kvass" target="_blank" rel="noopener">https://github.com/tkestack/kvass</a></li>
+<li><a href="https://github.com/thanos-io/thanos" target="_blank" rel="noopener">https://github.com/thanos-io/thanos</a></li>
+</ul>
 
     </div>
 
@@ -375,7 +380,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#自动分区"><span class="nav-number">1.</span> <span class="nav-text">自动分区</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#全局查询"><span class="nav-number">2.</span> <span class="nav-text">全局查询</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#最终方案"><span class="nav-number">3.</span> <span class="nav-text">最终方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#测试验证"><span class="nav-number">3.1.</span> <span class="nav-text">测试验证</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#待优化问题"><span class="nav-number">3.2.</span> <span class="nav-text">待优化问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#自动分区"><span class="nav-number">1.</span> <span class="nav-text">自动分区</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#全局查询"><span class="nav-number">2.</span> <span class="nav-text">全局查询</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#最终方案"><span class="nav-number">3.</span> <span class="nav-text">最终方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#测试验证"><span class="nav-number">3.1.</span> <span class="nav-text">测试验证</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#待优化问题"><span class="nav-number">3.2.</span> <span class="nav-text">待优化问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#引用"><span class="nav-number">5.</span> <span class="nav-text">引用</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
