@@ -1,3 +1,7 @@
 [submodule "themes/matery"]
 	path = themes/matery
 	url = git@github.com:qingwave/hexo-theme-matery.git
+[submodule "themes/next"]
+	path = themes/next
+	url = git@github.com:qingwave/hexo-theme-next.git
+	branch = qinng

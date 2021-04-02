@@ -12,7 +12,7 @@ categories:
 在[Prometheus分区实践](/prometheus-federation)中我们介绍了使用集群联邦与远程存储来扩展Prometheus以及监控数据持久化，但之前的分区方案存在一定不足，如分区配置较难维护，全局Prometheus存在性能瓶颈等，本文通过`Thanos+Kvass`实现更优雅的Prometheus扩展方案。
 
 ## 自动分区
-之前分区方案依赖Prometheus提供`hashmod`，通过在配置中指定`hash`对象与`modules`进行散列（md5），每个分片只抓取相同job命中的对象，例如我们可以通过对`node`散列从而对`cadvisor`、`node-exporter`等job做分片。
+之前分区方案依赖Prometheus提供的`hashmod`方法，通过在配置中指定`hash`对象与`modules`进行散列（md5），每个分片只抓取相同job命中的对象，例如我们可以通过对`node`散列从而对`cadvisor`、`node-exporter`等job做分片。
 
 通过这种方式可以简单的扩展Prometheus，降低其抓取压力，但是显而易见`hashmod`需要指定散列对象，每个job可能需要配置不同的对象如`node`、`pod`、`ip`等，随着采集对象增多，配置难以维护。直到看见了[Kvass](https://github.com/tkestack/kvass)，Kvass是一个Prometheus横向扩展方案，可以不依赖`hashmod`动态调整target，支持数千万series规模。
 
@@ -77,7 +77,13 @@ prometheus_tsdb_head_chunks{instance="127.0.0.1:9090",job="prometheus_shards",re
 ### 待优化问题
 此方案可满足绝大部分场景，用户可通过自己的实际环境配合不同的组件，但也存在一些需要优化确认的问题
 - `Thanos Ruler`不支持远程写接口，只能存储于Thanos提供的对象存储中
+- `Thanos Query`全局查询依赖多个下游组件，可能只返回部分结果挺好使
 - `Coordinator`性能需要压测验证
 
 ## 总结
 `Kvass+Thanos+Remote-write`可以实现Prometheus集群的自动分区、全局查询、数据持久化等功能，满足绝大部分场景。虽然有一些问题需要验证优化，但瑕不掩瑜，能够解决原生Prometheus扩展性问题。
+
+## 引用
+- https://qingwave.github.io/prometheus-federation/
+- https://github.com/tkestack/kvass
+- https://github.com/thanos-io/thanos
