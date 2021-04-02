@@ -32,7 +32,7 @@
 <meta property="og:image" content="https://github.com/thanos-io/thanos/raw/main/docs/img/arch.jpg">
 <meta property="og:image" content="https://qingwave.github.io/img/blogImg/prometheus-ha.png">
 <meta property="og:image" content="https://qingwave.github.io/img/blogImg/thanos-query.png">
-<meta property="og:updated_time" content="2021-03-31T10:01:32.830Z">
+<meta property="og:updated_time" content="2021-04-01T03:39:09.857Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Prometheus高可用自动分区方案">
 <meta name="twitter:description" content="在Prometheus分区实践中我们介绍了使用集群联邦与远程存储来扩展Prometheus以及监控数据持久化，但之前的分区方案存在一定不足，如分区配置较难维护，全局Prometheus存在性能瓶颈等，本文通过Thanos+Kvass实现更优雅的Prometheus扩展方案。">
@@ -216,7 +216,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-31 18:01:32" itemprop="dateModified" datetime="2021-03-31T18:01:32+08:00">2021-03-31</time>
+                <time title="修改时间：2021-04-01 11:39:09" itemprop="dateModified" datetime="2021-04-01T11:39:09+08:00">2021-04-01</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -247,7 +247,7 @@
 
       
         <p>在<a href="/prometheus-federation">Prometheus分区实践</a>中我们介绍了使用集群联邦与远程存储来扩展Prometheus以及监控数据持久化，但之前的分区方案存在一定不足，如分区配置较难维护，全局Prometheus存在性能瓶颈等，本文通过<code>Thanos+Kvass</code>实现更优雅的Prometheus扩展方案。</p>
-<h2 id="自动分区"><a href="#自动分区" class="headerlink" title="自动分区"></a>自动分区</h2><p>之前分区方案依赖Prometheus提供<code>hashmod</code>，通过在配置中指定<code>hash</code>对象与<code>modules</code>进行散列（md5），每个分片只抓取相同job命中的对象，例如我们可以通过对<code>node</code>散列从而对<code>cadvisor</code>、<code>node-exporter</code>等job做分片。</p>
+<h2 id="自动分区"><a href="#自动分区" class="headerlink" title="自动分区"></a>自动分区</h2><p>之前分区方案依赖Prometheus提供的<code>hashmod</code>方法，通过在配置中指定<code>hash</code>对象与<code>modules</code>进行散列（md5），每个分片只抓取相同job命中的对象，例如我们可以通过对<code>node</code>散列从而对<code>cadvisor</code>、<code>node-exporter</code>等job做分片。</p>
 <p>通过这种方式可以简单的扩展Prometheus，降低其抓取压力，但是显而易见<code>hashmod</code>需要指定散列对象，每个job可能需要配置不同的对象如<code>node</code>、<code>pod</code>、<code>ip</code>等，随着采集对象增多，配置难以维护。直到看见了<a href="https://github.com/tkestack/kvass" target="_blank" rel="noopener">Kvass</a>，Kvass是一个Prometheus横向扩展方案，可以不依赖<code>hashmod</code>动态调整target，支持数千万series规模。</p>
 <p>Kvass核心架构如下：<br><img src="https://github.com/tkestack/kvass/raw/master/README.assets/image-20201126031456582.png" alt="kvass"></p>
 <ul>
@@ -274,6 +274,7 @@
 <h3 id="待优化问题"><a href="#待优化问题" class="headerlink" title="待优化问题"></a>待优化问题</h3><p>此方案可满足绝大部分场景，用户可通过自己的实际环境配合不同的组件，但也存在一些需要优化确认的问题</p>
 <ul>
 <li><code>Thanos Ruler</code>不支持远程写接口，只能存储于Thanos提供的对象存储中</li>
+<li><code>Thanos Query</code>全局查询依赖多个下游组件，可能只返回部分结果挺好使</li>
 <li><code>Coordinator</code>性能需要压测验证</li>
 </ul>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><code>Kvass+Thanos+Remote-write</code>可以实现Prometheus集群的自动分区、全局查询、数据持久化等功能，满足绝大部分场景。虽然有一些问题需要验证优化，但瑕不掩瑜，能够解决原生Prometheus扩展性问题。</p>
@@ -316,7 +317,10 @@
 
         
     <div class="post-nav">
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/k8s-hpa-enchance/" rel="prev" title="优化Kubernetes横向扩缩HPA">
+      <i class="fa fa-chevron-left"></i> 优化Kubernetes横向扩缩HPA
+    </a></div>
       <div class="post-nav-item">
     <a href="/golang-special-dns-nameserver/" rel="next" title="Golang自定义DNS Nameserver">
       Golang自定义DNS Nameserver <i class="fa fa-chevron-right"></i>
@@ -394,7 +398,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">51</span>
+          <span class="site-state-item-count">52</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -406,7 +410,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-count">27</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
